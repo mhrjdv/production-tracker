@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Film, Users, Layers } from "lucide-react";
+import { Plus, Film, Users, Layers, Sparkles } from "lucide-react";
 import DashboardLoading from "./loading";
 
 async function DashboardContent() {
@@ -52,12 +52,20 @@ async function DashboardContent() {
                             : `You have ${projects.length} project${projects.length === 1 ? "" : "s"}`}
                     </p>
                 </div>
-                <Link href="/projects/new">
-                    <Button className="gap-2">
-                        <Plus className="h-4 w-4" />
-                        New Project
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link href="/projects/upload-script">
+                        <Button variant="outline" className="gap-2">
+                            <Sparkles className="h-4 w-4" />
+                            Upload Script
+                        </Button>
+                    </Link>
+                    <Link href="/projects/new">
+                        <Button className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            New Project
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {/* Projects Grid */}
