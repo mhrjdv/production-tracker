@@ -1,0 +1,148 @@
+// ============================================================
+// Prisma Schema — Production Tracker Platform
+// Multi-tenant with Auth.js v5
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth.js Models ──────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  passwordHash  String    @map("password_hash")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  projects      Project[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Core Domain ─────────────────────────────────────────────
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  genre       String?
+  status      String        @default("active") // active, archived, completed
+  coverImage  String?       @map("cover_image")
+  userId      String        @map("user_id")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenes      Scene[]
+  characters  Character[]
+  identity    FilmIdentity?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Scene {
+  id                String   @id @default(cuid())
+  sceneId           String   @map("scene_id") // User-facing ID (S001, S002)
+  projectId         String   @map("project_id")
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceText        String   @map("source_text")
+  reason            String   @default("")
+  act               Int
+  actTitle          String   @map("act_title")
+  macroScene        String   @map("macro_scene")
+  storyBeat         String   @map("story_beat")
+  narrativePurpose  String?  @map("narrative_purpose")
+  emotionalTone     String?  @map("emotional_tone")
+  setting           Json?
+  camera            Json?
+  actions           String[]
+  visualMotifs      String[] @map("visual_motifs")
+  constraints       String[]
+  charactersPresent String[] @map("characters_present")
+  keyframeUrl       String?  @map("keyframe_url")
+  sortOrder         Int      @default(0) @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, sceneId])
+  @@index([projectId])
+  @@map("scenes")
+}
+
+model Character {
+  id               String   @id @default(cuid())
+  name             String
+  projectId        String   @map("project_id")
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role             String
+  designPhilosophy String?  @map("design_philosophy")
+  visualCues       String[] @map("visual_cues")
+  bodyLanguage     String[] @map("body_language")
+  coreIdentity     String?  @map("core_identity")
+  portraitUrl      String?  @map("portrait_url")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("characters")
+}
+
+model FilmIdentity {
+  id        String   @id @default(cuid())
+  projectId String   @unique @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  data      Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("film_identities")
+}

@@ -1,0 +1,198 @@
+{
+  "character_descriptions": {
+    "Laser Man": {
+      "role": "Protagonist, reluctant superhero",
+      "age_range": "Early 40s",
+      "core_identity": "A once-flawless superhero whose power is tied directly to his eyesight",
+      "personality": {
+        "public": "Confident, witty, reassuring, slightly performative",
+        "private": "Self-doubting, exhausted, quietly fearful of decline"
+      },
+      "core_conflict": "Losing precision in his vision threatens both his power and his sense of worth",
+      "emotional_arc": "From mythic invincibility to public failure, withdrawal, scientific understanding, and earned return",
+      "strengths": [
+        "Immense raw power",
+        "Moral clarity",
+        "Willingness to learn when ego drops"
+      ],
+      "flaws": [
+        "Neglects self-care",
+        "Over-identifies with his public image",
+        "Avoids vulnerability"
+      ],
+      "visual_cues": {
+        "body_language": "Heroic posture that gradually slumps during downfall, then stabilizes",
+        "eyes": "Source of power and vulnerability; frequent rubbing, squinting when unstable",
+        "costume_fit": "Perfect in prime, slightly ill-fitting after decline"
+      }
+    },
+
+    "Vyom Bakshi": {
+      "role": "Co-protagonist, catalyst",
+      "age_range": "Early teens",
+      "core_identity": "A science-loving boy who bridges curiosity and courage",
+      "personality": {
+        "dominant_traits": [
+          "Curious",
+          "Empathetic",
+          "Persistent",
+          "Quietly confident"
+        ]
+      },
+      "core_conflict": "Proving that knowledge and patience can save even legends",
+      "emotional_arc": "From awe-struck fan to equal partner and guide",
+      "strengths": [
+        "Scientific thinking",
+        "Emotional intelligence",
+        "Fearless honesty"
+      ],
+      "visual_cues": {
+        "body_language": "Alert, forward-leaning, constantly observing",
+        "expressions": "Wonder-driven, light-eyed, rarely cynical"
+      }
+    },
+
+    "Shreelatha": {
+      "role": "Mother, origin anchor",
+      "age_range": "Middle-aged",
+      "core_identity": "Grounded, resilient woman unknowingly present at the birth of a legend",
+      "narrative_function": "Links the hero's power to chance, nature, and human fragility",
+      "personality": {
+        "traits": [
+          "Calm under pressure",
+          "Protective",
+          "Emotionally steady"
+        ]
+      },
+      "visual_cues": {
+        "presence": "Soft-spoken, minimal movement",
+        "symbolism": "Human life continuing amid chaos"
+      }
+    },
+
+    "Grandfather": {
+      "role": "Myth-maker, storyteller",
+      "age_range": "Elderly",
+      "core_identity": "A playful narrator who frames history as legend",
+      "personality": {
+        "traits": [
+          "Warm",
+          "Humorous",
+          "Nostalgic"
+        ]
+      },
+      "narrative_function": "Transforms ordinary events into heroic folklore",
+      "visual_cues": {
+        "gestures": "Expressive hands, slow movements",
+        "props": "Glasses as symbolic link to vision theme"
+      }
+    },
+
+    "Chashmebaddur Roy": {
+      "role": "Mentor, educator",
+      "profession": "Optometrist",
+      "core_identity": "Science personified as humor, rhythm, and clarity",
+      "personality": {
+        "traits": [
+          "Eccentric",
+          "Sharp",
+          "Compassionate beneath comedy"
+        ]
+      },
+      "narrative_function": "Turns scientific concepts into emotional turning points",
+      "visual_cues": {
+        "movement": "Energetic, musical",
+        "speech": "Rhythmic, exaggerated for teaching effect"
+      }
+    },
+
+    "Eightdrian": {
+      "role": "Antagonist, force-of-nature threat",
+      "species": "Giant octopus",
+      "core_identity": "Chaos, scale, and unpredictability",
+      "strengths": [
+        "Multiple limbs",
+        "Disguise",
+        "Raw power"
+      ],
+      "weakness": "Short lifespan",
+      "narrative_function": "Tests Laser Man's raw strength rather than precision",
+      "visual_cues": {
+        "movement": "Heavy, fluid, overwhelming",
+        "scale": "Always dwarfs human presence"
+      }
+    },
+
+    "Ozzy the Owl": {
+      "role": "Precision antagonist",
+      "core_identity": "A villain who exploits accuracy and weak points",
+      "strengths": [
+        "Night vision",
+        "Speed",
+        "Life crystal"
+      ],
+      "weakness": "Life crystal",
+      "narrative_function": "Exposes Laser Man's failing precision",
+      "visual_cues": {
+        "motion": "Sudden, sharp, intimidating stillness before attack",
+        "eyes": "Unblinking, judgmental"
+      }
+    },
+
+    "Sledgehammer": {
+      "role": "Brute-force antagonist",
+      "core_identity": "Raw strength with hidden vulnerability",
+      "personality": {
+        "traits": [
+          "Direct",
+          "Emotionally simple",
+          "Surprisingly honest"
+        ]
+      },
+      "narrative_function": "Mirrors the theme of untreated weakness",
+      "visual_cues": {
+        "movement": "Heavy, ground-shaking",
+        "posture": "Dominant until vision fails"
+      }
+    },
+
+    "Glitcher": {
+      "role": "Perception-based antagonist",
+      "core_identity": "Illusion through refraction and misdirection",
+      "strengths": [
+        "Image distortion",
+        "Smoke-based illusions"
+      ],
+      "narrative_function": "Externalizes optical science as combat",
+      "visual_cues": {
+        "appearance": "Flickering, unstable",
+        "movement": "Erratic, taunting"
+      }
+    },
+
+    "Sandman": {
+      "role": "Formless antagonist",
+      "core_identity": "Disintegration and scattering",
+      "strengths": [
+        "Regeneration",
+        "Particle-based body"
+      ],
+      "weakness": "Water",
+      "narrative_function": "Enables large-scale science-based climax",
+      "visual_cues": {
+        "form": "Never fully solid",
+        "interaction": "Breaks apart under force"
+      }
+    },
+
+    "Villain Leader": {
+      "role": "Systemic antagonist",
+      "core_identity": "Fear, hierarchy, and faceless authority",
+      "narrative_function": "Represents organized opposition rather than physical threat",
+      "visual_cues": {
+        "presence": "Voice-only, obscured",
+        "tone": "Cold, controlled"
+      }
+    }
+  }
+}
