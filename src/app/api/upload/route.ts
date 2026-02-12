@@ -1,8 +1,13 @@
+// ============================================================
+// POST /api/upload — File Upload Endpoint (Cloudflare R2)
+// Handles image uploads for project assets (portraits, keyframes)
+// Returns the public R2 URL
+// ============================================================
+
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { randomUUID } from "crypto";
+import { uploadToR2 } from "@/lib/r2";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -15,6 +20,8 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const projectId = formData.get("projectId") as string | null;
+    const folder = formData.get("folder") as string || "uploads";
 
     if (!file) {
         return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -34,14 +41,27 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    const ext = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
-    const filename = `${randomUUID()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), "public", "images", "uploads");
+    try {
+        const ext = file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1];
+        const filename = `${randomUUID()}.${ext}`;
+        const key = projectId
+            ? `projects/${projectId}/${folder}/${filename}`
+            : `uploads/${session.user.id}/${filename}`;
 
-    await mkdir(uploadDir, { recursive: true });
+        const buffer = Buffer.from(await file.arrayBuffer());
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(uploadDir, filename), buffer);
+        const url = await uploadToR2({
+            buffer,
+            key,
+            contentType: file.type,
+        });
 
-    return NextResponse.json({ url: `/images/uploads/${filename}` });
+        return NextResponse.json({ url, key });
+    } catch (error) {
+        console.error("R2 upload error:", error);
+        return NextResponse.json(
+            { error: "Failed to upload file" },
+            { status: 500 }
+        );
+    }
 }
