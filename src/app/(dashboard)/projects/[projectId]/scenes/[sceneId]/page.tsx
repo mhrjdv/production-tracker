@@ -53,7 +53,7 @@ async function SceneDetailContent({
     });
     if (!scene) notFound();
 
-    const [prev, next] = await Promise.all([
+    const [prev, next, assets, platforms] = await Promise.all([
         prisma.scene.findFirst({
             where: { projectId, sortOrder: { lt: scene.sortOrder } },
             orderBy: { sortOrder: "desc" },
@@ -63,6 +63,48 @@ async function SceneDetailContent({
             where: { projectId, sortOrder: { gt: scene.sortOrder } },
             orderBy: { sortOrder: "asc" },
             select: { sceneId: true, storyBeat: true },
+        }),
+        prisma.sceneAssetVersion.findMany({
+            where: { sceneId: scene.id },
+            orderBy: [{ createdAt: "desc" }],
+            select: {
+                id: true,
+                platformId: true,
+                platformKey: true,
+                platformLabel: true,
+                assetType: true,
+                status: true,
+                versionNumber: true,
+                title: true,
+                prompt: true,
+                negativePrompt: true,
+                modelName: true,
+                sourceUrl: true,
+                externalAssetId: true,
+                outputUrl: true,
+                thumbnailUrl: true,
+                metadata: true,
+                tags: true,
+                notes: true,
+                selected: true,
+                createdAt: true,
+                createdBy: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        }),
+        prisma.aiPlatform.findMany({
+            orderBy: { name: "asc" },
+            select: {
+                id: true,
+                slug: true,
+                name: true,
+                provider: true,
+                specialties: true,
+                supportedOutput: true,
+            },
         }),
     ]);
 
@@ -75,6 +117,30 @@ async function SceneDetailContent({
                 setting: scene.setting as Record<string, string> | null,
                 camera: scene.camera as Record<string, string> | null,
             }}
+            assets={assets.map((asset) => ({
+                id: asset.id,
+                platformId: asset.platformId,
+                platformKey: asset.platformKey,
+                platformLabel: asset.platformLabel,
+                assetType: asset.assetType,
+                status: asset.status,
+                versionNumber: asset.versionNumber,
+                title: asset.title,
+                prompt: asset.prompt,
+                negativePrompt: asset.negativePrompt,
+                modelName: asset.modelName,
+                sourceUrl: asset.sourceUrl,
+                externalAssetId: asset.externalAssetId,
+                outputUrl: asset.outputUrl,
+                thumbnailUrl: asset.thumbnailUrl,
+                metadata: (asset.metadata ?? null) as Record<string, unknown> | null,
+                tags: asset.tags,
+                notes: asset.notes,
+                selected: asset.selected,
+                createdAt: asset.createdAt.toISOString(),
+                createdByName: asset.createdBy?.name || null,
+            }))}
+            platforms={platforms}
             prev={prev}
             next={next}
         />

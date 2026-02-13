@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { AssetType } from "@prisma/client";
 import {
     Card,
     CardContent,
@@ -30,6 +31,7 @@ import {
 } from "lucide-react";
 import { updateScene, deleteScene } from "@/lib/actions";
 import { DeleteDialog } from "@/components/delete-dialog";
+import { SceneAssetsPanel } from "@/components/scene-assets-panel";
 
 interface SceneDetailData {
     id: string;
@@ -56,6 +58,37 @@ interface SceneDetailClientProps {
     projectId: string;
     projectName: string;
     scene: SceneDetailData;
+    assets: Array<{
+        id: string;
+        platformId: string | null;
+        platformKey: string;
+        platformLabel: string;
+        assetType: "SCRIPT" | "IMAGE" | "VIDEO" | "AUDIO" | "MUSIC" | "VOICE" | "NARRATION" | "STORYBOARD" | "OTHER";
+        status: "DRAFT" | "GENERATED" | "SELECTED" | "REJECTED" | "ARCHIVED";
+        versionNumber: number;
+        title: string | null;
+        prompt: string;
+        negativePrompt: string | null;
+        modelName: string | null;
+        sourceUrl: string | null;
+        externalAssetId: string | null;
+        outputUrl: string | null;
+        thumbnailUrl: string | null;
+        metadata: Record<string, unknown> | null;
+        tags: string[];
+        notes: string | null;
+        selected: boolean;
+        createdAt: string;
+        createdByName: string | null;
+    }>;
+    platforms: Array<{
+        id: string;
+        slug: string;
+        name: string;
+        provider: string | null;
+        specialties: string[];
+        supportedOutput: AssetType[];
+    }>;
     prev: { sceneId: string; storyBeat: string } | null;
     next: { sceneId: string; storyBeat: string } | null;
 }
@@ -64,6 +97,8 @@ export function SceneDetailClient({
     projectId,
     projectName,
     scene,
+    assets,
+    platforms,
     prev,
     next,
 }: SceneDetailClientProps) {
@@ -387,6 +422,12 @@ export function SceneDetailClient({
                     </CardContent>
                 </Card>
             )}
+
+            <SceneAssetsPanel
+                sceneDbId={scene.id}
+                assets={assets}
+                platforms={platforms}
+            />
 
             {/* Prev / Next Navigation */}
             <Separator />

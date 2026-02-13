@@ -6,10 +6,24 @@ import Link from "next/link";
 import {
     Card,
     CardContent,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, GripVertical } from "lucide-react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Clock, Film, ImageIcon, Music2, PlayCircle, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const clipClassMap = {
+    story: "border-slate-400/35 bg-slate-400/15 hover:bg-slate-400/20",
+    image: "border-cyan-400/35 bg-cyan-400/10 hover:bg-cyan-400/20",
+    video: "border-emerald-400/35 bg-emerald-400/10 hover:bg-emerald-400/20",
+    audio: "border-amber-300/40 bg-amber-300/10 hover:bg-amber-300/20",
+} as const;
+
+function clamp(value: number, min: number, max: number) {
+    return Math.min(Math.max(value, min), max);
+}
 
 function TimelineFallback() {
     return (
@@ -53,14 +67,59 @@ async function TimelineContent({ projectId }: { projectId: string }) {
             actTitle: true,
             macroScene: true,
             emotionalTone: true,
+            sourceText: true,
             keyframeUrl: true,
             sortOrder: true,
+            assets: {
+                select: {
+                    assetType: true,
+                    status: true,
+                    selected: true,
+                },
+            },
         },
+    });
+
+    const scenesWithMetrics = scenes.map((scene) => {
+        const counts = {
+            image: 0,
+            video: 0,
+            audio: 0,
+            selected: 0,
+        };
+
+        for (const asset of scene.assets) {
+            if (asset.selected) {
+                counts.selected += 1;
+            }
+
+            if (asset.assetType === "IMAGE" || asset.assetType === "STORYBOARD") {
+                counts.image += 1;
+            }
+
+            if (asset.assetType === "VIDEO") {
+                counts.video += 1;
+            }
+
+            if (
+                asset.assetType === "AUDIO" ||
+                asset.assetType === "MUSIC" ||
+                asset.assetType === "VOICE" ||
+                asset.assetType === "NARRATION"
+            ) {
+                counts.audio += 1;
+            }
+        }
+
+        return {
+            ...scene,
+            clipWidth: clamp(120 + Math.round(scene.sourceText.length / 18), 140, 300),
+            counts,
+        };
     });
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
                     <Link
@@ -74,7 +133,7 @@ async function TimelineContent({ projectId }: { projectId: string }) {
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight">Timeline</h1>
                 <p className="text-muted-foreground mt-1">
-                    Visualize and reorder your scene sequence
+                    Multi-track scene timeline inspired by edit-suite lanes.
                 </p>
             </div>
 
@@ -92,61 +151,137 @@ async function TimelineContent({ projectId }: { projectId: string }) {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="space-y-2">
-                    {scenes.map((scene, index) => (
-                        <Link
-                            key={scene.id}
-                            href={`/projects/${projectId}/scenes/${scene.sceneId}`}
-                            className="block"
-                        >
-                            <Card
-                                className="group hover:border-primary/30 hover:shadow-sm transition-all"
-                            >
-                                <CardContent className="py-3 px-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-muted-foreground/50">
-                                            <GripVertical className="h-5 w-5" />
-                                        </div>
-                                        <Badge
-                                            variant="outline"
-                                            className="font-mono text-xs shrink-0 tabular-nums"
-                                        >
-                                            {String(index + 1).padStart(3, "0")}
-                                        </Badge>
-                                        <Badge variant="secondary" className="shrink-0">
-                                            {scene.sceneId}
-                                        </Badge>
-                                        <div className="min-w-0 flex-1">
-                                            <p className="font-medium text-sm truncate">
-                                                {scene.storyBeat}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Act {scene.act} · {scene.macroScene}
-                                            </p>
-                                        </div>
-                                        {scene.emotionalTone && (
-                                            <Badge
-                                                variant="outline"
-                                                className="hidden md:inline-flex text-xs"
-                                            >
-                                                {scene.emotionalTone}
-                                            </Badge>
-                                        )}
-                                        {scene.keyframeUrl && (
-                                            <div className="h-8 w-12 rounded bg-muted overflow-hidden shrink-0">
-                                                <img
-                                                    src={scene.keyframeUrl}
-                                                    alt=""
-                                                    className="h-full w-full object-cover"
-                                                />
-                                            </div>
-                                        )}
+                <Card className="overflow-hidden border-border/60">
+                    <CardHeader className="border-b border-border/60 pb-3">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant="outline" className="gap-1">
+                                <Film className="h-3 w-3" />
+                                Story Lane
+                            </Badge>
+                            <Badge variant="outline" className="gap-1">
+                                <ImageIcon className="h-3 w-3" />
+                                Image Lane
+                            </Badge>
+                            <Badge variant="outline" className="gap-1">
+                                <PlayCircle className="h-3 w-3" />
+                                Video Lane
+                            </Badge>
+                            <Badge variant="outline" className="gap-1">
+                                <Music2 className="h-3 w-3" />
+                                Audio Lane
+                            </Badge>
+                            <Badge variant="secondary" className="gap-1">
+                                <Sparkles className="h-3 w-3" />
+                                {scenesWithMetrics.reduce((sum, scene) => sum + scene.counts.selected, 0)} selected versions
+                            </Badge>
+                        </div>
+                        <CardTitle className="text-base font-medium">
+                            Horizontal timeline: drag concept with fixed scene order from production.
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <ScrollArea className="w-full">
+                            <div className="min-w-[980px]">
+                                <div className="grid grid-cols-[180px_1fr] border-b border-border/60 bg-muted/15">
+                                    <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                        Timecode
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
+                                    <div className="flex gap-2 px-3 py-2">
+                                        {scenesWithMetrics.map((scene, index) => (
+                                            <div
+                                                key={`ruler-${scene.id}`}
+                                                className="shrink-0 rounded-md border border-border/50 bg-background/40 px-2 py-1 text-[11px] text-muted-foreground"
+                                                style={{ width: scene.clipWidth }}
+                                            >
+                                                {String(index + 1).padStart(3, "0")} · {scene.sceneId}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-[180px_1fr] border-b border-border/60">
+                                    <div className="flex items-center border-r border-border/60 px-4 py-3 text-sm font-medium">
+                                        Story
+                                    </div>
+                                    <div className="flex gap-2 px-3 py-3">
+                                        {scenesWithMetrics.map((scene) => (
+                                            <Link
+                                                key={`story-${scene.id}`}
+                                                href={`/projects/${projectId}/scenes/${scene.sceneId}`}
+                                                className={`group relative shrink-0 rounded-md border px-3 py-2 transition-colors ${clipClassMap.story}`}
+                                                style={{ width: scene.clipWidth }}
+                                            >
+                                                <p className="truncate text-xs font-semibold">{scene.sceneId}</p>
+                                                <p className="truncate text-[11px] text-muted-foreground">{scene.storyBeat}</p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-[180px_1fr] border-b border-border/60">
+                                    <div className="flex items-center border-r border-border/60 px-4 py-3 text-sm font-medium">
+                                        Image / Storyboard
+                                    </div>
+                                    <div className="flex gap-2 px-3 py-3">
+                                        {scenesWithMetrics.map((scene) => (
+                                            <Link
+                                                key={`image-${scene.id}`}
+                                                href={`/projects/${projectId}/scenes/${scene.sceneId}`}
+                                                className={`shrink-0 rounded-md border px-3 py-2 transition-colors ${clipClassMap.image}`}
+                                                style={{ width: scene.clipWidth }}
+                                            >
+                                                <p className="text-[11px] font-medium">
+                                                    {scene.counts.image > 0 ? `${scene.counts.image} versions` : "No image pass"}
+                                                </p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-[180px_1fr] border-b border-border/60">
+                                    <div className="flex items-center border-r border-border/60 px-4 py-3 text-sm font-medium">
+                                        Video
+                                    </div>
+                                    <div className="flex gap-2 px-3 py-3">
+                                        {scenesWithMetrics.map((scene) => (
+                                            <Link
+                                                key={`video-${scene.id}`}
+                                                href={`/projects/${projectId}/scenes/${scene.sceneId}`}
+                                                className={`shrink-0 rounded-md border px-3 py-2 transition-colors ${clipClassMap.video}`}
+                                                style={{ width: scene.clipWidth }}
+                                            >
+                                                <p className="text-[11px] font-medium">
+                                                    {scene.counts.video > 0 ? `${scene.counts.video} video versions` : "No video pass"}
+                                                </p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-[180px_1fr]">
+                                    <div className="flex items-center border-r border-border/60 px-4 py-3 text-sm font-medium">
+                                        Audio / Voice / Music
+                                    </div>
+                                    <div className="flex gap-2 px-3 py-3">
+                                        {scenesWithMetrics.map((scene) => (
+                                            <Link
+                                                key={`audio-${scene.id}`}
+                                                href={`/projects/${projectId}/scenes/${scene.sceneId}`}
+                                                className={`shrink-0 rounded-md border px-3 py-2 transition-colors ${clipClassMap.audio}`}
+                                                style={{ width: scene.clipWidth }}
+                                            >
+                                                <p className="text-[11px] font-medium">
+                                                    {scene.counts.audio > 0 ? `${scene.counts.audio} audio versions` : "No audio pass"}
+                                                </p>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

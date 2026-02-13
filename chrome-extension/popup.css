@@ -1,0 +1,159 @@
+:root {
+  color-scheme: dark;
+  font-family: "Outfit", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --bg: #0c0e13;
+  --panel: #141821;
+  --text: #e8ecf5;
+  --muted: #8f98ad;
+  --border: #242b3b;
+  --accent: #84cc16;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  width: 430px;
+}
+
+.app {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.header p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card h2 {
+  margin: 0 0 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.hidden {
+  display: none !important;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.field span {
+  color: var(--muted);
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+input,
+textarea,
+select {
+  background: #0d1017;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 66px;
+}
+
+button {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: #091006;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+button.tertiary {
+  background: transparent;
+  border-color: #2f3850;
+  color: #cdd6ea;
+  padding: 6px 8px;
+  font-size: 11px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grow {
+  flex: 1;
+}
+
+.status {
+  min-height: 16px;
+  margin: 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.intent {
+  border: 1px dashed #2b3348;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(132, 204, 22, 0.08), rgba(132, 204, 22, 0.02));
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.intent-summary {
+  margin: 0;
+  font-size: 11px;
+  color: #dfe7f9;
+}

@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "scene_asset_versions_scene_id_platform_key_asset_type_version_n" RENAME TO "scene_asset_versions_scene_id_platform_key_asset_type_versi_key";

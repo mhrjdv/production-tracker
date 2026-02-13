@@ -13,6 +13,7 @@ import {
     LogOut,
     Menu,
     ChevronLeft,
+    Plug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -29,6 +30,7 @@ interface NavItem {
 
 const mainNav: NavItem[] = [
     { label: "Dashboard", href: "/", icon: LayoutDashboard },
+    { label: "Integrations", href: "/integrations", icon: Plug },
 ];
 
 function getProjectNav(projectId: string): NavItem[] {

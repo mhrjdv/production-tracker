@@ -28,6 +28,15 @@ Enterprise-grade authentication powered by **NextAuth.js**, ensuring your creati
 ### ⚡ Rapid Interface
 A high-performance UI built with **React 19** and **Tailwind CSS 4.0**, featuring glassmorphism and micro-animations for an elite user experience.
 
+### 🔁 AI Versioning + Extension Sync
+Scene-level AI version tracking across platforms (prompt/model/output/status), plus a Chrome extension for one-click asynchronous sync from generation tools back into the project timeline.
+
+### 🧠 Prompt Ops + Profile Sync
+Per-scene prompt version reuse, metadata/tag filtering, profile-synced extension defaults (project/scene/platform/model), and OpenAI-compatible BYOK prompt refinement inside the extension popup.
+
+### 🎞️ Multi-Track Timeline
+Premiere-style horizontal timeline lanes for story, image, video, and audio pass visibility across the full scene sequence.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -90,10 +99,12 @@ src/
 ├── app/          # Next.js App Router (Pages & API)
 ├── components/   # UI Components (Atomic Design)
 │   └── ui/       # Shared base components (Shadcn)
+├── docs/         # System blueprints and architecture notes
 ├── data/         # Static JSON datasets (Legacy Support)
 ├── lib/          # Core utilities & DB connections
 └── types/        # TypeScript interfaces
 prisma/           # Database schema & seed scripts
+chrome-extension/ # Manifest V3 extension for async AI capture sync
 ```
 
 ---

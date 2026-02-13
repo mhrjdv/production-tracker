@@ -4,6 +4,8 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { AssetStatus, AssetType, Prisma } from "@prisma/client";
+import { generateExtensionToken } from "@/lib/extension-tokens";
 
 // ─── Project Actions ─────────────────────────────────────────
 
@@ -30,7 +32,7 @@ export async function createProject(data: {
             ...(data.identity && {
                 identity: {
                     create: {
-                        data: data.identity as any,
+                        data: data.identity as Prisma.InputJsonValue,
                     },
                 },
             }),
@@ -336,9 +338,290 @@ export async function updateFilmIdentity(
 
     await prisma.filmIdentity.upsert({
         where: { projectId },
-        create: { projectId, data: data as any },
-        update: { data: data as any },
+        create: { projectId, data: data as Prisma.InputJsonValue },
+        update: { data: data as Prisma.InputJsonValue },
     });
 
     revalidatePath(`/projects/${projectId}/bible`);
+}
+
+// ─── Scene Asset Versioning ─────────────────────────────────
+
+export async function createSceneAssetVersion(
+    sceneDbId: string,
+    data: {
+        platformId?: string | null;
+        platformKey: string;
+        platformLabel: string;
+        assetType: AssetType;
+        prompt: string;
+        negativePrompt?: string | null;
+        modelName?: string | null;
+        sourceUrl?: string | null;
+        externalAssetId?: string | null;
+        outputUrl?: string | null;
+        thumbnailUrl?: string | null;
+        metadata?: Record<string, unknown> | null;
+        tags?: string[];
+        notes?: string | null;
+        status?: AssetStatus;
+        selected?: boolean;
+        title?: string | null;
+    }
+) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const scene = await prisma.scene.findFirst({
+        where: {
+            id: sceneDbId,
+            project: { userId: session.user.id },
+        },
+        select: {
+            id: true,
+            sceneId: true,
+            projectId: true,
+        },
+    });
+
+    if (!scene) {
+        throw new Error("Scene not found");
+    }
+
+    const platformKey = data.platformKey.trim().toLowerCase();
+    const platformLabel = data.platformLabel.trim() || platformKey;
+
+    const versionAgg = await prisma.sceneAssetVersion.aggregate({
+        where: {
+            sceneId: scene.id,
+            platformKey,
+            assetType: data.assetType,
+        },
+        _max: { versionNumber: true },
+    });
+
+    const versionNumber = (versionAgg._max.versionNumber ?? 0) + 1;
+    const isSelected = data.selected || data.status === AssetStatus.SELECTED;
+
+    const created = await prisma.$transaction(async (tx) => {
+        if (isSelected) {
+            await tx.sceneAssetVersion.updateMany({
+                where: {
+                    sceneId: scene.id,
+                    assetType: data.assetType,
+                    selected: true,
+                },
+                data: { selected: false, status: AssetStatus.GENERATED },
+            });
+        }
+
+        return tx.sceneAssetVersion.create({
+            data: {
+                sceneId: scene.id,
+                platformId: data.platformId || null,
+                platformKey,
+                platformLabel,
+                assetType: data.assetType,
+                status: data.status || AssetStatus.DRAFT,
+                versionNumber,
+                title: data.title || null,
+                prompt: data.prompt.trim(),
+                negativePrompt: data.negativePrompt || null,
+                modelName: data.modelName || null,
+                sourceUrl: data.sourceUrl || null,
+                externalAssetId: data.externalAssetId || null,
+                outputUrl: data.outputUrl || null,
+                thumbnailUrl: data.thumbnailUrl || null,
+                metadata: (data.metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+                tags: data.tags ?? [],
+                notes: data.notes || null,
+                selected: isSelected,
+                createdById: session.user.id,
+            },
+        });
+    });
+
+    revalidatePath(`/projects/${scene.projectId}/scenes/${scene.sceneId}`);
+
+    return created;
+}
+
+export async function updateSceneAssetVersion(
+    assetId: string,
+    data: {
+        title?: string | null;
+        prompt?: string;
+        negativePrompt?: string | null;
+        modelName?: string | null;
+        sourceUrl?: string | null;
+        externalAssetId?: string | null;
+        outputUrl?: string | null;
+        thumbnailUrl?: string | null;
+        metadata?: Record<string, unknown> | null;
+        tags?: string[];
+        notes?: string | null;
+        status?: AssetStatus;
+        selected?: boolean;
+    }
+) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const existing = await prisma.sceneAssetVersion.findFirst({
+        where: {
+            id: assetId,
+            scene: { project: { userId: session.user.id } },
+        },
+        select: {
+            id: true,
+            sceneId: true,
+            assetType: true,
+            scene: {
+                select: {
+                    projectId: true,
+                    sceneId: true,
+                },
+            },
+        },
+    });
+
+    if (!existing) {
+        throw new Error("Asset version not found");
+    }
+
+    const shouldSelect = data.selected || data.status === AssetStatus.SELECTED;
+
+    await prisma.$transaction(async (tx) => {
+        if (shouldSelect) {
+            await tx.sceneAssetVersion.updateMany({
+                where: {
+                    sceneId: existing.sceneId,
+                    assetType: existing.assetType,
+                    selected: true,
+                },
+                data: { selected: false, status: AssetStatus.GENERATED },
+            });
+        }
+
+        await tx.sceneAssetVersion.update({
+            where: { id: assetId },
+            data: {
+                ...(data.title !== undefined && { title: data.title }),
+                ...(data.prompt !== undefined && { prompt: data.prompt.trim() }),
+                ...(data.negativePrompt !== undefined && { negativePrompt: data.negativePrompt }),
+                ...(data.modelName !== undefined && { modelName: data.modelName }),
+                ...(data.sourceUrl !== undefined && { sourceUrl: data.sourceUrl }),
+                ...(data.externalAssetId !== undefined && { externalAssetId: data.externalAssetId }),
+                ...(data.outputUrl !== undefined && { outputUrl: data.outputUrl }),
+                ...(data.thumbnailUrl !== undefined && { thumbnailUrl: data.thumbnailUrl }),
+                ...(data.metadata !== undefined && { metadata: data.metadata as Prisma.InputJsonValue }),
+                ...(data.tags !== undefined && { tags: data.tags }),
+                ...(data.notes !== undefined && { notes: data.notes }),
+                ...(data.status !== undefined && { status: data.status }),
+                ...(data.selected !== undefined && { selected: data.selected }),
+            },
+        });
+    });
+
+    revalidatePath(`/projects/${existing.scene.projectId}/scenes/${existing.scene.sceneId}`);
+}
+
+export async function deleteSceneAssetVersion(assetId: string) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const existing = await prisma.sceneAssetVersion.findFirst({
+        where: {
+            id: assetId,
+            scene: { project: { userId: session.user.id } },
+        },
+        select: {
+            id: true,
+            scene: {
+                select: {
+                    projectId: true,
+                    sceneId: true,
+                },
+            },
+        },
+    });
+
+    if (!existing) {
+        throw new Error("Asset version not found");
+    }
+
+    await prisma.sceneAssetVersion.delete({
+        where: { id: existing.id },
+    });
+
+    revalidatePath(`/projects/${existing.scene.projectId}/scenes/${existing.scene.sceneId}`);
+}
+
+// ─── Extension API Tokens ───────────────────────────────────
+
+export async function createExtensionApiToken(data: {
+    name: string;
+    expiresInDays?: number;
+}) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const name = data.name.trim();
+    if (!name) {
+        throw new Error("Token name is required");
+    }
+
+    const { token, tokenHash, tokenPrefix } = generateExtensionToken();
+    const expiresAt =
+        data.expiresInDays && data.expiresInDays > 0
+            ? new Date(Date.now() + data.expiresInDays * 24 * 60 * 60 * 1000)
+            : null;
+
+    const created = await prisma.extensionApiToken.create({
+        data: {
+            userId: session.user.id,
+            name,
+            tokenHash,
+            tokenPrefix,
+            expiresAt,
+        },
+        select: {
+            id: true,
+            tokenPrefix: true,
+            expiresAt: true,
+            createdAt: true,
+        },
+    });
+
+    revalidatePath("/integrations");
+
+    return {
+        ...created,
+        token,
+    };
+}
+
+export async function revokeExtensionApiToken(tokenId: string) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    const existing = await prisma.extensionApiToken.findFirst({
+        where: {
+            id: tokenId,
+            userId: session.user.id,
+            revokedAt: null,
+        },
+        select: { id: true },
+    });
+
+    if (!existing) {
+        throw new Error("Token not found");
+    }
+
+    await prisma.extensionApiToken.update({
+        where: { id: existing.id },
+        data: { revokedAt: new Date() },
+    });
+
+    revalidatePath("/integrations");
 }
