@@ -25,6 +25,10 @@ function clamp(value: number, min: number, max: number) {
     return Math.min(Math.max(value, min), max);
 }
 
+function pickLanePreview<T extends { selected: boolean }>(assets: T[]) {
+    return assets.find((asset) => asset.selected) || assets[0] || null;
+}
+
 function TimelineFallback() {
     return (
         <div className="space-y-6">
@@ -71,10 +75,15 @@ async function TimelineContent({ projectId }: { projectId: string }) {
             keyframeUrl: true,
             sortOrder: true,
             assets: {
+                orderBy: [{ selected: "desc" }, { createdAt: "desc" }],
                 select: {
                     assetType: true,
                     status: true,
                     selected: true,
+                    platformLabel: true,
+                    versionNumber: true,
+                    thumbnailUrl: true,
+                    outputUrl: true,
                 },
             },
         },
@@ -111,10 +120,27 @@ async function TimelineContent({ projectId }: { projectId: string }) {
             }
         }
 
+        const imageAssets = scene.assets.filter(
+            (asset) => asset.assetType === "IMAGE" || asset.assetType === "STORYBOARD"
+        );
+        const videoAssets = scene.assets.filter((asset) => asset.assetType === "VIDEO");
+        const audioAssets = scene.assets.filter(
+            (asset) =>
+                asset.assetType === "AUDIO" ||
+                asset.assetType === "MUSIC" ||
+                asset.assetType === "VOICE" ||
+                asset.assetType === "NARRATION"
+        );
+
         return {
             ...scene,
             clipWidth: clamp(120 + Math.round(scene.sourceText.length / 18), 140, 300),
             counts,
+            preview: {
+                image: pickLanePreview(imageAssets),
+                video: pickLanePreview(videoAssets),
+                audio: pickLanePreview(audioAssets),
+            },
         };
     });
 
@@ -233,6 +259,21 @@ async function TimelineContent({ projectId }: { projectId: string }) {
                                                 <p className="text-[11px] font-medium">
                                                     {scene.counts.image > 0 ? `${scene.counts.image} versions` : "No image pass"}
                                                 </p>
+                                                {scene.preview.image && (
+                                                    <div className="mt-1 rounded border border-border/50 bg-background/60 p-1">
+                                                        {scene.preview.image.thumbnailUrl ? (
+                                                            <img
+                                                                src={scene.preview.image.thumbnailUrl}
+                                                                alt={`${scene.sceneId} image preview`}
+                                                                className="h-10 w-full rounded object-cover"
+                                                            />
+                                                        ) : (
+                                                            <p className="truncate text-[10px] text-muted-foreground">
+                                                                {scene.preview.image.platformLabel} v{scene.preview.image.versionNumber}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </Link>
                                         ))}
                                     </div>
@@ -253,6 +294,21 @@ async function TimelineContent({ projectId }: { projectId: string }) {
                                                 <p className="text-[11px] font-medium">
                                                     {scene.counts.video > 0 ? `${scene.counts.video} video versions` : "No video pass"}
                                                 </p>
+                                                {scene.preview.video && (
+                                                    <div className="mt-1 rounded border border-border/50 bg-background/60 p-1">
+                                                        {scene.preview.video.thumbnailUrl ? (
+                                                            <img
+                                                                src={scene.preview.video.thumbnailUrl}
+                                                                alt={`${scene.sceneId} video preview`}
+                                                                className="h-10 w-full rounded object-cover"
+                                                            />
+                                                        ) : (
+                                                            <p className="truncate text-[10px] text-muted-foreground">
+                                                                {scene.preview.video.platformLabel} v{scene.preview.video.versionNumber}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </Link>
                                         ))}
                                     </div>
@@ -273,6 +329,13 @@ async function TimelineContent({ projectId }: { projectId: string }) {
                                                 <p className="text-[11px] font-medium">
                                                     {scene.counts.audio > 0 ? `${scene.counts.audio} audio versions` : "No audio pass"}
                                                 </p>
+                                                {scene.preview.audio && (
+                                                    <div className="mt-1 rounded border border-border/50 bg-background/60 p-1">
+                                                        <p className="truncate text-[10px] text-muted-foreground">
+                                                            {scene.preview.audio.platformLabel} v{scene.preview.audio.versionNumber}
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </Link>
                                         ))}
                                     </div>

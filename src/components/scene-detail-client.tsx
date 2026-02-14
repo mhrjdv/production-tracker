@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { AssetType } from "@prisma/client";
+import type { AssetType, RightsState } from "@prisma/client";
 import {
     Card,
     CardContent,
@@ -60,11 +60,14 @@ interface SceneDetailClientProps {
     scene: SceneDetailData;
     assets: Array<{
         id: string;
+        promptPackageId: string | null;
+        parentVersionId: string | null;
         platformId: string | null;
         platformKey: string;
         platformLabel: string;
         assetType: "SCRIPT" | "IMAGE" | "VIDEO" | "AUDIO" | "MUSIC" | "VOICE" | "NARRATION" | "STORYBOARD" | "OTHER";
         status: "DRAFT" | "GENERATED" | "SELECTED" | "REJECTED" | "ARCHIVED";
+        rightsState: RightsState;
         versionNumber: number;
         title: string | null;
         prompt: string;
@@ -74,7 +77,12 @@ interface SceneDetailClientProps {
         externalAssetId: string | null;
         outputUrl: string | null;
         thumbnailUrl: string | null;
+        costEstimateUsd: number | null;
+        generationSeconds: number | null;
+        queueWaitSeconds: number | null;
+        compareGroup: string | null;
         metadata: Record<string, unknown> | null;
+        provenance: Record<string, unknown> | null;
         tags: string[];
         notes: string | null;
         selected: boolean;
@@ -89,6 +97,19 @@ interface SceneDetailClientProps {
         specialties: string[];
         supportedOutput: AssetType[];
     }>;
+    promptPackages: Array<{
+        id: string;
+        versionNumber: number;
+        name: string | null;
+        prompt: string;
+        negativePrompt: string | null;
+        targetAspectRatio: string | null;
+        targetDurationSec: number | null;
+        styleProfile: string | null;
+        tags: string[];
+        metadata: Record<string, unknown> | null;
+        createdAt: string;
+    }>;
     prev: { sceneId: string; storyBeat: string } | null;
     next: { sceneId: string; storyBeat: string } | null;
 }
@@ -99,6 +120,7 @@ export function SceneDetailClient({
     scene,
     assets,
     platforms,
+    promptPackages,
     prev,
     next,
 }: SceneDetailClientProps) {
@@ -427,6 +449,7 @@ export function SceneDetailClient({
                 sceneDbId={scene.id}
                 assets={assets}
                 platforms={platforms}
+                promptPackages={promptPackages}
             />
 
             {/* Prev / Next Navigation */}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AssetType } from "@prisma/client";
 import { authenticateExtensionRequest, getExtensionCorsHeaders } from "@/lib/extension-auth";
 import { prisma } from "@/lib/db";
+import { findExtensionSceneAssets } from "@/lib/scene-assets-compat";
 
 export async function OPTIONS() {
     return new NextResponse(null, {
@@ -72,32 +73,10 @@ export async function GET(request: NextRequest) {
         ? (assetTypeParam as AssetType)
         : undefined;
 
-    const assets = await prisma.sceneAssetVersion.findMany({
-        where: {
-            sceneId: scene.id,
-            ...(assetType && { assetType }),
-        },
-        orderBy: [
-            { selected: "desc" },
-            { createdAt: "desc" },
-        ],
-        take: limit,
-        select: {
-            id: true,
-            title: true,
-            platformKey: true,
-            platformLabel: true,
-            assetType: true,
-            status: true,
-            versionNumber: true,
-            prompt: true,
-            negativePrompt: true,
-            modelName: true,
-            tags: true,
-            metadata: true,
-            selected: true,
-            createdAt: true,
-        },
+    const assets = await findExtensionSceneAssets({
+        sceneId: scene.id,
+        assetType,
+        limit,
     });
 
     return NextResponse.json(

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState, useTransition } from "react";
-import type { AssetStatus, AssetType } from "@prisma/client";
+import type { AssetStatus, AssetType, RightsState } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +10,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
+    createSceneAssetFanout,
     createSceneAssetVersion,
     deleteSceneAssetVersion,
     updateSceneAssetVersion,
 } from "@/lib/actions";
-import { Check, ExternalLink, Filter, Loader2, Plus, Star, Trash2, WandSparkles } from "lucide-react";
+import {
+    Check,
+    Columns3,
+    ExternalLink,
+    Filter,
+    Loader2,
+    Plus,
+    Star,
+    Trash2,
+} from "lucide-react";
 import { filterSceneAssets, normalizeTagList, parseMetadataInput } from "@/lib/scene-assets-utils";
 
 const ASSET_TYPES = [
@@ -30,17 +40,22 @@ const ASSET_TYPES = [
 ] as const;
 
 const ASSET_STATUSES = ["DRAFT", "GENERATED", "SELECTED", "REJECTED", "ARCHIVED"] as const;
+const RIGHTS_STATES = ["UNKNOWN", "NON_COMMERCIAL", "COMMERCIAL_ALLOWED", "RESTRICTED"] as const;
 
 type AssetTypeValue = (typeof ASSET_TYPES)[number];
 type AssetStatusValue = (typeof ASSET_STATUSES)[number];
+type RightsStateValue = (typeof RIGHTS_STATES)[number];
 
 interface SceneAssetItem {
     id: string;
+    promptPackageId: string | null;
+    parentVersionId: string | null;
     platformId: string | null;
     platformKey: string;
     platformLabel: string;
     assetType: AssetTypeValue;
     status: AssetStatusValue;
+    rightsState: RightsStateValue;
     versionNumber: number;
     title: string | null;
     prompt: string;
@@ -50,7 +65,12 @@ interface SceneAssetItem {
     externalAssetId: string | null;
     outputUrl: string | null;
     thumbnailUrl: string | null;
+    costEstimateUsd: number | null;
+    generationSeconds: number | null;
+    queueWaitSeconds: number | null;
+    compareGroup: string | null;
     metadata: Record<string, unknown> | null;
+    provenance: Record<string, unknown> | null;
     tags: string[];
     notes: string | null;
     selected: boolean;
@@ -67,20 +87,52 @@ interface PlatformItem {
     supportedOutput: AssetType[];
 }
 
+interface PromptPackageItem {
+    id: string;
+    versionNumber: number;
+    name: string | null;
+    prompt: string;
+    negativePrompt: string | null;
+    targetAspectRatio: string | null;
+    targetDurationSec: number | null;
+    styleProfile: string | null;
+    tags: string[];
+    metadata: Record<string, unknown> | null;
+    createdAt: string;
+}
+
+function parseOptionalNumber(raw: string, label: string): number | null {
+    const value = raw.trim();
+    if (!value) return null;
+
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`${label} must be a positive number`);
+    }
+
+    return parsed;
+}
+
 export function SceneAssetsPanel({
     sceneDbId,
     assets,
     platforms,
+    promptPackages,
 }: {
     sceneDbId: string;
     assets: SceneAssetItem[];
     platforms: PlatformItem[];
+    promptPackages: PromptPackageItem[];
 }) {
     const [isPending, startTransition] = useTransition();
     const [isAdding, setIsAdding] = useState(false);
     const [platformId, setPlatformId] = useState<string>(platforms[0]?.id || "");
+    const [fanoutPlatformIds, setFanoutPlatformIds] = useState<string[]>(
+        platforms.slice(0, Math.min(3, platforms.length)).map((platform) => platform.id)
+    );
     const [assetType, setAssetType] = useState<AssetType>("IMAGE");
     const [status, setStatus] = useState<AssetStatus>("DRAFT");
+    const [rightsState, setRightsState] = useState<RightsState>("UNKNOWN");
     const [title, setTitle] = useState("");
     const [prompt, setPrompt] = useState("");
     const [negativePrompt, setNegativePrompt] = useState("");
@@ -89,10 +141,16 @@ export function SceneAssetsPanel({
     const [externalAssetId, setExternalAssetId] = useState("");
     const [outputUrl, setOutputUrl] = useState("");
     const [thumbnailUrl, setThumbnailUrl] = useState("");
+    const [costEstimateUsd, setCostEstimateUsd] = useState("");
+    const [generationSeconds, setGenerationSeconds] = useState("");
+    const [queueWaitSeconds, setQueueWaitSeconds] = useState("");
     const [metadataInput, setMetadataInput] = useState("");
+    const [provenanceInput, setProvenanceInput] = useState("");
     const [tagsInput, setTagsInput] = useState("");
     const [notes, setNotes] = useState("");
     const [formError, setFormError] = useState<string | null>(null);
+    const [createPromptPackageOnSave, setCreatePromptPackageOnSave] = useState(true);
+    const [promptPackageId, setPromptPackageId] = useState<string>("NONE");
 
     const [query, setQuery] = useState("");
     const [platformFilter, setPlatformFilter] = useState("ALL");
@@ -100,6 +158,7 @@ export function SceneAssetsPanel({
     const [statusFilter, setStatusFilter] = useState<AssetStatus | "ALL">("ALL");
     const [tagFilter, setTagFilter] = useState("");
     const [selectedOnly, setSelectedOnly] = useState(false);
+    const [compareAssetIds, setCompareAssetIds] = useState<string[]>([]);
 
     const selectedPlatform = useMemo(
         () => platforms.find((platform) => platform.id === platformId) || null,
@@ -115,11 +174,61 @@ export function SceneAssetsPanel({
         setExternalAssetId("");
         setOutputUrl("");
         setThumbnailUrl("");
+        setCostEstimateUsd("");
+        setGenerationSeconds("");
+        setQueueWaitSeconds("");
         setMetadataInput("");
+        setProvenanceInput("");
         setTagsInput("");
         setNotes("");
         setStatus("DRAFT");
+        setRightsState("UNKNOWN");
+        setPromptPackageId("NONE");
+        setCreatePromptPackageOnSave(true);
         setFormError(null);
+    };
+
+    const parseJsonObjectOrNull = (raw: string, label: string) => {
+        const value = raw.trim();
+        if (!value) return null;
+        try {
+            const parsed = JSON.parse(value);
+            if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+                throw new Error();
+            }
+            return parsed as Record<string, unknown>;
+        } catch {
+            throw new Error(`${label} must be valid JSON object`);
+        }
+    };
+
+    const buildCreatePayload = () => {
+        const metadata = parseMetadataInput(metadataInput);
+        const provenance = parseJsonObjectOrNull(provenanceInput, "Provenance");
+        const tags = normalizeTagList(tagsInput);
+
+        return {
+            title: title.trim() || null,
+            prompt: prompt.trim(),
+            negativePrompt: negativePrompt.trim() || null,
+            modelName: modelName.trim() || null,
+            sourceUrl: sourceUrl.trim() || null,
+            externalAssetId: externalAssetId.trim() || null,
+            outputUrl: outputUrl.trim() || null,
+            thumbnailUrl: thumbnailUrl.trim() || null,
+            costEstimateUsd: parseOptionalNumber(costEstimateUsd, "Cost estimate"),
+            generationSeconds: parseOptionalNumber(generationSeconds, "Generation seconds"),
+            queueWaitSeconds: parseOptionalNumber(queueWaitSeconds, "Queue wait seconds"),
+            metadata,
+            provenance,
+            tags,
+            notes: notes.trim() || null,
+            status,
+            rightsState,
+            selected: status === "SELECTED",
+            promptPackageId: promptPackageId === "NONE" ? null : promptPackageId,
+            createPromptPackage: createPromptPackageOnSave,
+        };
     };
 
     const onCreate = () => {
@@ -128,33 +237,49 @@ export function SceneAssetsPanel({
         startTransition(async () => {
             try {
                 setFormError(null);
-                const metadata = parseMetadataInput(metadataInput);
-                const tags = normalizeTagList(tagsInput);
+                const payload = buildCreatePayload();
 
                 await createSceneAssetVersion(sceneDbId, {
                     platformId: selectedPlatform.id,
                     platformKey: selectedPlatform.slug,
                     platformLabel: selectedPlatform.name,
                     assetType,
-                    status,
-                    title: title.trim() || null,
-                    prompt: prompt.trim(),
-                    negativePrompt: negativePrompt.trim() || null,
-                    modelName: modelName.trim() || null,
-                    sourceUrl: sourceUrl.trim() || null,
-                    externalAssetId: externalAssetId.trim() || null,
-                    outputUrl: outputUrl.trim() || null,
-                    thumbnailUrl: thumbnailUrl.trim() || null,
-                    metadata,
-                    tags,
-                    notes: notes.trim() || null,
-                    selected: status === "SELECTED",
+                    ...payload,
                 });
 
                 resetForm();
                 setIsAdding(false);
             } catch (error) {
                 setFormError(error instanceof Error ? error.message : "Failed to create version");
+            }
+        });
+    };
+
+    const onFanoutCreate = () => {
+        if (!prompt.trim()) {
+            setFormError("Prompt is required for fan-out");
+            return;
+        }
+
+        if (fanoutPlatformIds.length === 0) {
+            setFormError("Select at least one platform for fan-out");
+            return;
+        }
+
+        startTransition(async () => {
+            try {
+                setFormError(null);
+                const payload = buildCreatePayload();
+
+                await createSceneAssetFanout(sceneDbId, {
+                    platformIds: fanoutPlatformIds,
+                    assetType,
+                    ...payload,
+                });
+
+                setIsAdding(false);
+            } catch (error) {
+                setFormError(error instanceof Error ? error.message : "Failed to create fan-out versions");
             }
         });
     };
@@ -182,6 +307,7 @@ export function SceneAssetsPanel({
 
         startTransition(async () => {
             await deleteSceneAssetVersion(assetId);
+            setCompareAssetIds((prev) => prev.filter((id) => id !== assetId));
         });
     };
 
@@ -202,12 +328,25 @@ export function SceneAssetsPanel({
         setExternalAssetId(asset.externalAssetId ?? "");
         setOutputUrl(asset.outputUrl ?? "");
         setThumbnailUrl(asset.thumbnailUrl ?? "");
+        setCostEstimateUsd(asset.costEstimateUsd !== null ? String(asset.costEstimateUsd) : "");
+        setGenerationSeconds(asset.generationSeconds !== null ? String(asset.generationSeconds) : "");
+        setQueueWaitSeconds(asset.queueWaitSeconds !== null ? String(asset.queueWaitSeconds) : "");
         setMetadataInput(asset.metadata ? JSON.stringify(asset.metadata, null, 2) : "");
+        setProvenanceInput(asset.provenance ? JSON.stringify(asset.provenance, null, 2) : "");
         setTagsInput(asset.tags.join(", "));
         setNotes(asset.notes ?? "");
         setStatus(asset.status);
+        setRightsState(asset.rightsState);
+        setPromptPackageId(asset.promptPackageId ?? "NONE");
+        setCreatePromptPackageOnSave(false);
         setFormError(null);
     }, [platformId, platforms]);
+
+    const toggleFanoutPlatform = (id: string) => {
+        setFanoutPlatformIds((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+    };
 
     const filteredAssets = useMemo(
         () =>
@@ -252,11 +391,12 @@ export function SceneAssetsPanel({
 
     const hasAudioVersions = useMemo(
         () =>
-            assets.some((asset) =>
-                asset.assetType === "AUDIO" ||
-                asset.assetType === "MUSIC" ||
-                asset.assetType === "VOICE" ||
-                asset.assetType === "NARRATION"
+            assets.some(
+                (asset) =>
+                    asset.assetType === "AUDIO" ||
+                    asset.assetType === "MUSIC" ||
+                    asset.assetType === "VOICE" ||
+                    asset.assetType === "NARRATION"
             ),
         [assets]
     );
@@ -317,6 +457,19 @@ export function SceneAssetsPanel({
         return suggestions.slice(0, 3);
     }, [assets, hasAudioVersions, hasVideoVersions, onReusePrompt, platforms, selectedImageReference, selectedVideoReference]);
 
+    const comparedAssets = useMemo(
+        () => assets.filter((asset) => compareAssetIds.includes(asset.id)),
+        [assets, compareAssetIds]
+    );
+
+    const toggleCompare = (assetId: string) => {
+        setCompareAssetIds((prev) => {
+            if (prev.includes(assetId)) return prev.filter((id) => id !== assetId);
+            if (prev.length >= 4) return [...prev.slice(1), assetId];
+            return [...prev, assetId];
+        });
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -329,7 +482,7 @@ export function SceneAssetsPanel({
                         onClick={() => setIsAdding((value) => !value)}
                     >
                         <Plus className="h-3.5 w-3.5" />
-                        {isAdding ? "Close" : "Add Version"}
+                        {isAdding ? "Close" : "Add / Fan-Out"}
                     </Button>
                 </div>
             </CardHeader>
@@ -337,7 +490,7 @@ export function SceneAssetsPanel({
                 {isAdding && (
                     <Card className="border-primary/20">
                         <CardContent className="pt-4 space-y-3">
-                            <div className="grid gap-3 md:grid-cols-3">
+                            <div className="grid gap-3 md:grid-cols-4">
                                 <div className="space-y-1.5">
                                     <Label>Platform</Label>
                                     <Select value={platformId} onValueChange={setPlatformId}>
@@ -383,7 +536,66 @@ export function SceneAssetsPanel({
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="space-y-1.5">
+                                    <Label>Rights</Label>
+                                    <Select value={rightsState} onValueChange={(v) => setRightsState(v as RightsStateValue)}>
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {RIGHTS_STATES.map((value) => (
+                                                <SelectItem key={value} value={value}>
+                                                    {value}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
+
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div className="space-y-1.5">
+                                    <Label>Prompt Package</Label>
+                                    <Select
+                                        value={promptPackageId}
+                                        onValueChange={(value) => {
+                                            setPromptPackageId(value);
+                                            if (value !== "NONE") {
+                                                setCreatePromptPackageOnSave(false);
+                                            }
+                                        }}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Attach existing package (optional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="NONE">No package</SelectItem>
+                                            {promptPackages.map((item) => (
+                                                <SelectItem key={item.id} value={item.id}>
+                                                    P{item.versionNumber} {item.name ? `· ${item.name}` : ""}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-end">
+                                    <label className="inline-flex items-center gap-2 text-sm">
+                                        <input
+                                            type="checkbox"
+                                            checked={createPromptPackageOnSave}
+                                            onChange={(event) => {
+                                                setCreatePromptPackageOnSave(event.target.checked);
+                                                if (event.target.checked) {
+                                                    setPromptPackageId("NONE");
+                                                }
+                                            }}
+                                            className="h-4 w-4 rounded border border-input bg-background"
+                                        />
+                                        Save as new prompt package
+                                    </label>
+                                </div>
+                            </div>
+
                             <div className="space-y-1.5">
                                 <Label>Title (optional)</Label>
                                 <Input
@@ -416,7 +628,7 @@ export function SceneAssetsPanel({
                                     <Input
                                         value={modelName}
                                         onChange={(event) => setModelName(event.target.value)}
-                                        placeholder="e.g. Veo-2, MJ-v7, ElevenLabs-Turbo-v2"
+                                        placeholder="e.g. Veo-3, MJ-v7"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -464,13 +676,48 @@ export function SceneAssetsPanel({
                                     />
                                 </div>
                             </div>
+                            <div className="grid gap-3 md:grid-cols-3">
+                                <div className="space-y-1.5">
+                                    <Label>Cost USD (optional)</Label>
+                                    <Input
+                                        value={costEstimateUsd}
+                                        onChange={(event) => setCostEstimateUsd(event.target.value)}
+                                        placeholder="0.35"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label>Generation sec (optional)</Label>
+                                    <Input
+                                        value={generationSeconds}
+                                        onChange={(event) => setGenerationSeconds(event.target.value)}
+                                        placeholder="45"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label>Queue wait sec (optional)</Label>
+                                    <Input
+                                        value={queueWaitSeconds}
+                                        onChange={(event) => setQueueWaitSeconds(event.target.value)}
+                                        placeholder="120"
+                                    />
+                                </div>
+                            </div>
                             <div className="space-y-1.5">
                                 <Label>Metadata JSON (optional)</Label>
                                 <Textarea
                                     value={metadataInput}
                                     onChange={(event) => setMetadataInput(event.target.value)}
-                                    rows={4}
+                                    rows={3}
                                     placeholder='{"durationSec": 6, "fps": 24, "aspectRatio": "16:9"}'
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <Label>Provenance JSON (optional)</Label>
+                                <Textarea
+                                    value={provenanceInput}
+                                    onChange={(event) => setProvenanceInput(event.target.value)}
+                                    rows={3}
+                                    placeholder='{"providerPolicyVersion":"2026-02","model":"veo-3"}'
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -482,16 +729,40 @@ export function SceneAssetsPanel({
                                     placeholder="What worked/failed in this version?"
                                 />
                             </div>
-                            {formError && (
-                                <p className="text-sm text-destructive">{formError}</p>
-                            )}
-                            <div className="flex items-center justify-end gap-2">
+
+                            <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <p className="text-sm font-medium">Single Prompt Fan-Out</p>
+                                    <p className="text-xs text-muted-foreground">Create one version per selected platform</p>
+                                </div>
+                                <div className="grid gap-2 md:grid-cols-2">
+                                    {platforms.map((platform) => (
+                                        <label key={platform.id} className="inline-flex items-center gap-2 text-sm">
+                                            <input
+                                                type="checkbox"
+                                                checked={fanoutPlatformIds.includes(platform.id)}
+                                                onChange={() => toggleFanoutPlatform(platform.id)}
+                                                className="h-4 w-4 rounded border border-input bg-background"
+                                            />
+                                            <span>{platform.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {formError && <p className="text-sm text-destructive">{formError}</p>}
+
+                            <div className="flex flex-wrap items-center justify-end gap-2">
                                 <Button variant="ghost" onClick={() => setIsAdding(false)} disabled={isPending}>
                                     Cancel
                                 </Button>
+                                <Button variant="outline" onClick={onFanoutCreate} disabled={!prompt.trim() || fanoutPlatformIds.length === 0 || isPending}>
+                                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Fan-Out Create
+                                </Button>
                                 <Button onClick={onCreate} disabled={!prompt.trim() || !selectedPlatform || isPending}>
                                     {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Save Version
+                                    Save Single Version
                                 </Button>
                             </div>
                         </CardContent>
@@ -549,7 +820,7 @@ export function SceneAssetsPanel({
                             </div>
                             <div className="space-y-1.5">
                                 <Label>Type</Label>
-                                <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as AssetType | "ALL")}>
+                                <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as AssetType | "ALL") }>
                                     <SelectTrigger>
                                         <SelectValue />
                                     </SelectTrigger>
@@ -631,6 +902,46 @@ export function SceneAssetsPanel({
                     </Card>
                 )}
 
+                {comparedAssets.length > 1 && (
+                    <Card className="border-emerald-500/40 bg-emerald-500/5">
+                        <CardHeader>
+                            <div className="flex items-center justify-between gap-3">
+                                <CardTitle className="text-sm flex items-center gap-2">
+                                    <Columns3 className="h-4 w-4" />
+                                    Compare Variants ({comparedAssets.length})
+                                </CardTitle>
+                                <Button type="button" variant="ghost" size="sm" onClick={() => setCompareAssetIds([])}>
+                                    Clear Compare
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                                {comparedAssets.map((asset) => (
+                                    <div key={asset.id} className="rounded-md border bg-background/70 p-3 space-y-2">
+                                        <div className="flex flex-wrap items-center gap-1">
+                                            <Badge variant="outline">{asset.platformLabel}</Badge>
+                                            <Badge variant="secondary">v{asset.versionNumber}</Badge>
+                                            <Badge variant="outline">{asset.rightsState}</Badge>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground line-clamp-5">{asset.prompt}</p>
+                                        {asset.thumbnailUrl && (
+                                            <img
+                                                src={asset.thumbnailUrl}
+                                                alt={`${asset.platformLabel} preview`}
+                                                className="h-24 w-full rounded object-cover border"
+                                            />
+                                        )}
+                                        <p className="text-[11px] text-muted-foreground">
+                                            {asset.costEstimateUsd !== null ? `$${asset.costEstimateUsd.toFixed(3)}` : "-"} · {asset.generationSeconds ?? "-"}s gen · {asset.queueWaitSeconds ?? "-"}s wait
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {assets.length === 0 ? (
                     <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                         No generated versions yet. Add the first prompt/output version for this scene.
@@ -644,10 +955,12 @@ export function SceneAssetsPanel({
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <Badge variant="outline">{asset.platformLabel}</Badge>
                                             <Badge>{asset.assetType}</Badge>
-                                            <Badge variant={asset.selected ? "default" : "secondary"}>
-                                                v{asset.versionNumber}
-                                            </Badge>
+                                            <Badge variant={asset.selected ? "default" : "secondary"}>v{asset.versionNumber}</Badge>
                                             <Badge variant="outline">{asset.status}</Badge>
+                                            <Badge variant="outline">{asset.rightsState}</Badge>
+                                            {asset.promptPackageId && (
+                                                <Badge variant="secondary">Prompt Package</Badge>
+                                            )}
                                             {asset.selected && (
                                                 <Badge className="gap-1">
                                                     <Star className="h-3 w-3" />
@@ -660,9 +973,7 @@ export function SceneAssetsPanel({
                                         </div>
                                     </div>
 
-                                    {asset.title && (
-                                        <p className="text-sm font-medium">{asset.title}</p>
-                                    )}
+                                    {asset.title && <p className="text-sm font-medium">{asset.title}</p>}
 
                                     <p className="text-sm whitespace-pre-wrap">{asset.prompt}</p>
                                     {asset.negativePrompt && (
@@ -697,7 +1008,15 @@ export function SceneAssetsPanel({
                                         </div>
                                     )}
 
-                                    {(asset.tags.length > 0 || asset.metadata) && (
+                                    {(asset.costEstimateUsd !== null || asset.generationSeconds !== null || asset.queueWaitSeconds !== null) && (
+                                        <div className="text-xs text-muted-foreground flex flex-wrap gap-3">
+                                            <span>Cost: {asset.costEstimateUsd !== null ? `$${asset.costEstimateUsd.toFixed(3)}` : "-"}</span>
+                                            <span>Gen: {asset.generationSeconds ?? "-"}s</span>
+                                            <span>Queue: {asset.queueWaitSeconds ?? "-"}s</span>
+                                        </div>
+                                    )}
+
+                                    {(asset.tags.length > 0 || asset.metadata || asset.provenance) && (
                                         <div className="space-y-2">
                                             {asset.tags.length > 0 && (
                                                 <div className="flex flex-wrap gap-1.5">
@@ -715,6 +1034,14 @@ export function SceneAssetsPanel({
                                                     </pre>
                                                 </div>
                                             )}
+                                            {asset.provenance && (
+                                                <div className="rounded-md border bg-muted/30 px-2 py-1.5">
+                                                    <p className="text-[11px] font-medium mb-1">Provenance</p>
+                                                    <pre className="text-[11px] text-muted-foreground whitespace-pre-wrap">
+                                                        {JSON.stringify(asset.provenance, null, 2)}
+                                                    </pre>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -729,9 +1056,7 @@ export function SceneAssetsPanel({
                                     )}
 
                                     {asset.notes && (
-                                        <p className="text-xs text-muted-foreground whitespace-pre-wrap">
-                                            {asset.notes}
-                                        </p>
+                                        <p className="text-xs text-muted-foreground whitespace-pre-wrap">{asset.notes}</p>
                                     )}
 
                                     <div className="flex flex-wrap gap-2">
@@ -747,6 +1072,23 @@ export function SceneAssetsPanel({
                                                 Mark Selected
                                             </Button>
                                         )}
+                                        <Button
+                                            variant={compareAssetIds.includes(asset.id) ? "default" : "outline"}
+                                            size="sm"
+                                            className="gap-1.5"
+                                            onClick={() => toggleCompare(asset.id)}
+                                        >
+                                            <Columns3 className="h-3.5 w-3.5" />
+                                            {compareAssetIds.includes(asset.id) ? "Comparing" : "Compare"}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => onReusePrompt(asset)}
+                                            disabled={isPending}
+                                        >
+                                            Reuse Prompt
+                                        </Button>
                                         {asset.status !== "ARCHIVED" && (
                                             <Button
                                                 variant="ghost"
@@ -760,31 +1102,17 @@ export function SceneAssetsPanel({
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => onReusePrompt(asset)}
-                                            disabled={isPending}
-                                            className="gap-1.5"
-                                        >
-                                            <WandSparkles className="h-3.5 w-3.5" />
-                                            Reuse Prompt
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
                                             className="text-destructive hover:text-destructive"
                                             onClick={() => onDelete(asset.id)}
                                             disabled={isPending}
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
+                                            Delete
                                         </Button>
                                     </div>
                                 </CardContent>
                             </Card>
                         ))}
-                        {filteredAssets.length === 0 && (
-                            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                                No versions match the current filters.
-                            </div>
-                        )}
                     </div>
                 )}
             </CardContent>

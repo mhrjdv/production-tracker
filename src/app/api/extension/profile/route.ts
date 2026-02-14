@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { authenticateExtensionRequest, getExtensionCorsHeaders } from "@/lib/extension-auth";
-import { prisma } from "@/lib/db";
+import { sanitizeExtensionPreferencesUpdate, type ExtensionPreferences } from "@/lib/extension-profile";
 import {
-    mergeExtensionPreferences,
-    sanitizeExtensionPreferencesUpdate,
-    type ExtensionPreferences,
-} from "@/lib/extension-profile";
+    getUserExtensionPreferences,
+    saveUserExtensionPreferences,
+} from "@/lib/extension-preferences-compat";
 
 const profileUpdateSchema = z.object({
     preferences: z.unknown().optional(),
@@ -37,14 +35,7 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: auth.userId },
-        select: { extensionPreferences: true },
-    });
-
-    const preferences = sanitizeExtensionPreferencesUpdate(
-        user?.extensionPreferences ?? {}
-    );
+    const preferences = await getUserExtensionPreferences(auth.userId);
 
     return profileResponse(preferences);
 }
@@ -73,29 +64,14 @@ export async function PUT(request: NextRequest) {
         parsed.data.preferences ?? {}
     );
 
-    const existingUser = await prisma.user.findUnique({
-        where: { id: auth.userId },
-        select: { extensionPreferences: true },
-    });
+    const result = await saveUserExtensionPreferences(auth.userId, update);
 
-    if (!existingUser) {
+    if (!result.foundUser) {
         return NextResponse.json(
             { error: "User not found" },
             { status: 404, headers: getExtensionCorsHeaders() }
         );
     }
 
-    const merged = mergeExtensionPreferences(
-        existingUser.extensionPreferences,
-        update
-    );
-
-    await prisma.user.update({
-        where: { id: auth.userId },
-        data: {
-            extensionPreferences: merged as Prisma.InputJsonValue,
-        },
-    });
-
-    return profileResponse(merged);
+    return profileResponse(result.preferences);
 }

@@ -25,6 +25,7 @@ model User {
   sessions      Session[]
   projects      Project[]
   sceneAssets   SceneAssetVersion[] @relation("SceneAssetCreatedBy")
+  promptPackages PromptPackage[] @relation("PromptPackageCreatedBy")
   apiTokens     ExtensionApiToken[]
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -112,6 +113,7 @@ model Scene {
   charactersPresent String[] @map("characters_present")
   keyframeUrl       String?  @map("keyframe_url")
   sortOrder         Int      @default(0) @map("sort_order")
+  promptPackages    PromptPackage[]
   assets            SceneAssetVersion[]
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
@@ -171,6 +173,39 @@ enum AssetStatus {
   ARCHIVED
 }
 
+enum RightsState {
+  UNKNOWN
+  NON_COMMERCIAL
+  COMMERCIAL_ALLOWED
+  RESTRICTED
+}
+
+model PromptPackage {
+  id               String    @id @default(cuid())
+  sceneId          String    @map("scene_id")
+  scene            Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  versionNumber    Int       @default(1) @map("version_number")
+  name             String?
+  prompt           String    @db.Text
+  negativePrompt   String?   @map("negative_prompt") @db.Text
+  constraints      Json?
+  targetAspectRatio String?  @map("target_aspect_ratio")
+  targetDurationSec Int?     @map("target_duration_sec")
+  styleProfile     String?   @map("style_profile")
+  tags             String[]
+  metadata         Json?
+  createdById      String?   @map("created_by_id")
+  createdBy        User?     @relation("PromptPackageCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  assets           SceneAssetVersion[]
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([sceneId])
+  @@index([createdById])
+  @@unique([sceneId, versionNumber])
+  @@map("prompt_packages")
+}
+
 model AiPlatform {
   id              String              @id @default(cuid())
   slug            String              @unique
@@ -192,12 +227,18 @@ model SceneAssetVersion {
   id              String      @id @default(cuid())
   sceneId         String      @map("scene_id")
   scene           Scene       @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  promptPackageId String?     @map("prompt_package_id")
+  promptPackage   PromptPackage? @relation(fields: [promptPackageId], references: [id], onDelete: SetNull)
   platformId      String?     @map("platform_id")
   platform        AiPlatform? @relation(fields: [platformId], references: [id], onDelete: SetNull)
+  parentVersionId String?     @map("parent_version_id")
+  parentVersion   SceneAssetVersion? @relation("SceneAssetDerivatives", fields: [parentVersionId], references: [id], onDelete: SetNull)
+  derivedVersions SceneAssetVersion[] @relation("SceneAssetDerivatives")
   platformKey     String      @map("platform_key")
   platformLabel   String      @map("platform_label")
   assetType       AssetType   @map("asset_type")
   status          AssetStatus @default(DRAFT)
+  rightsState     RightsState @default(UNKNOWN) @map("rights_state")
   versionNumber   Int         @default(1) @map("version_number")
   title           String?
   prompt          String      @db.Text
@@ -207,7 +248,12 @@ model SceneAssetVersion {
   externalAssetId String?     @map("external_asset_id")
   outputUrl       String?     @map("output_url")
   thumbnailUrl    String?     @map("thumbnail_url")
+  costEstimateUsd Float?      @map("cost_estimate_usd")
+  generationSeconds Int?      @map("generation_seconds")
+  queueWaitSeconds Int?       @map("queue_wait_seconds")
+  compareGroup    String?     @map("compare_group")
   metadata        Json?
+  provenance      Json?
   tags            String[]
   notes           String?     @db.Text
   selected        Boolean     @default(false)
@@ -217,9 +263,13 @@ model SceneAssetVersion {
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@index([sceneId])
+  @@index([promptPackageId])
+  @@index([parentVersionId])
   @@index([platformKey])
   @@index([assetType])
   @@index([status])
+  @@index([rightsState])
+  @@index([compareGroup])
   @@index([createdById])
   @@unique([sceneId, platformKey, assetType, versionNumber])
   @@map("scene_asset_versions")

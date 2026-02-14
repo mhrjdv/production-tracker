@@ -10,38 +10,17 @@
   <main class="app">
     <header class="header">
       <h1>Production Tracker Sync</h1>
-      <p>One-click prompt reuse, autofill, and scene version sync.</p>
+      <p>Capture once, version everywhere.</p>
     </header>
 
-    <section class="card">
-      <h2>Connection</h2>
-      <label class="field">
-        <span>App URL</span>
-        <input id="baseUrl" type="url" placeholder="http://localhost:3000" />
-      </label>
-      <label class="field">
-        <span>API Token</span>
-        <input id="token" type="password" placeholder="lmt_..." />
-      </label>
-      <label class="field">
-        <span>OpenAI-Compatible Base URL (Optional)</span>
-        <input id="openAiBaseUrl" type="url" placeholder="https://api.openai.com/v1" />
-      </label>
-      <label class="field">
-        <span>OpenAI-Compatible Model (Optional)</span>
-        <input id="openAiModel" type="text" placeholder="gpt-4.1-mini / any-compatible-model" />
-      </label>
-      <label class="field">
-        <span>BYOK API Key (Local only, never synced)</span>
-        <input id="openAiApiKey" type="password" placeholder="sk-..." />
-      </label>
-      <div class="row">
-        <button id="saveConfig" type="button">Save</button>
-        <button id="refreshData" type="button" class="secondary">Reload</button>
-      </div>
-    </section>
+    <nav class="tabs" id="tabNav" aria-label="Popup sections">
+      <button type="button" class="tab-btn active" data-tab="capture">Capture</button>
+      <button type="button" class="tab-btn" data-tab="reuse">Reuse</button>
+      <button type="button" class="tab-btn" data-tab="sync">Sync</button>
+      <button type="button" class="tab-btn" data-tab="settings">Settings</button>
+    </nav>
 
-    <section class="card">
+    <section class="card tab-panel" data-tab-panel="capture">
       <h2>Capture</h2>
       <label class="field">
         <span>Project</span>
@@ -51,22 +30,11 @@
         <span>Scene</span>
         <select id="sceneSelect"></select>
       </label>
-      <label class="field">
-        <span>Platform</span>
-        <select id="platformSelect"></select>
-      </label>
-      <label class="field">
-        <span>Reuse Existing Scene Version Prompt</span>
-        <div class="row">
-          <select id="sceneAssetSelect" class="grow"></select>
-          <button id="loadAssetPrompt" type="button" class="secondary">Load</button>
-        </div>
-      </label>
-      <div id="intentPanel" class="intent hidden" role="status" aria-live="polite">
-        <p id="intentSummary" class="intent-summary"></p>
-        <div id="intentActions" class="row"></div>
-      </div>
       <div class="row">
+        <label class="field grow">
+          <span>Platform</span>
+          <select id="platformSelect"></select>
+        </label>
         <label class="field grow">
           <span>Type</span>
           <select id="assetType">
@@ -102,10 +70,16 @@
         <span>Negative Prompt</span>
         <textarea id="negativePrompt" rows="2" placeholder="Optional negative prompt"></textarea>
       </label>
-      <label class="field">
-        <span>Model</span>
-        <input id="modelName" type="text" placeholder="e.g. Veo-2, MJ-v7" />
-      </label>
+      <div class="row">
+        <label class="field grow">
+          <span>Model</span>
+          <input id="modelName" type="text" placeholder="e.g. Veo-3 / MJ-v7" />
+        </label>
+        <label class="field grow">
+          <span>External Asset ID</span>
+          <input id="externalAssetId" type="text" placeholder="job_abc123" />
+        </label>
+      </div>
       <label class="field">
         <span>Source URL</span>
         <input id="sourceUrl" type="url" placeholder="Current tab URL" />
@@ -119,36 +93,89 @@
         <input id="thumbnailUrl" type="url" placeholder="Preview image URL (optional)" />
       </label>
       <label class="field">
-        <span>External Asset ID</span>
-        <input id="externalAssetId" type="text" placeholder="job_abc123 (optional)" />
-      </label>
-      <label class="field">
         <span>Tags (comma separated)</span>
         <input id="tags" type="text" placeholder="hero, approved, pass-2" />
       </label>
+      <details class="advanced-block">
+        <summary>Advanced Metadata</summary>
+        <label class="field">
+          <span>Metadata JSON</span>
+          <textarea id="metadata" rows="3" placeholder='{"durationSec": 8, "fps": 24}'></textarea>
+        </label>
+        <label class="field">
+          <span>Notes</span>
+          <textarea id="notes" rows="2" placeholder="Optional notes"></textarea>
+        </label>
+      </details>
+      <div class="row">
+        <button id="autoFill" type="button" class="secondary">Auto Fill From Page</button>
+        <button id="applyPrompt" type="button" class="secondary">Apply Prompt to Page</button>
+        <button id="refinePrompt" type="button" class="secondary">AI Refine Prompt</button>
+      </div>
+    </section>
+
+    <section class="card tab-panel hidden" data-tab-panel="reuse">
+      <h2>Reuse</h2>
       <label class="field">
-        <span>Metadata JSON</span>
-        <textarea id="metadata" rows="3" placeholder='{"durationSec": 8, "fps": 24}'></textarea>
+        <span>Reuse Existing Scene Version Prompt</span>
+        <div class="row">
+          <select id="sceneAssetSelect" class="grow"></select>
+          <button id="loadAssetPrompt" type="button" class="secondary">Load</button>
+        </div>
       </label>
-      <label class="field">
-        <span>Notes</span>
-        <textarea id="notes" rows="2" placeholder="Optional notes"></textarea>
-      </label>
+      <div id="intentPanel" class="intent hidden" role="status" aria-live="polite">
+        <p id="intentSummary" class="intent-summary"></p>
+        <div id="intentActions" class="row"></div>
+      </div>
       <div class="row">
         <button id="restoreDraft" type="button" class="secondary">Restore Draft</button>
         <button id="clearDraft" type="button" class="secondary">Clear Draft</button>
       </div>
+    </section>
+
+    <section class="card tab-panel hidden" data-tab-panel="sync">
+      <h2>Sync</h2>
       <div class="row">
-        <button id="autoFill" type="button" class="secondary">Auto Fill From Page</button>
-        <button id="applyPrompt" type="button" class="secondary">Apply Prompt to Page</button>
-      </div>
-      <div class="row">
-        <button id="refinePrompt" type="button" class="secondary">AI Refine Prompt</button>
         <button id="queueSync" type="button">Queue & Sync</button>
         <button id="syncNow" type="button" class="secondary">Sync Queue</button>
       </div>
-      <p id="status" class="status"></p>
+      <div class="preview-wrap">
+        <div class="preview-header">
+          <span>Recent Scene Results</span>
+        </div>
+        <div id="previewList" class="preview-list"></div>
+      </div>
     </section>
+
+    <section class="card tab-panel hidden" data-tab-panel="settings">
+      <h2>Settings</h2>
+      <label class="field">
+        <span>App URL</span>
+        <input id="baseUrl" type="url" placeholder="http://localhost:3000" />
+      </label>
+      <label class="field">
+        <span>API Token</span>
+        <input id="token" type="password" placeholder="lmt_..." />
+      </label>
+      <label class="field">
+        <span>OpenAI-Compatible Base URL (Optional)</span>
+        <input id="openAiBaseUrl" type="url" placeholder="https://api.openai.com/v1" />
+      </label>
+      <label class="field">
+        <span>OpenAI-Compatible Model (Optional)</span>
+        <input id="openAiModel" type="text" placeholder="gpt-4.1-mini / any-compatible-model" />
+      </label>
+      <label class="field">
+        <span>BYOK API Key (Local only, never synced)</span>
+        <input id="openAiApiKey" type="password" placeholder="sk-..." />
+      </label>
+      <div class="row">
+        <button id="saveConfig" type="button">Save</button>
+        <button id="refreshData" type="button" class="secondary">Reload</button>
+      </div>
+    </section>
+
+    <p id="status" class="status"></p>
   </main>
 
   <script type="module" src="./popup.js"></script>

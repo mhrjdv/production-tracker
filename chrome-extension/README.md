@@ -6,6 +6,11 @@ Manifest V3 Chrome extension for capturing AI generation metadata from any tab a
 
 - Captures the current tab URL + page context (prompt/model/media URL) from generation tools.
 - Detects previous action context (last capture + selected scene versions) and shows smart intent suggestions.
+- Uses a minimal tabbed popup flow:
+  - `Capture`: project/scene/platform + prompt capture
+  - `Reuse`: load scene versions + intent actions + drafts
+  - `Sync`: queue/sync controls + compact result previews
+  - `Settings`: token/base URL/BYOK config
 - Lets you select `Project -> Scene -> Platform -> Asset Type`.
 - Reuses prompt/version history from existing scene versions (`Load` button).
 - Auto-saves per-scene drafts and restores previous in-progress capture context.

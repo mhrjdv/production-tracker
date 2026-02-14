@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IntegrationsClient } from "@/components/integrations-client";
-import { sanitizeExtensionPreferencesUpdate } from "@/lib/extension-profile";
+import { getUserExtensionPreferences } from "@/lib/extension-preferences-compat";
 
 function IntegrationsFallback() {
     return (
@@ -21,7 +21,7 @@ async function IntegrationsContent() {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
-    const [tokens, user] = await Promise.all([
+    const [tokens, extensionPreferences] = await Promise.all([
         prisma.extensionApiToken.findMany({
             where: { userId: session.user.id },
             orderBy: { createdAt: "desc" },
@@ -35,17 +35,8 @@ async function IntegrationsContent() {
                 revokedAt: true,
             },
         }),
-        prisma.user.findUnique({
-            where: { id: session.user.id },
-            select: {
-                extensionPreferences: true,
-            },
-        }),
+        getUserExtensionPreferences(session.user.id),
     ]);
-
-    const extensionPreferences = sanitizeExtensionPreferencesUpdate(
-        user?.extensionPreferences ?? {}
-    );
 
     return (
         <div className="space-y-8">

@@ -8,6 +8,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import type { PipelineResult } from "@/lib/ai-pipeline";
 
 interface SaveProjectInput {
@@ -52,8 +53,8 @@ export async function saveGeneratedProject(input: SaveProjectInput) {
                         sortOrder: index,
                         narrativePurpose: desc?.narrative_purpose ?? null,
                         emotionalTone: desc?.emotional_tone ?? null,
-                        setting: (desc?.setting ?? undefined) as any,
-                        camera: (desc?.camera_intent ?? undefined) as any,
+                        setting: (desc?.setting ?? undefined) as Prisma.InputJsonValue | undefined,
+                        camera: (desc?.camera_intent ?? undefined) as Prisma.InputJsonValue | undefined,
                         actions: desc?.actions ?? [],
                         visualMotifs: desc?.visual_motifs ?? [],
                         constraints: desc?.constraints ?? [],
@@ -84,7 +85,7 @@ export async function saveGeneratedProject(input: SaveProjectInput) {
             // Create film identity — stored as JSON blob
             identity: {
                 create: {
-                    data: result.filmIdentity as any,
+                    data: result.filmIdentity as Prisma.InputJsonValue,
                 },
             },
         },

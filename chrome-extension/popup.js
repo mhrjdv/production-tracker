@@ -60,6 +60,7 @@ const dom = {
   refinePrompt: document.getElementById("refinePrompt"),
   queueSync: document.getElementById("queueSync"),
   syncNow: document.getElementById("syncNow"),
+  previewList: document.getElementById("previewList"),
   status: document.getElementById("status"),
 };
 
@@ -68,13 +69,41 @@ let scenes = [];
 let platforms = [];
 let sceneAssets = [];
 let currentTab = null;
+let activePanel = "capture";
 let currentConfigCache = null;
 let lastPageContext = null;
 let draftSaveTimer = null;
+let tabNavInitialized = false;
 
 function setStatus(message, isError = false) {
   dom.status.textContent = message;
   dom.status.style.color = isError ? "#f87171" : "#8f98ad";
+}
+
+function setActivePanel(panel) {
+  activePanel = panel;
+  const buttons = Array.from(document.querySelectorAll("[data-tab]"));
+  const panels = Array.from(document.querySelectorAll("[data-tab-panel]"));
+
+  buttons.forEach((button) => {
+    button.classList.toggle("active", button.getAttribute("data-tab") === panel);
+  });
+  panels.forEach((node) => {
+    node.classList.toggle("hidden", node.getAttribute("data-tab-panel") !== panel);
+  });
+}
+
+function initializeTabNavigation() {
+  if (tabNavInitialized) return;
+  const buttons = Array.from(document.querySelectorAll("[data-tab]"));
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const panel = button.getAttribute("data-tab") || "capture";
+      setActivePanel(panel);
+    });
+  });
+  setActivePanel(activePanel);
+  tabNavInitialized = true;
 }
 
 async function getConfig() {
@@ -524,6 +553,64 @@ function detectPlatformSlug(url) {
   return match?.slug || "";
 }
 
+function formatRelativeTime(isoString) {
+  if (!isoString) return "";
+  const then = new Date(isoString).getTime();
+  if (!Number.isFinite(then)) return "";
+  const seconds = Math.max(0, Math.floor((Date.now() - then) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function renderPreviewList() {
+  if (!dom.previewList) return;
+  dom.previewList.innerHTML = "";
+
+  const items = sceneAssets.slice(0, 5);
+  if (items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "preview-empty";
+    empty.textContent = "No synced versions yet for this scene.";
+    dom.previewList.appendChild(empty);
+    return;
+  }
+
+  items.forEach((asset) => {
+    const row = document.createElement("div");
+    row.className = "preview-item";
+
+    const thumb = document.createElement("img");
+    thumb.className = "preview-thumb";
+    thumb.alt = `${asset.platformLabel} preview`;
+    thumb.src =
+      asset.thumbnailUrl ||
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='42'%3E%3Crect width='56' height='42' fill='%230d1319'/%3E%3C/svg%3E";
+
+    const meta = document.createElement("div");
+    meta.className = "preview-meta";
+
+    const title = document.createElement("div");
+    title.className = "preview-title";
+    title.textContent = `${asset.platformLabel} · ${asset.assetType} · v${asset.versionNumber}`;
+
+    const subtitle = document.createElement("div");
+    subtitle.className = "preview-sub";
+    const timestamp = formatRelativeTime(asset.createdAt);
+    subtitle.textContent = `${asset.status}${asset.selected ? " · selected" : ""}${timestamp ? ` · ${timestamp}` : ""}`;
+
+    meta.appendChild(title);
+    meta.appendChild(subtitle);
+    row.appendChild(thumb);
+    row.appendChild(meta);
+    dom.previewList.appendChild(row);
+  });
+}
+
 async function syncProfile(preferences) {
   if (!dom.token.value.trim()) return;
   await fetchApi("/api/extension/profile", {
@@ -582,6 +669,7 @@ async function loadSceneAssets(projectId, sceneId) {
   if (!projectId || !sceneId) {
     sceneAssets = [];
     dom.sceneAssetSelect.innerHTML = "";
+    renderPreviewList();
     await refreshIntentSuggestions();
     return;
   }
@@ -597,6 +685,8 @@ async function loadSceneAssets(projectId, sceneId) {
     option.value = "";
     option.textContent = "No saved versions for this scene";
     dom.sceneAssetSelect.appendChild(option);
+    renderPreviewList();
+    await refreshIntentSuggestions();
     return;
   }
 
@@ -607,6 +697,7 @@ async function loadSceneAssets(projectId, sceneId) {
     dom.sceneAssetSelect.appendChild(option);
   });
 
+  renderPreviewList();
   await refreshIntentSuggestions();
 }
 
@@ -783,6 +874,12 @@ async function queueCapture() {
   const synced = response.syncResult?.processed || 0;
   const remaining = response.syncResult?.remaining || 0;
   setStatus(`Queued. Synced ${synced} item(s), ${remaining} remaining.`);
+
+  if (synced > 0) {
+    await loadSceneAssets(dom.projectSelect.value, dom.sceneSelect.value).catch(() => null);
+  } else {
+    renderPreviewList();
+  }
 }
 
 async function syncNow() {
@@ -792,9 +889,16 @@ async function syncNow() {
   }
   const result = response.result || { processed: 0, remaining: 0 };
   setStatus(`Synced ${result.processed} item(s), ${result.remaining} remaining.`);
+  if ((result.processed || 0) > 0) {
+    await loadSceneAssets(dom.projectSelect.value, dom.sceneSelect.value).catch(() => null);
+  } else {
+    renderPreviewList();
+  }
 }
 
 async function initialize() {
+  initializeTabNavigation();
+
   const config = await getConfig();
   currentConfigCache = config;
   dom.baseUrl.value = config.baseUrl || "http://localhost:3000";
@@ -814,6 +918,7 @@ async function initialize() {
 
   if (!dom.token.value.trim()) {
     setStatus("Set API URL and token, then click Save.");
+    renderPreviewList();
     return;
   }
 
@@ -888,6 +993,7 @@ async function initialize() {
     setStatus(`Ready. Queue has ${queueSize} item(s).`);
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), true);
+    renderPreviewList();
   }
 }
 

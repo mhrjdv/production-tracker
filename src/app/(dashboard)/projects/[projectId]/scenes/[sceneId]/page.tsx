@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SceneDetailClient } from "@/components/scene-detail-client";
+import { findPromptPackagesBySceneId, findSceneAssetsBySceneId } from "@/lib/scene-assets-compat";
 
 function SceneDetailFallback() {
     return (
@@ -53,7 +54,7 @@ async function SceneDetailContent({
     });
     if (!scene) notFound();
 
-    const [prev, next, assets, platforms] = await Promise.all([
+    const [prev, next, assets, platforms, promptPackages] = await Promise.all([
         prisma.scene.findFirst({
             where: { projectId, sortOrder: { lt: scene.sortOrder } },
             orderBy: { sortOrder: "desc" },
@@ -64,37 +65,7 @@ async function SceneDetailContent({
             orderBy: { sortOrder: "asc" },
             select: { sceneId: true, storyBeat: true },
         }),
-        prisma.sceneAssetVersion.findMany({
-            where: { sceneId: scene.id },
-            orderBy: [{ createdAt: "desc" }],
-            select: {
-                id: true,
-                platformId: true,
-                platformKey: true,
-                platformLabel: true,
-                assetType: true,
-                status: true,
-                versionNumber: true,
-                title: true,
-                prompt: true,
-                negativePrompt: true,
-                modelName: true,
-                sourceUrl: true,
-                externalAssetId: true,
-                outputUrl: true,
-                thumbnailUrl: true,
-                metadata: true,
-                tags: true,
-                notes: true,
-                selected: true,
-                createdAt: true,
-                createdBy: {
-                    select: {
-                        name: true,
-                    },
-                },
-            },
-        }),
+        findSceneAssetsBySceneId(scene.id),
         prisma.aiPlatform.findMany({
             orderBy: { name: "asc" },
             select: {
@@ -106,6 +77,7 @@ async function SceneDetailContent({
                 supportedOutput: true,
             },
         }),
+        findPromptPackagesBySceneId(scene.id),
     ]);
 
     return (
@@ -119,11 +91,14 @@ async function SceneDetailContent({
             }}
             assets={assets.map((asset) => ({
                 id: asset.id,
+                promptPackageId: asset.promptPackageId,
+                parentVersionId: asset.parentVersionId,
                 platformId: asset.platformId,
                 platformKey: asset.platformKey,
                 platformLabel: asset.platformLabel,
                 assetType: asset.assetType,
                 status: asset.status,
+                rightsState: asset.rightsState,
                 versionNumber: asset.versionNumber,
                 title: asset.title,
                 prompt: asset.prompt,
@@ -133,14 +108,32 @@ async function SceneDetailContent({
                 externalAssetId: asset.externalAssetId,
                 outputUrl: asset.outputUrl,
                 thumbnailUrl: asset.thumbnailUrl,
-                metadata: (asset.metadata ?? null) as Record<string, unknown> | null,
+                costEstimateUsd: asset.costEstimateUsd,
+                generationSeconds: asset.generationSeconds,
+                queueWaitSeconds: asset.queueWaitSeconds,
+                compareGroup: asset.compareGroup,
+                metadata: asset.metadata,
+                provenance: asset.provenance,
                 tags: asset.tags,
                 notes: asset.notes,
                 selected: asset.selected,
                 createdAt: asset.createdAt.toISOString(),
-                createdByName: asset.createdBy?.name || null,
+                createdByName: null,
             }))}
             platforms={platforms}
+            promptPackages={promptPackages.map((item) => ({
+                id: item.id,
+                versionNumber: item.versionNumber,
+                name: item.name,
+                prompt: item.prompt,
+                negativePrompt: item.negativePrompt,
+                targetAspectRatio: item.targetAspectRatio,
+                targetDurationSec: item.targetDurationSec,
+                styleProfile: item.styleProfile,
+                tags: item.tags,
+                metadata: (item.metadata ?? null) as Record<string, unknown> | null,
+                createdAt: item.createdAt.toISOString(),
+            }))}
             prev={prev}
             next={next}
         />
