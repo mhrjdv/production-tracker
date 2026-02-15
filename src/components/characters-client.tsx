@@ -22,6 +22,7 @@ import {
   Plus,
   Trash2,
   Upload,
+  Search,
   Users,
   X,
 } from "lucide-react";
@@ -397,6 +398,14 @@ function CharacterCard({
             <p className="text-sm line-clamp-3">{char.coreIdentity}</p>
           </div>
         )}
+        {char.designPhilosophy && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              Design Philosophy
+            </p>
+            <p className="text-sm line-clamp-2">{char.designPhilosophy}</p>
+          </div>
+        )}
         {char.visualCues.length > 0 && (
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-1.5">
@@ -415,6 +424,29 @@ function CharacterCard({
               {char.visualCues.length > 4 && (
                 <Badge variant="outline" className="text-xs">
                   +{char.visualCues.length - 4}
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+        {char.bodyLanguage.length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-1.5">
+              Body Language
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {char.bodyLanguage.slice(0, 4).map((lang, i) => (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className="text-xs font-normal"
+                >
+                  {lang.length > 30 ? lang.slice(0, 30) + "…" : lang}
+                </Badge>
+              ))}
+              {char.bodyLanguage.length > 4 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{char.bodyLanguage.length - 4}
                 </Badge>
               )}
             </div>
@@ -601,6 +633,19 @@ export function CharactersClient({
   characters: CharacterItem[];
 }) {
   const [deleteChar, setDeleteChar] = useState<CharacterItem | null>(null);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return characters;
+    const q = search.toLowerCase();
+    return characters.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.role.toLowerCase().includes(q) ||
+        (c.coreIdentity?.toLowerCase().includes(q) ?? false) ||
+        c.visualCues.some((v) => v.toLowerCase().includes(q)),
+    );
+  }, [characters, search]);
 
   return (
     <div className="space-y-6">
@@ -623,8 +668,21 @@ export function CharactersClient({
         </p>
       </div>
 
+      {/* Search */}
+      {characters.length > 0 && (
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search characters..."
+            className="pl-9"
+          />
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {characters.map((char) => (
+        {filtered.map((char) => (
           <CharacterCard
             key={char.id}
             char={char}

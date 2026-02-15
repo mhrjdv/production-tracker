@@ -65,6 +65,7 @@ export async function updateSceneOrder(projectId: string, sceneIds: string[]) {
   );
 
   revalidatePath(`/projects/${projectId}/timeline`);
+  revalidatePath(`/projects/${projectId}/production`);
 }
 
 export async function updateSceneKeyframe(
