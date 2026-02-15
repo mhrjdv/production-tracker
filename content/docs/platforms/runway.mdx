@@ -1,0 +1,254 @@
+---
+title: Runway
+description: Capturing video and image outputs from Runway
+---
+
+# Runway
+
+Runway is a creative platform offering multiple AI video and image generation tools, including Gen-1, Gen-2, and Gen-3 models. It's popular for video-to-video, image-to-video, and text-to-video workflows.
+
+## Platform Overview
+
+- **Provider:** Runway Research Inc.
+- **Specialty:** Video generation and editing
+- **Access:** Free tier with watermark, paid plans for commercial use
+- **Supported Output Types:** Video, Image
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Runway on:
+
+- `https://runwayml.com`
+- `https://app.runwayml.com`
+
+### What Is Auto-Detected
+
+When you generate with Runway, Laserman extracts:
+
+- **Prompt** - From prompt textarea or generation card
+- **Model** - Gen-1, Gen-2, Gen-3, or specific tool name
+- **Duration** - From duration selector (video)
+- **Aspect Ratio** - From ratio buttons
+- **Resolution** - From quality settings
+- **Output URL** - Video/image `src` from results
+- **Thumbnail** - Video `poster` or image preview
+
+### Detection Quality
+
+- **Prompt extraction:** High - Dedicated prompt fields
+- **Settings extraction:** Medium - Some settings hidden in advanced options
+- **Output extraction:** High - Reliable media URL detection
+
+## Capture Workflow
+
+### Text-to-Video Workflow (Gen-3)
+
+1. Open Runway Gen-3 tool
+2. Enter your prompt
+3. Set duration and aspect ratio
+4. Click "Generate"
+5. Wait for generation (can take 30-60 seconds)
+6. Video preview appears
+7. Open Laserman extension
+8. Detection banner shows "Runway"
+9. Click "Auto Fill"
+10. Review fields (especially model and duration)
+11. Click "Save Capture"
+
+### Image-to-Video Workflow (Gen-2)
+
+1. Open Gen-2 tool
+2. Upload reference image
+3. Enter motion prompt
+4. Set duration
+5. Generate
+6. Wait for result
+7. Capture as above
+
+### Multiple Generations
+
+For iterative work:
+
+1. Generate first variation
+2. Capture it
+3. Adjust prompt or settings
+4. Generate again
+5. Click "Refresh Detection"
+6. Capture new variation
+
+## Capture Tips
+
+### Best Practices
+
+- **Wait for full quality** - Initial preview may be compressed
+- **Note generation mode** - Gen-1, Gen-2, or Gen-3 have different capabilities
+- **Check watermark** - Free tier adds visible watermark
+- **Include motion keywords** - For image-to-video, motion description is critical
+
+### Watermark on Free Tier
+
+Runway free tier includes:
+
+- Visible "Runway" watermark on videos
+- Watermark appears in corner or center
+- Removed with paid subscription
+- Important for rights tracking
+
+### Common Issues
+
+**Prompt not detected in multi-step tools:**
+- Some Runway tools have multi-step workflows
+- Prompt may be on a previous screen
+- Manually copy prompt before advancing
+
+**Duration not captured:**
+- Duration selector may be hidden after generation
+- Manually note video length and add to metadata
+
+**Model version unclear:**
+- Runway has Gen-1, Gen-2, Gen-3, plus specialized tools
+- Detector attempts to identify from UI
+- Manually verify model name if needed
+
+## Rights and Licensing
+
+### Free vs Paid Plans
+
+Runway licensing varies by plan:
+
+#### Free Plan
+
+- Limited credits per month
+- Visible watermark on all outputs
+- Non-commercial use recommended
+- Outputs subject to Runway terms
+
+#### Creator/Pro Plans
+
+- No watermark
+- Full commercial license
+- Higher resolution and quality
+- You own your outputs
+
+### Commercial Use
+
+Per Runway's terms:
+
+- **Free tier:** Use at your own risk, watermark present
+- **Paid plans:** Full commercial rights, no attribution required
+- **Training data:** Cannot use outputs to train competing models
+
+### Laserman Rights State
+
+The extension sets `rightsState` to:
+
+- **RESTRICTED** - If watermark detected (inferred from free plan)
+- **LICENSED** - If authenticated with paid plan (inferred)
+- **UNKNOWN** - Default if plan unclear
+
+> Manually set rights state in web app based on your Runway subscription.
+
+## Known Limitations
+
+### Multi-Step Workflows
+
+Some Runway tools have multi-step UIs:
+
+- Prompt entered on step 1
+- Generation happens on step 2
+- Detection works best on results page
+
+### Async Generation
+
+Runway generations can take time:
+
+- Progress bar shows generation status
+- Don't capture until "Complete" status
+- May need to refresh page to see final result
+
+### Tool Variety
+
+Runway has many specialized tools:
+
+- Gen-3 Alpha (text-to-video)
+- Gen-2 (image-to-video, video-to-video)
+- Inpainting, Expand Image, etc.
+
+Each tool may have slightly different UI. Detector uses common patterns.
+
+## Metadata Fields
+
+Runway-specific metadata:
+
+```json
+{
+  "modelName": "Gen-3 Alpha",
+  "duration": 10,
+  "aspectRatio": "16:9",
+  "resolution": "1080p",
+  "watermarkPresent": false,
+  "platform": "runway"
+}
+```
+
+## Example Capture
+
+A typical Runway capture in Laserman:
+
+- **Platform:** runway
+- **Asset Type:** VIDEO
+- **Prompt:** "A drone shot rising above a foggy forest at sunrise"
+- **Model:** Gen-3 Alpha
+- **Output URL:** `https://storage.runwayml.com/video_xyz789.mp4`
+- **Thumbnail:** `https://storage.runwayml.com/thumb_xyz789.jpg`
+- **Metadata:** `{"modelName": "Gen-3 Alpha", "duration": 10, "aspectRatio": "16:9", "watermarkPresent": false}`
+- **Status:** GENERATED
+- **Rights State:** LICENSED
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're on a results/generation page
+- Wait for generation to fully complete
+- Click "Refresh Detection"
+- Grant host permissions for `runwayml.com`
+
+### Output URL Expired
+
+- Runway uses temporary storage URLs
+- Extension syncs immediately to avoid expiry
+- Verify successful sync in Queue mode
+
+### Watermark Status Unclear
+
+- Free tier always has watermark
+- Paid plans remove watermark
+- Visually inspect video to verify
+- Set rights state to RESTRICTED if watermark present
+
+### Model Name Generic
+
+- Detector captures model from UI badges
+- Some tools show generic "Runway" instead of Gen-1/2/3
+- Manually note specific model in tags or notes field
+
+### Multi-Step Prompt Lost
+
+- Copy prompt text before advancing steps
+- Paste into capture form manually if detection fails
+
+## Related Resources
+
+- [Runway Homepage](https://runwayml.com)
+- [Runway Pricing](https://runwayml.com/pricing)
+- [Gen-3 Alpha Announcement](https://runwayml.com/blog/introducing-gen-3-alpha)
+- [Runway Terms of Service](https://runwayml.com/terms)
+
+## Next Steps
+
+- [Compare with Sora and Veo](/docs/platforms/)
+- [Understanding rights and watermarks](/docs/platforms/)
+- [Capture workflow guide](/docs/chrome-extension/capture)

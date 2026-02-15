@@ -113,6 +113,7 @@ model Scene {
   charactersPresent String[] @map("characters_present")
   keyframeUrl       String?  @map("keyframe_url")
   sortOrder         Int      @default(0) @map("sort_order")
+  shots             Shot[]
   promptPackages    PromptPackage[]
   assets            SceneAssetVersion[]
   createdAt         DateTime @default(now()) @map("created_at")
@@ -153,6 +154,30 @@ model FilmIdentity {
   @@map("film_identities")
 }
 
+// ─── Shot (first-class capture unit inside Scene) ────────────
+
+model Shot {
+  id          String   @id @default(cuid())
+  shotCode    String   @map("shot_code")      // SH001, SH002
+  sceneId     String   @map("scene_id")
+  scene       Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  description String   @db.Text
+  angle       String?                          // wide, medium, close-up, OTS, POV, aerial, insert
+  framing     String?                          // framing notes
+  movement    String?                          // pan, tilt, dolly, crane, handheld, steadicam, static
+  lensNotes   String?  @map("lens_notes")
+  references  Json?                            // attached reference images, style refs
+  sortOrder   Int      @default(0) @map("sort_order")
+  assets      SceneAssetVersion[]
+  promptPackages PromptPackage[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([sceneId, shotCode])
+  @@index([sceneId])
+  @@map("shots")
+}
+
 enum AssetType {
   SCRIPT
   IMAGE
@@ -168,9 +193,13 @@ enum AssetType {
 enum AssetStatus {
   DRAFT
   GENERATED
+  NEEDS_REVIEW
+  REVIEWED
+  APPROVED
   SELECTED
   REJECTED
   ARCHIVED
+  FINAL
 }
 
 enum RightsState {
@@ -184,6 +213,8 @@ model PromptPackage {
   id               String    @id @default(cuid())
   sceneId          String    @map("scene_id")
   scene            Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  shotId           String?   @map("shot_id")
+  shot             Shot?     @relation(fields: [shotId], references: [id], onDelete: SetNull)
   versionNumber    Int       @default(1) @map("version_number")
   name             String?
   prompt           String    @db.Text
@@ -201,6 +232,7 @@ model PromptPackage {
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@index([sceneId])
+  @@index([shotId])
   @@index([createdById])
   @@unique([sceneId, versionNumber])
   @@map("prompt_packages")
@@ -227,6 +259,8 @@ model SceneAssetVersion {
   id              String      @id @default(cuid())
   sceneId         String      @map("scene_id")
   scene           Scene       @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  shotId          String?     @map("shot_id")
+  shot            Shot?       @relation(fields: [shotId], references: [id], onDelete: SetNull)
   promptPackageId String?     @map("prompt_package_id")
   promptPackage   PromptPackage? @relation(fields: [promptPackageId], references: [id], onDelete: SetNull)
   platformId      String?     @map("platform_id")
@@ -263,6 +297,7 @@ model SceneAssetVersion {
   updatedAt       DateTime    @updatedAt @map("updated_at")
 
   @@index([sceneId])
+  @@index([shotId])
   @@index([promptPackageId])
   @@index([parentVersionId])
   @@index([platformKey])
@@ -271,6 +306,7 @@ model SceneAssetVersion {
   @@index([rightsState])
   @@index([compareGroup])
   @@index([createdById])
+  @@index([selected, status])
   @@unique([sceneId, platformKey, assetType, versionNumber])
   @@map("scene_asset_versions")
 }

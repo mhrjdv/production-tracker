@@ -31,32 +31,79 @@ Use `skill-creator` when any repeated workflow appears at least 3 times, especia
 - extension capture validation
 - rights/licensing checks by platform
 
-## Product-Specific UX Rules
+## Product Identity
 
-- Scene is the primary object.
-- Version is immutable append-only.
-- Prompt package is reusable across platforms.
-- Platform-specific transforms are generated, not hand-copied.
-- Every output should have provenance metadata (`source`, `model`, `timestamp`, `platform`, `cost_estimate`, `rights_state`).
+Laserman = **orchestration and traceability layer** for AI film production. No native generation.
 
-## Chrome Extension Rules
+Lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
 
-The extension should stay minimal with tab sections:
+## Object Model Rules
 
-1. `Capture`
-- Project, Scene, Platform, Type, Prompt.
-- Auto-detect platform from URL and auto-fill context.
+- **Project -> Script -> Scene -> Shot -> Asset Version** is the hierarchy.
+- Shot is the unit of capture. Scene is the grouping container.
+- Prompt Package is reusable across platforms, versioned per scene/shot.
+- Asset Version is immutable. Never update — always create new version.
+- Selected boolean marks the winner. Only one winner per scope at a time.
 
-2. `Reuse`
-- Load previous scene prompt/version.
-- One-click apply prompt to current page.
+## Immutability Rules
 
-3. `Sync`
-- Queue size, retry status, sync now.
-- Show small preview cards for latest captured outputs.
+- Never overwrite a SceneAssetVersion. Always create a new one.
+- `parentVersionId` tracks derivation for remix/regen.
+- `compareGroup` groups versions from the same prompt intent for side-by-side comparison.
+- Selection is not deletion. All versions remain accessible.
 
-4. `Settings`
-- App URL, token, optional BYOK provider/model/key.
+## UX Rules
+
+### Web App
+- Scene and Shot views are the primary workspace. Everything else supports them.
+- Script excerpt always visible when editing scene/shot (recognition not recall).
+- Show parse progress, sync status, queue state (visibility of system status).
+- Keyboard shortcuts for power users. Command palette (`Cmd+K`) for global search.
+- Timeline shows selected winners only by default.
+
+### Chrome Extension
+- Side panel (NOT popup) with exactly four modes:
+  1. **Context** — project/scene/shot/asset type/prompt package selectors
+  2. **Capture** — auto-detected outputs, one-click save
+  3. **Reuse** — prompt package picker, apply to page
+  4. **Queue** — sync status, retry, failures
+
+### Capture Defaults
+- Default to last-active context (project/scene/shot/asset type).
+- If prompt contains ID pattern (`S001_SH003`), auto-suggest match.
+- One-click save: no complex forms. Single inline selector with search if context is missing.
+
+## Extension Rules
+
+- DOM-based capture only. No network sniffing (MV3 constraint).
+- Fallback: metadata + screenshot when direct media URL extraction fails.
+- Progressive permissions: request host permissions per-platform, not blanket.
+- Queue is offline-resilient: chrome.storage.local, alarm-driven sync, exponential backoff.
+- Bearer token auth for all API calls.
+
+## Rights and Provenance Rules
+
+- Every version must have a `rightsState` (UNKNOWN, NON_COMMERCIAL, COMMERCIAL_ALLOWED, RESTRICTED).
+- `provenance` JSON tracks: platform, plan, model, capture method, timestamp, watermark markers.
+- Surface uncertainty clearly. Do not overpromise automation.
+- "OK to ship?" checklist is a UI computation — derive from provenance + rightsState.
+- Platform plan level stored per-user per-platform in extension preferences.
+
+## Schema Rules
+
+- Name migrations: `YYYYMMDDHHMMSS_description`
+- New FK columns are always nullable for backward compatibility.
+- Add indexes on FKs and frequently-queried columns.
+- `versionNumber` auto-increments per scope (scene + shot + platformKey + assetType).
+- JSON fields: `metadata`, `provenance`, `constraints`, `setting`, `camera`, `references`.
+
+## Server Action Rules
+
+- Authenticate first with `auth()`.
+- Validate all input with Zod.
+- Use `prisma.$transaction` for multi-step mutations.
+- Return `{ success, data?, error? }` shape.
+- Call `revalidatePath()` after mutations.
 
 ## Research Rules
 
@@ -66,4 +113,6 @@ The extension should stay minimal with tab sections:
 
 ## Source Reference
 
-- Full research and product plan: `docs/ai-film-product-plan-2026.md`
+- Product research: `docs/laserman-ux-product-research-2026.md`
+- Market plan: `docs/ai-film-product-plan-2026.md`
+- System blueprint: `docs/production-ai-system-blueprint-2026.md`

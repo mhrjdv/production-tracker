@@ -1,0 +1,394 @@
+---
+title: "Timeline"
+description: "Assembly timeline with asset type lanes, drag-and-drop ordering, and final edit visualization"
+---
+
+# Timeline
+
+The Timeline provides a visual assembly interface for organizing selected assets into your final edit. It displays assets across multiple lanes, each dedicated to a specific asset type, allowing you to visualize the complete production.
+
+## Overview
+
+Access the Timeline from the Timeline tab in project detail view. The Timeline shows selected winners from all scenes organized in a horizontal, time-based layout.
+
+## Timeline Structure
+
+### Lanes
+
+The Timeline is organized into horizontal lanes, one for each asset type:
+
+- **Video Lane** - Selected video clips
+- **Image Lane** - Selected still images
+- **Audio Lane** - Selected sound effects and ambience
+- **Music Lane** - Selected music and score
+- **Voice Lane** - Selected dialogue and voiceover
+
+Each lane displays assets sequentially from left to right, representing the temporal order of your final edit.
+
+### Time Ruler
+
+The top of the Timeline displays a time ruler showing:
+
+- **Timecode** - Hours:minutes:seconds:frames
+- **Scene Markers** - Vertical lines indicating scene boundaries
+- **Current Playhead** - Red line showing current position
+- **Duration Labels** - Total length of each section
+
+The time ruler helps you understand pacing and duration at a glance.
+
+## Adding Assets to Timeline
+
+### Automatic Population
+
+When you select a winner for a shot, it automatically appears in the Timeline:
+
+1. Select winner in Assets tab or Compare view
+2. Asset is placed in the appropriate lane
+3. Position is determined by shot order in the scene
+4. Duration is calculated from asset metadata
+
+### Manual Addition
+
+Add assets to the Timeline manually:
+
+1. Drag an asset from the Assets tab
+2. Drop it onto the desired lane at the desired position
+3. Asset is inserted at that point
+4. Surrounding assets shift to accommodate
+
+### Timeline Filtering
+
+Filter which assets appear in the Timeline:
+
+- **Selected Winners Only** (default) - Show only selected assets
+- **All Approved** - Show all approved assets, not just winners
+- **By Scene** - Show only assets from specific scenes
+- **By Type** - Show only specific asset types
+
+## Organizing Assets
+
+### Drag-and-Drop Reordering
+
+Rearrange assets directly in the Timeline:
+
+1. Click and hold an asset in a lane
+2. Drag horizontally to a new position
+3. Release to place the asset
+4. Timecodes and durations update automatically
+
+### Trimming Assets
+
+Adjust in and out points for video and audio:
+
+1. Hover over the edge of an asset in the Timeline
+2. Cursor changes to a trim handle
+3. Drag left or right to adjust start or end point
+4. Asset duration updates in real-time
+
+> Trimming in the Timeline is non-destructive. Original asset files remain unchanged.
+
+### Splitting Assets
+
+Split a single asset into multiple segments:
+
+1. Position the playhead where you want to split
+2. Select the asset to split
+3. Click "Split" or press **S**
+4. Asset is divided into two separate segments
+5. Trim each segment independently
+
+### Deleting from Timeline
+
+Remove an asset from the Timeline:
+
+1. Select the asset
+2. Press **Delete** or click "Remove from Timeline"
+3. Asset is removed but remains in the Assets tab
+4. Gap is automatically closed unless you hold **Shift**
+
+## Timeline Views
+
+### Zoom Levels
+
+Adjust Timeline zoom to focus on different scopes:
+
+- **Zoom In** - See individual frames, precise trimming
+- **Zoom Out** - Overview of entire project duration
+- **Fit to Window** - Display entire Timeline in view
+- **Zoom to Selection** - Focus on selected assets
+
+Use the zoom slider or keyboard shortcuts:
+- **+** or **Cmd+=** - Zoom in
+- **-** or **Cmd+-** - Zoom out
+- **Shift+Z** - Fit to window
+
+### Compact View
+
+Toggle compact view to see more lanes at once:
+
+1. Click "Compact View" in toolbar
+2. Lane heights reduce
+3. Thumbnails shrink
+4. More lanes visible without scrolling
+
+Useful for high-level overview of complex timelines.
+
+### Expanded View
+
+Expand individual lanes for detailed work:
+
+1. Click the expand icon on a lane header
+2. Lane height increases
+3. Larger thumbnails and waveforms
+4. Easier to see details and trim precisely
+
+## Playback
+
+### Timeline Playback Controls
+
+Play your Timeline to preview the edit:
+
+- **Play/Pause** - Start or stop playback
+- **Stop** - Stop and return to beginning
+- **Loop** - Repeat playback continuously
+- **Play Selected** - Play only selected assets
+
+Keyboard shortcuts:
+- **Space** - Play/pause
+- **Return** - Play from beginning
+- **L** - Loop toggle
+
+### Playhead Navigation
+
+Move the playhead to specific positions:
+
+- **Click** on the time ruler to jump to a position
+- **Drag** the playhead to scrub through the Timeline
+- **Arrow Keys** - Move frame-by-frame
+- **Shift+Arrow Keys** - Jump to next/previous asset
+
+### Scene Navigation
+
+Jump between scenes quickly:
+
+1. Scene markers appear on the time ruler
+2. Click a scene marker to jump to that scene
+3. Use **[** and **]** keys to jump to previous/next scene
+
+## Lane Management
+
+### Showing and Hiding Lanes
+
+Toggle lane visibility:
+
+1. Click the eye icon on lane headers
+2. Lane is hidden from view
+3. Assets remain in Timeline but are not displayed
+4. Unhide at any time
+
+Useful for focusing on specific asset types.
+
+### Locking Lanes
+
+Lock lanes to prevent accidental edits:
+
+1. Click the lock icon on lane headers
+2. Lane cannot be edited (no drag, trim, delete)
+3. Assets remain visible and play during preview
+4. Unlock when edits are needed
+
+### Reordering Lanes
+
+Change the vertical order of lanes:
+
+1. Click and drag a lane header
+2. Move up or down to desired position
+3. Release to reorder
+4. Lane order preference is saved
+
+## Duration and Timing
+
+### Asset Duration Display
+
+Each asset in the Timeline shows its duration:
+
+- **Duration Badge** - Shows length in seconds
+- **Visual Length** - Horizontal width represents duration
+- **Waveform** - Audio lanes display waveform preview
+- **Frame Count** - Video lanes show frame count
+
+### Timeline Duration
+
+The total Timeline duration updates automatically:
+
+- **Total Length** - Displayed in toolbar
+- **Per-Lane Length** - Longest asset in each lane
+- **Scene Duration** - Length of each scene section
+
+### Timing Adjustments
+
+Fine-tune timing with precision:
+
+1. Select an asset
+2. Enter exact duration in inspector
+3. Set precise in/out timecodes
+4. Adjust frame-accurate positioning
+
+## Markers and Annotations
+
+### Adding Markers
+
+Place markers on the Timeline for reference:
+
+1. Position the playhead at desired location
+2. Click "Add Marker" or press **M**
+3. Enter marker name and color
+4. Marker appears on time ruler
+
+Use markers for:
+- Scene boundaries
+- Edit points
+- Notes or reminders
+- Sync points
+
+### Marker Comments
+
+Add detailed comments to markers:
+
+1. Click a marker on the Timeline
+2. Click "Add Comment"
+3. Type your note or instruction
+4. Tag team members for attention
+
+## Synchronization
+
+### Sync Assets Across Lanes
+
+Align assets from different lanes:
+
+1. Select assets to synchronize
+2. Click "Align" in toolbar
+3. Choose alignment method:
+   - Align start points
+   - Align end points
+   - Align centers
+   - Align to playhead
+4. Assets snap to aligned positions
+
+### Audio-Visual Sync
+
+Lock audio and video together:
+
+1. Select a video asset and corresponding audio asset
+2. Click "Link" or press **Cmd+L**
+3. Assets move together as a unit
+4. Unlink at any time with "Unlink" or **Cmd+Shift+L**
+
+## Export and Delivery
+
+### Timeline Export
+
+Export Timeline data for use in editing software:
+
+- **EDL (Edit Decision List)** - Industry-standard format
+- **XML** - Final Cut Pro, Premiere Pro, DaVinci Resolve
+- **JSON** - Custom integrations and workflows
+- **CSV** - Spreadsheet with asset list and timings
+
+### Export Settings
+
+Configure export parameters:
+
+1. Click "Export Timeline" in toolbar
+2. Select format (EDL, XML, JSON, CSV)
+3. Choose options:
+   - Include locked lanes
+   - Include hidden lanes
+   - Include markers
+   - Include comments
+4. Specify file location
+5. Confirm export
+
+> Exported Timeline files can be opened in professional editing software to continue the edit with full-quality source files.
+
+### Delivery Package
+
+Create a complete delivery package:
+
+1. Click "Create Delivery Package"
+2. Laserman gathers all selected assets
+3. Includes Timeline export, metadata, and notes
+4. Creates a ZIP archive
+5. Download for distribution or archival
+
+## Timeline Best Practices
+
+### Use Scene Markers
+
+Place markers at scene boundaries to maintain organization and enable quick navigation.
+
+### Lock Completed Sections
+
+Lock lanes or sections of the Timeline that are finalized to prevent accidental changes.
+
+### Review at Multiple Zoom Levels
+
+Zoom in for precision work, zoom out to verify pacing and overall flow.
+
+### Regularly Save Versions
+
+The Timeline updates automatically, but create named versions at key milestones for easy rollback.
+
+### Sync Early
+
+Link audio and video assets as soon as they're added to avoid sync drift during editing.
+
+> The Timeline is a visualization and organization tool. Final rendering and delivery happen in professional editing software using exported Timeline data.
+
+## Timeline Collaboration
+
+### Real-Time Updates
+
+When working with a team, Timeline updates in real-time:
+
+- New assets selected by team members appear immediately
+- Reordering and trimming syncs across all users
+- Playhead position shows where others are working
+
+### Timeline Comments
+
+Add comments to discuss specific edit decisions:
+
+1. Select an asset or position in the Timeline
+2. Click "Add Comment"
+3. Type your feedback or question
+4. Tag team members for response
+5. Comments appear as badges on the Timeline
+
+### Version History
+
+View Timeline version history:
+
+1. Click "History" in toolbar
+2. See list of all changes with timestamps
+3. Click any version to preview it
+4. Restore a previous version if needed
+
+## Keyboard Shortcuts
+
+Navigate and edit the Timeline efficiently:
+
+- **Space** - Play/pause
+- **J/K/L** - Rewind, stop, fast-forward
+- **I** - Set in point
+- **O** - Set out point
+- **S** - Split asset at playhead
+- **M** - Add marker
+- **[** / **]** - Previous/next scene
+- **Delete** - Remove selected asset
+- **Cmd+Z** - Undo
+- **Cmd+Shift+Z** - Redo
+
+## Next Steps
+
+After assembling your Timeline, use the export features to create delivery packages or import into professional editing software. Return to [Asset Management](/docs/web-app/assets) to refine versions, or continue to [Characters](/docs/web-app/characters) to manage character profiles.

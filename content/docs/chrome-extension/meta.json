@@ -1,0 +1,12 @@
+{
+  "title": "Chrome Extension",
+  "pages": [
+    "index",
+    "installation",
+    "side-panel",
+    "capture",
+    "reuse",
+    "queue",
+    "platform-detection"
+  ]
+}

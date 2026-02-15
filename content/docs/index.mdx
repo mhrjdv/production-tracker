@@ -1,0 +1,70 @@
+---
+title: Laserman Documentation
+description: The orchestration and traceability layer for AI film production. Generate anywhere, decide here, ship with traceability.
+---
+
+# Welcome to Laserman
+
+Laserman is an **orchestration and traceability layer** for AI-assisted film production. It does not generate media. Instead, it manages the complete lifecycle of AI-generated assets across multiple platforms.
+
+**Generate anywhere, decide here, ship with traceability.**
+
+## What Laserman Does
+
+Laserman sits between your script and the ecosystem of third-party AI generation tools (Sora, Veo, Midjourney, Freepik, Runway, ElevenLabs, and more). It provides:
+
+- **Structure** — Organize productions from Project to Script to Scene to Shot
+- **Intent** — Create and manage prompt packages that work across platforms
+- **Capture** — Grab outputs from any generation platform via the Chrome extension
+- **Compare** — Side-by-side version comparison with metadata overlay
+- **Select** — Pick winners, track decisions, maintain full version history
+- **Trace** — Complete provenance and rights tracking for every asset
+
+## The Workflow
+
+```
+Draft → Generate Elsewhere → Capture → Compare → Select → Approve → Assemble
+```
+
+1. **Plan** your production structure in the web app (projects, scenes, shots)
+2. **Create** prompt packages with platform-specific adaptations
+3. **Generate** on any supported AI platform (Sora, Midjourney, etc.)
+4. **Capture** outputs instantly via the Chrome extension side panel
+5. **Compare** versions side-by-side in the web app
+6. **Select** winners and route them through approval
+7. **Assemble** your timeline from selected assets
+
+## Quick Links
+
+- [Getting Started](/docs/getting-started) — Set up your first project in minutes
+- [Core Concepts](/docs/concepts) — Understand the object model and asset lifecycle
+- [Web App Guide](/docs/web-app) — Master the dashboard, scenes, and compare views
+- [Chrome Extension](/docs/chrome-extension) — Install and configure the capture extension
+- [API Reference](/docs/api-reference) — Extension API endpoints and authentication
+- [Supported Platforms](/docs/platforms) — Platform-specific capture guides
+
+## Who Is This For?
+
+Laserman is built for:
+
+- **Independent filmmakers** using AI tools to produce short films and features
+- **Creative studios** managing multi-platform AI generation at scale
+- **Production teams** that need traceability and approval workflows
+- **Anyone** juggling outputs from multiple AI generation platforms
+
+## Architecture Overview
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
+│  Web App    │◄───►│  Database    │◄───►│  Chrome Extension│
+│  (Next.js)  │     │  (Postgres)  │     │  (MV3 Side Panel)│
+├─────────────┤     ├──────────────┤     ├─────────────────┤
+│ Dashboard   │     │ Projects     │     │ Context Mode    │
+│ Scene Detail│     │ Scenes/Shots │     │ Capture Mode    │
+│ Compare View│     │ Asset Versions│     │ Reuse Mode     │
+│ Timeline    │     │ Platforms    │     │ Queue Mode      │
+│ Approvals   │     │ Prompt Pkgs  │     │                 │
+└─────────────┘     └──────────────┘     └─────────────────┘
+```
+
+The web app is the **control tower** for planning, review, and selection. The Chrome extension is the **bridge** that captures outputs from generation platforms with minimal friction.

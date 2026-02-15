@@ -1,0 +1,99 @@
+---
+title: Getting Started
+description: Set up Laserman and create your first AI film production project in minutes.
+---
+
+# Getting Started
+
+Welcome to Laserman, an orchestration and traceability layer for AI-assisted film production. Laserman helps you manage the complete lifecycle of AI-generated film assets: draft scripts, generate content on external platforms, capture results, compare versions, select finals, approve deliverables, and assemble your project.
+
+## What Laserman Does
+
+Laserman is **not a media generator**. Instead, it provides a centralized hub for:
+
+- **Script Management**: Upload and parse scripts into structured scenes and shots
+- **Asset Orchestration**: Track assets generated across multiple AI platforms (Sora, Veo, Freepik, etc.)
+- **Version Control**: Capture and compare multiple versions of each shot
+- **Rights Tracking**: Monitor licensing and rights status for every asset
+- **Traceability**: Maintain complete provenance from prompt to final deliverable
+
+**Tagline**: "Generate anywhere, decide here, ship with traceability."
+
+## Object Hierarchy
+
+Laserman organizes your production work in a clear hierarchy:
+
+```
+Project
+  └─ Script
+      └─ Scene (e.g., S001, S002)
+          └─ Shot (e.g., S001-001, S001-002)
+              ├─ Asset Version (immutable captures)
+              └─ Prompt Package (generation parameters)
+```
+
+Each level serves a specific purpose:
+
+- **Project**: The top-level container for your film or series
+- **Script**: The screenplay, parsed into structured scenes
+- **Scene**: A narrative unit with a unique ID (S001, S002, etc.)
+- **Shot**: The atomic unit of capture, where AI-generated assets live
+- **Asset Version**: An immutable snapshot of a generated image or video
+- **Prompt Package**: The full set of parameters used to generate an asset
+
+## Prerequisites
+
+Before installing Laserman, ensure you have:
+
+- **Node.js 18+**: JavaScript runtime ([download here](https://nodejs.org/))
+- **PostgreSQL 14+**: Database server ([download here](https://www.postgresql.org/download/))
+- **Cloudflare R2 Account**: For asset storage ([sign up here](https://www.cloudflare.com/products/r2/))
+- **npm or pnpm**: Package manager (npm comes with Node.js)
+- **Git**: Version control ([download here](https://git-scm.com/))
+
+> **Note:** Laserman uses Cloudflare R2 for scalable, cost-effective object storage. You'll need an R2 bucket and API credentials before running the application.
+
+## Setup Overview
+
+Getting started with Laserman involves four main steps:
+
+1. **[Installation](/docs/getting-started/installation)**: Clone the repository, install dependencies, and configure your environment
+2. **Database Setup**: Run migrations and seed initial data
+3. **[Create Your First Project](/docs/getting-started/first-project)**: Upload a script and review parsed scenes
+4. **[Install the Chrome Extension](/docs/getting-started/extension-setup)**: Connect the browser extension for capturing AI-generated assets
+
+Each step is covered in detail in the following pages.
+
+## Tech Stack
+
+Laserman is built with modern, production-ready technologies:
+
+- **Next.js 16**: React framework with App Router and Server Components
+- **React 19**: UI library with latest concurrent features
+- **Prisma v7**: Type-safe database ORM
+- **PostgreSQL**: Relational database for structured data
+- **NextAuth v5**: Authentication and session management
+- **Cloudflare R2**: S3-compatible object storage
+- **Tailwind CSS 4**: Utility-first styling
+- **Zod**: Runtime schema validation
+- **OpenRouter**: AI provider aggregation (for script parsing and analysis)
+
+## Architecture Philosophy
+
+Laserman follows these core principles:
+
+- **Immutability**: Asset versions are never modified, only appended. Selection is not deletion.
+- **Platform Agnostic**: Capture assets from any AI platform via browser extension
+- **Traceability First**: Every asset maintains complete provenance metadata
+- **Rights Aware**: Track licensing status at the version level
+- **Offline Resilient**: Chrome extension queues captures when offline
+
+## What's Next?
+
+Ready to get started? Head to the [Installation](/docs/getting-started/installation) page to set up your local environment.
+
+If you encounter any issues during setup, check the [Troubleshooting](/docs/troubleshooting) guide or visit our [GitHub Issues](https://github.com/yourusername/laserman/issues) page.
+
+## Production Deployment
+
+This Getting Started guide focuses on local development. For production deployment instructions, including environment configuration, database hosting, and R2 setup, see the [Deployment Guide](/docs/deployment).

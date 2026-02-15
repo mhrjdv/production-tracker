@@ -1,0 +1,59 @@
+---
+title: Core Concepts
+description: Understand the fundamental building blocks of Laserman.
+---
+
+# Core Concepts
+
+Laserman is an orchestration and traceability layer for AI-assisted film production. It does not generate media itself. Instead, it manages the complete lifecycle of AI-generated content: from initial concept through generation on external platforms, capture, comparison, selection, approval, and final assembly.
+
+This section covers the fundamental concepts that underpin how Laserman organizes and tracks your production work.
+
+## Understanding the System
+
+Laserman operates on a few key principles:
+
+**Orchestration, not generation.** You generate content on platforms like Sora, Midjourney, Veo, Runway, ElevenLabs, and others. Laserman captures, organizes, and tracks those outputs.
+
+**Immutability and traceability.** Every asset version is preserved. Selection does not mean deletion. You can always trace back to see what was generated, when, how, and why.
+
+**Platform-agnostic comparison.** Generate the same prompt on multiple platforms, bring all versions into Laserman, and compare them side-by-side to choose the best result.
+
+**Rights and provenance tracking.** Every asset records its licensing state, platform origin, and provenance metadata. You always know what's safe to ship commercially.
+
+## Core Concept Pages
+
+### [Object Model](/docs/concepts/object-model)
+
+Learn about the hierarchical data structure that organizes your production: Project, Script, Scene, Shot, and Asset Version. Understand why Shots exist as first-class objects and how the model supports both narrative structure and production workflow.
+
+### [Asset Lifecycle](/docs/concepts/asset-lifecycle)
+
+Understand how assets move through statuses from initial draft to final approval. Learn about the nine lifecycle states, valid transitions, and how immutability and versioning work together.
+
+### [Prompt Packages](/docs/concepts/prompt-packages)
+
+Discover how to create reusable prompt bundles that work across multiple AI platforms. Learn about versioning, fan-out generation, and how to maintain consistent creative intent across different tools.
+
+### [Rights & Provenance](/docs/concepts/rights-provenance)
+
+Learn how Laserman tracks licensing rights, commercial use permissions, and content provenance for every asset. Understand the four rights states and how platform-specific licensing affects your ability to ship.
+
+## Workflow Overview
+
+A typical Laserman workflow follows this pattern:
+
+1. **Plan**: Create a project, upload or write a script, break it into scenes and shots.
+2. **Prepare**: Attach prompt packages to scenes or shots, defining creative intent.
+3. **Generate**: Use the Chrome extension to generate content on external platforms (Sora, Midjourney, Veo, etc.).
+4. **Capture**: The extension automatically saves outputs to Laserman with full metadata.
+5. **Compare**: Group versions from different platforms for side-by-side comparison.
+6. **Select**: Mark preferred versions as "selected" without deleting alternatives.
+7. **Approve**: Move selected versions through review and approval stages.
+8. **Ship**: Export final assets with full traceability and rights documentation.
+
+## Next Steps
+
+Start with the [Object Model](/docs/concepts/object-model) to understand the foundational data structure, then explore the other concept pages to build a complete mental model of how Laserman works.
+
+For hands-on guidance, see the [Getting Started](/docs/getting-started) guide.

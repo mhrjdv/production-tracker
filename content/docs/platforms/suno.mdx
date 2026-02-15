@@ -1,0 +1,260 @@
+---
+title: Suno
+description: Capturing AI-generated music from Suno
+---
+
+# Suno
+
+Suno is an AI music generation platform that creates full songs with vocals, lyrics, and instrumentation from text prompts. It's known for producing professional-quality music across multiple genres.
+
+## Platform Overview
+
+- **Provider:** Suno Inc.
+- **Specialty:** AI music generation (vocals + instrumentals)
+- **Access:** Free tier available, paid plans for commercial use
+- **Supported Output Types:** Music
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Suno on:
+
+- `https://suno.ai`
+- `https://suno.com` (deprecated, redirects to .ai)
+- `https://app.suno.ai`
+
+### What Is Auto-Detected
+
+When you generate with Suno, Laserman extracts:
+
+- **Prompt** - Song description or theme
+- **Lyrics** - Custom lyrics if provided (or "auto-generated")
+- **Style** - Genre/style tags (e.g., "rock, energetic, 90s")
+- **Model** - Suno version (e.g., "v3", "v3.5")
+- **Duration** - Song length (if visible)
+- **Output URL** - Audio file URL
+- **Thumbnail** - Cover art or waveform visualization
+
+### Detection Quality
+
+- **Prompt extraction:** High - Dedicated description field
+- **Settings extraction:** Medium - Style tags are primary control
+- **Output extraction:** High - Reliable audio URL detection
+
+## Capture Workflow
+
+### Standard Workflow
+
+1. Open Suno app
+2. Enter song description (prompt)
+3. Optionally add custom lyrics
+4. Add style tags (genre, mood, era)
+5. Click "Create"
+6. Wait for generation (30-60 seconds)
+7. Two song variations appear
+8. Play to preview
+9. Open Laserman extension
+10. Detection banner shows "Suno"
+11. Click "Auto Fill"
+12. Review fields (especially prompt and style)
+13. Click "Save Capture"
+
+### Custom Lyrics Workflow
+
+1. Click "Custom Mode"
+2. Enter song description
+3. Write custom lyrics with [Verse], [Chorus] tags
+4. Add style tags
+5. Generate
+6. Capture as above (lyrics are in prompt field)
+
+### Multiple Variations
+
+Suno generates two variations per prompt:
+
+1. Capture first variation
+2. Click "Refresh Detection" in extension
+3. Detector cycles to second variation
+4. Click "Auto Fill" again
+5. Capture second variation
+
+## Capture Tips
+
+### Best Practices
+
+- **Include style tags** - Critical for genre and mood
+- **Note cover art** - Suno generates cover art per song
+- **Check ownership** - Free tier: Suno owns outputs
+- **Tag by genre** - Use genre as tag for filtering
+
+### Lyrics vs Description
+
+Suno has two fields:
+
+- **Description** (prompt) - What the song is about
+- **Lyrics** (optional) - Actual lyrics to sing
+
+Detector captures both:
+- Description → `prompt` field
+- Lyrics → `metadata.lyrics`
+
+### Common Issues
+
+**Two songs generated:**
+- Suno creates two variations per generation
+- Capture each separately
+- Use "Refresh Detection" to cycle between them
+
+**Style tags not captured:**
+- Style tags are entered separately from description
+- Detector attempts to combine them
+- Manually note style in tags field if needed
+
+**Cover art as thumbnail:**
+- Suno generates cover art for each song
+- Detector captures cover image URL as thumbnail
+- Useful for visual reference in web app
+
+## Rights and Licensing
+
+### Free vs Paid Plans
+
+Suno has strict licensing by plan tier:
+
+#### Free Plan
+
+- **Suno owns the outputs**
+- Non-commercial use only
+- Credit/attribution required
+- Cannot sell or license the music
+
+#### Pro/Premier Plans
+
+- **You own the outputs**
+- Full commercial license
+- Use in monetized content (YouTube, Spotify, etc.)
+- Sell or license the music
+- No attribution required (but appreciated)
+
+### Copyright and Originality
+
+Per Suno's terms:
+
+- Generated music may not be eligible for copyright in all jurisdictions
+- Platform cannot guarantee originality (AI-trained on data)
+- Use at your own risk for commercial projects
+- Consult legal advice for high-stakes uses
+
+### Laserman Rights State
+
+The extension sets `rightsState` to:
+
+- **RESTRICTED** - If free plan (Suno owns output)
+- **LICENSED** - If Pro/Premier plan (you own output)
+- **UNKNOWN** - Default if plan unclear
+
+> Verify your Suno subscription before commercial use. Free plan music belongs to Suno.
+
+## Known Limitations
+
+### Two Variations Always
+
+Suno generates two songs per prompt:
+
+- Cannot generate just one
+- Capture both if you want to compare
+- Or only capture the preferred variation
+
+### Cover Art URLs
+
+Cover art uses Suno CDN:
+
+- May be temporary URLs
+- Extension syncs immediately
+- Verify successful sync in Queue mode
+
+### Lyrics in Metadata
+
+Full lyrics are captured in metadata JSON:
+
+- Can be lengthy (multiple verses + chorus)
+- Check `metadata.lyrics` field in web app
+- Prompt field contains song description only
+
+## Metadata Fields
+
+Suno-specific metadata:
+
+```json
+{
+  "style": "rock, energetic, 90s, electric guitar",
+  "lyrics": "[Verse 1]\nIn the city lights...",
+  "model": "v3.5",
+  "duration": 180,
+  "coverArtUrl": "https://cdn.suno.ai/cover_abc123.jpg",
+  "platform": "suno"
+}
+```
+
+## Example Capture
+
+A typical Suno capture in Laserman:
+
+- **Platform:** suno
+- **Asset Type:** MUSIC
+- **Prompt:** "An upbeat rock anthem about chasing dreams"
+- **Style:** rock, energetic, 90s, electric guitar
+- **Output URL:** `https://cdn.suno.ai/audio_xyz789.mp3`
+- **Thumbnail:** `https://cdn.suno.ai/cover_xyz789.jpg`
+- **Metadata:** `{"style": "rock, energetic, 90s", "lyrics": "[Verse 1]...", "duration": 180}`
+- **Status:** GENERATED
+- **Rights State:** RESTRICTED (free) or LICENSED (paid)
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're on the Suno app (not homepage)
+- Wait for both songs to fully generate
+- Click "Refresh Detection"
+- Grant host permissions for `suno.ai`
+
+### Wrong Song Captured
+
+- Suno generates two variations
+- Detector captures first found song
+- Refresh detection to cycle to second song
+- Manually verify correct audio URL
+
+### Style Tags Missing
+
+- Style tags should be captured automatically
+- If missing, manually add to tags field in capture form
+- Tags are in prompt alongside description
+
+### Lyrics Truncated
+
+- Full lyrics are in metadata JSON
+- Web app shows full lyrics in asset detail view
+- Prompt field shows description only (not lyrics)
+
+### Ownership Unclear
+
+- Free plan: Suno owns outputs (non-commercial use only)
+- Pro/Premier: You own outputs (commercial use allowed)
+- Review Suno pricing page for current terms
+- Set rights state to RESTRICTED if on free plan
+
+## Related Resources
+
+- [Suno Homepage](https://suno.ai)
+- [Suno Pricing](https://suno.ai/pricing)
+- [Suno Terms of Service](https://suno.ai/terms)
+- [Suno Help Center](https://help.suno.ai)
+
+## Next Steps
+
+- [Compare with ElevenLabs (voice)](/docs/platforms/elevenlabs)
+- [Understanding music asset licensing](/docs/platforms/)
+- [Capture workflow guide](/docs/chrome-extension/capture)

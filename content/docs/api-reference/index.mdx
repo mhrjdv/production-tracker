@@ -1,0 +1,138 @@
+---
+title: API Reference
+description: REST API for Chrome extension integration
+---
+
+# API Reference
+
+The Laserman Extension API is a REST API that enables the Chrome extension to sync captured assets to your Laserman workspace. It provides endpoints for listing projects and scenes, submitting captured assets, and managing user profile preferences.
+
+## Overview
+
+The Extension API is designed for:
+
+- Chrome extension authentication and authorization
+- Project and scene listing for context selection
+- Asset ingestion from third-party AI platforms
+- User profile and preferences management
+
+All endpoints are prefixed with `/api/extension/` and require authentication via Bearer token.
+
+## Base URL
+
+The base URL depends on your Laserman deployment:
+
+- **Development:** `http://localhost:3000`
+- **Production:** `https://laserman.yourdomain.com`
+
+## Authentication
+
+All endpoints require a valid API token passed as a Bearer token in the Authorization header:
+
+```http
+Authorization: Bearer lmt_1234567890abcdef...
+```
+
+See the [Authentication guide](/docs/api-reference/authentication) for details on generating and managing tokens.
+
+## Endpoints
+
+### Projects
+
+- `GET /api/extension/projects` - List user's projects
+
+### Scenes
+
+- `GET /api/extension/scenes?projectId={id}` - List scenes for a project
+
+### Scene Assets
+
+- `GET /api/extension/scene-assets?sceneId={id}` - List asset versions for a scene
+
+### Platforms
+
+- `GET /api/extension/platforms` - List all AI platforms
+
+### Ingest
+
+- `POST /api/extension/ingest` - Create a new asset version
+
+### Profile
+
+- `GET /api/extension/profile` - Get user profile and preferences
+- `PUT /api/extension/profile` - Update user preferences
+
+## Response Format
+
+All responses use a consistent JSON structure:
+
+### Success Response
+
+```json
+{
+  "data": { ... },
+  "metadata": { ... }
+}
+```
+
+or
+
+```json
+{
+  "projects": [ ... ]
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Error message"
+}
+```
+
+## Status Codes
+
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created (for POST requests) |
+| 400 | Bad Request - Invalid input |
+| 401 | Unauthorized - Invalid or expired token |
+| 403 | Forbidden - Valid token but insufficient permissions |
+| 404 | Not Found - Resource does not exist |
+| 500 | Internal Server Error |
+
+## CORS
+
+The Extension API includes CORS headers to allow requests from browser extensions:
+
+```http
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET,POST,PUT,OPTIONS
+Access-Control-Allow-Headers: Authorization, Content-Type
+```
+
+OPTIONS requests are supported for preflight checks.
+
+## Rate Limiting
+
+Currently no rate limiting is enforced. Future versions may implement:
+
+- 100 requests per minute per token
+- 1000 requests per hour per token
+- Burst allowance for batch operations
+
+## Versioning
+
+The API is currently unversioned. Breaking changes will be communicated via:
+
+- Release notes
+- Deprecation warnings in responses
+- Migration guides
+
+## Next Steps
+
+- [Authentication guide](/docs/api-reference/authentication)
+- [Extension API endpoints](/docs/api-reference/extension-api)
+- [Webhooks and events (future)](/docs/api-reference/webhooks)

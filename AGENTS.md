@@ -28,21 +28,67 @@ This repository uses a shared skill and rules setup across `.agents`, `.agent`, 
 
 ## Default Skills For This Project
 
-- `ui-ux-pro-max`
-- `frontend-design`
-- `behavioral-product-design`
-- `product-designer`
-- `vercel-react-best-practices`
-- `web-design-guidelines`
-- `find-skills`
-- `skill-creator`
+### General
+- `ui-ux-pro-max` — Advanced UI/UX design patterns
+- `frontend-design` — Production-grade frontend interfaces
+- `behavioral-product-design` — Behavioral science for product design
+- `product-designer` — Expert product design
+- `vercel-react-best-practices` — React/Next.js optimization
+- `web-design-guidelines` — Web design standards
+- `find-skills` — Skill discovery
+- `skill-creator` — Create new skills
 
-## Product Rules
+### Laserman-Specific
+- `laserman-product-bible` — Product definition, object model, UX philosophy, roadmap
+- `laserman-schema` — Database schema, migrations, data model patterns
+- `laserman-webapp-dev` — Web app pages, components, server actions, API routes
+- `laserman-extension-dev` — Chrome extension, side panel, capture algorithm, platform detectors
 
-- Treat this product as a multimodal production OS (script, image, video, audio, music, voice).
-- Preserve scene-level version history as the core primitive.
-- Optimize for minimal user effort in the Chrome extension (fast capture, auto-detect, tabbed flow).
-- Never overwrite user-created versions; always append immutable versions with metadata.
+## Product Identity
+
+Laserman is an **orchestration and traceability layer** for AI-assisted film production. It does NOT generate media. It manages the lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
+
+**Tagline:** "Generate anywhere, decide here, ship with traceability."
+
+## Product Rules (Non-Negotiable)
+
+1. **Shot is first-class.** The Shot model is the unit of capture inside a Scene. Scene alone is not enough.
+2. **Versions are immutable.** Never overwrite. Always append. Selection is not deletion.
+3. **One-click save.** Context defaults from last-active project/scene/shot. No complex forms.
+4. **Selected winners drive timeline.** Timeline and exports show selected versions by default.
+5. **Three platforms done well > twenty done poorly.** Phase 1: Sora, Gemini/Veo, Freepik.
+6. **Prompt packages are reusable.** Create once, fan out to multiple platforms.
+7. **Rights state is always tracked.** Every version has a rights state.
+8. **DOM-based capture.** MV3 constraint. No network sniffing. Fallback to metadata + screenshot.
+9. **Side panel, not popup.** Chrome Side Panel API for persistent workflow.
+10. **Opinionated defaults.** One good way of doing things, not infinite workflows.
+
+## UX Heuristics
+
+- **Visibility of system status:** parse progress, sync status, queue state always visible
+- **Recognition not recall:** script excerpt inline, context breadcrumbs, metadata overlays
+- **Flexibility for experts:** keyboard shortcuts, command palette, batch actions
+
+## Object Hierarchy
+
+```
+Project -> Script -> Scene -> Shot -> Asset Version
+                                  -> Prompt Package
+```
+
+## Chrome Extension Rules
+
+Side panel with exactly four modes:
+1. **Context** — active project/scene/shot/asset type/prompt package
+2. **Capture** — auto-detected outputs, one-click save, batch save
+3. **Reuse** — prompt package picker, apply to page
+4. **Queue** — sync status, retry, failures
+
+## Phased Roadmap
+
+- **Phase 1:** Shot model, side panel capture on 3 platforms, immutable versioning, compare groups, winner selection, keyboard accelerators
+- **Phase 2:** Status routing (Needs Review -> Approved -> Final), frame-accurate video compare, annotation, audit history
+- **Phase 3:** OTIO export, provenance surfacing (SynthID, C2PA)
 
 ## Research + Planning Rules
 
@@ -52,5 +98,7 @@ This repository uses a shared skill and rules setup across `.agents`, `.agent`, 
 
 ## Reference
 
-- Detailed 2026 product and UX plan: `docs/ai-film-product-plan-2026.md`
+- Canonical product research: `docs/laserman-ux-product-research-2026.md`
+- Market and execution plan: `docs/ai-film-product-plan-2026.md`
+- System architecture: `docs/production-ai-system-blueprint-2026.md`
 - Canonical runtime rules: `.agents/rules.md`

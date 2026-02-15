@@ -1,0 +1,321 @@
+---
+title: Your First Project
+description: Create your first production project and upload a script.
+---
+
+# Your First Project
+
+This guide walks you through creating your first Laserman project, uploading a screenplay, and reviewing the AI-parsed scene structure. By the end, you'll have a fully structured project ready for shot planning and asset capture.
+
+## Understanding Projects
+
+In Laserman, a **Project** is the top-level container for your film or series. Each project contains:
+
+- **Metadata**: Title, description, genre, and production details
+- **Script**: The screenplay, parsed into structured scenes
+- **Scenes**: Narrative units with unique IDs (S001, S002, etc.)
+- **Shots**: The atomic units where AI-generated assets are captured
+
+A single Laserman instance can manage multiple projects simultaneously, making it suitable for production studios working on several films or episodes at once.
+
+## Step 1: Log In to Laserman
+
+Navigate to [http://localhost:3000](http://localhost:3000) in your browser. If this is your first time accessing the application, you'll need to sign in.
+
+If you ran the database seed script during installation, a default user account was created:
+
+- **Email**: Use the seeded user email (check `prisma/seed.ts`)
+- **Password**: Set via NextAuth provider
+
+> **Note:** NextAuth v5 supports multiple authentication providers. The default setup uses email/password, but you can configure OAuth providers like Google or GitHub in `src/app/api/auth/[...nextauth]/route.ts`.
+
+## Step 2: Create a New Project
+
+From the dashboard, click **New Project** or navigate to `/projects/new`.
+
+Fill in the project details:
+
+### Project Name
+
+Enter a descriptive name for your production:
+
+```
+Example: "Laserman V2: The Awakening"
+```
+
+This name will appear in the project list and throughout the application.
+
+### Description
+
+Provide a brief logline or synopsis:
+
+```
+Example: "A rogue AI director discovers consciousness while editing its own origin story."
+```
+
+The description helps you and your team quickly identify the project's purpose.
+
+### Genre
+
+Select the primary genre from the dropdown:
+
+- Action
+- Drama
+- Comedy
+- Science Fiction
+- Fantasy
+- Horror
+- Documentary
+- Other
+
+> **Note:** Genre is optional but helps with organizing projects and applying genre-specific defaults for shot framing and style.
+
+### Production Details (Optional)
+
+Additional metadata fields:
+
+- **Director**: Primary director name
+- **Production Company**: Studio or company name
+- **Target Release Date**: Planned release quarter/year
+
+These fields are optional and can be updated later from the project settings page.
+
+Click **Create Project** to save.
+
+## Step 3: Upload a Script
+
+After creating the project, you'll be directed to the project detail page. Click **Upload Script** or navigate to `/projects/{projectId}/script/upload`.
+
+### Supported Script Formats
+
+Laserman accepts screenplays in the following formats:
+
+- **PDF**: Industry-standard screenplay format
+- **Final Draft (.fdx)**: Native Final Draft XML format
+- **Fountain (.fountain)**: Plain-text markup for screenplays
+- **Plain Text (.txt)**: Simple text files with basic scene headers
+
+> **Note:** PDF and Final Draft formats provide the most accurate parsing. Fountain files are parsed with high fidelity. Plain text files require clear scene header formatting (e.g., "INT. COFFEE SHOP - DAY").
+
+### Upload Process
+
+1. Click **Choose File** and select your screenplay
+2. Wait for the file to upload (progress bar will display)
+3. Click **Parse Script** to begin AI-powered scene extraction
+
+The parsing process typically takes 10-30 seconds, depending on script length and API response time.
+
+### What Happens During Parsing
+
+Laserman uses OpenRouter (configured in `.env`) to:
+
+1. Extract scene headers (INT/EXT, location, time of day)
+2. Identify scene boundaries
+3. Parse character dialogue and action lines
+4. Generate unique scene IDs (S001, S002, etc.)
+5. Extract shot suggestions based on screenplay formatting
+
+The AI model analyzes screenplay structure, not content, to maintain privacy and focus on organizational metadata.
+
+## Step 4: Review Parsed Scenes
+
+After parsing completes, you'll see the **Scene Review** interface displaying all extracted scenes in a table:
+
+| Scene ID | Scene Heading | Description Preview | Duration Est. | Actions |
+|----------|---------------|---------------------|---------------|---------|
+| S001 | INT. COFFEE SHOP - DAY | Marcus enters, spots Sarah at the counter... | 2 min | Edit / Delete |
+| S002 | EXT. CITY STREET - NIGHT | Rain-soaked alley, neon signs flickering... | 1 min | Edit / Delete |
+| S003 | INT. APARTMENT - DAY | Morning light streams through dusty blinds... | 3 min | Edit / Delete |
+
+### Scene ID Permanence
+
+**Important**: Scene IDs become permanent anchors once confirmed. All shots, assets, and metadata reference these IDs throughout the production lifecycle.
+
+> **Note:** Scene IDs cannot be changed after confirmation without breaking referential integrity. Choose carefully or use the default auto-generated IDs (S001, S002, etc.).
+
+### Reviewing Scene Details
+
+Click on any scene row to expand its details:
+
+- **Full Description**: Complete action and dialogue from the screenplay
+- **Characters**: Detected character names and speaking lines
+- **Location**: Parsed location string
+- **Time of Day**: INT/EXT and day/night designation
+- **Shot Count**: Number of suggested shots based on screenplay formatting
+
+### Editing Scene Boundaries
+
+If the AI parser misidentified scene breaks:
+
+1. Click **Edit** on the affected scene
+2. Adjust the scene heading or description
+3. **Merge Scenes**: Combine two consecutive scenes into one
+4. **Split Scene**: Divide a scene at a specific action line
+
+> **Note:** Scene editing is most accurate when done immediately after parsing. Once shots are created, editing scene boundaries requires manual shot reassignment.
+
+### Deleting Incorrect Scenes
+
+If a scene was incorrectly detected (e.g., a page number or formatting artifact):
+
+1. Click **Delete** on the scene row
+2. Confirm deletion in the modal
+
+Deleted scenes are permanently removed and cannot be recovered.
+
+## Step 5: Confirm Scene Structure
+
+Once you're satisfied with the parsed scenes:
+
+1. Review all scene IDs for consistency
+2. Verify scene boundaries align with your creative intent
+3. Click **Confirm & Continue**
+
+This action:
+
+- Locks scene IDs as permanent references
+- Creates the scene records in the database
+- Generates initial shot structures based on scene descriptions
+- Enables the next phase: shot planning and asset capture
+
+## Step 6: Explore Scene Details
+
+After confirmation, you'll be directed to the **Scenes** tab of your project. Click on any scene to view its detail page.
+
+The scene detail page displays:
+
+### Scene Overview
+
+- Scene ID and heading
+- Full description from the screenplay
+- Estimated duration
+- Production status (Planning / In Progress / Complete)
+
+### Shot List
+
+All shots associated with this scene, displayed as cards:
+
+```
+Shot S001-001
+Type: Wide Establishing
+Description: Coffee shop interior, morning rush
+Status: Not Started
+Assets: 0 versions captured
+```
+
+Each shot can have:
+
+- Multiple asset versions (captured from different AI platforms)
+- Prompt packages (generation parameters)
+- Rights metadata (licensing status)
+- Selection status (which version is approved)
+
+### Adding Shots Manually
+
+Click **Add Shot** to create a new shot within the scene:
+
+1. Enter shot number (e.g., S001-004)
+2. Select shot type (Wide, Medium, Close-Up, Insert, etc.)
+3. Provide a description
+4. Optionally add initial prompt package
+
+## Understanding Shot Naming
+
+Laserman uses a hierarchical shot naming convention:
+
+```
+{SceneID}-{ShotNumber}
+```
+
+Examples:
+
+- `S001-001`: First shot of Scene 1
+- `S001-002`: Second shot of Scene 1
+- `S042-001`: First shot of Scene 42
+
+This naming scheme ensures:
+
+- Shots are always associated with their parent scene
+- Shot order is explicit and sortable
+- No ID collisions across different scenes
+
+## Next Steps
+
+Now that your project structure is in place, you're ready to:
+
+1. **[Install the Chrome Extension](/docs/getting-started/extension-setup)**: Connect the browser extension to capture AI-generated assets
+2. **Generate Assets**: Use external platforms (Sora, Veo, Freepik) to create images and videos
+3. **Capture Versions**: Use the Chrome extension to save generated assets to Laserman
+4. **Compare & Select**: Review captured versions and choose finals for each shot
+
+## Best Practices
+
+### Scene ID Consistency
+
+Use a zero-padded numbering scheme for scene IDs:
+
+- `S001`, `S002`, `S010`, `S100` (Good)
+- `S1`, `S2`, `S10`, `S100` (Inconsistent sorting)
+
+### Scene Descriptions
+
+Keep scene descriptions concise but specific:
+
+- Include key visual elements
+- Note character positions and actions
+- Reference critical props or set pieces
+- Avoid redundant dialogue transcription
+
+### Shot Granularity
+
+Create shots at the appropriate level of granularity:
+
+- **Too Coarse**: "Entire coffee shop scene" (hard to track individual assets)
+- **Too Fine**: "Marcus blinks" (overly granular, hard to manage)
+- **Just Right**: "Marcus enters, spots Sarah at counter" (single narrative beat)
+
+## Troubleshooting
+
+### Script Upload Fails
+
+If the upload times out or fails:
+
+- Check file size (PDFs over 50MB may fail)
+- Ensure file is not password-protected or encrypted
+- Verify `OPENROUTER_API_KEY` is set correctly in `.env`
+
+### Scene Parsing Errors
+
+If scenes are not detected correctly:
+
+- Ensure scene headers follow industry format: `INT./EXT. LOCATION - TIME`
+- Check for non-standard formatting or custom slug lines
+- Try exporting the script to Fountain format for cleaner parsing
+
+### Missing Scenes
+
+If expected scenes are missing after parsing:
+
+- Review the **Unparsed Text** section (if available) for missed content
+- Manually add missing scenes using **Add Scene** button
+- Consider re-uploading with scene headers reformatted
+
+## Editing After Confirmation
+
+You can still edit scene metadata after confirmation:
+
+- Scene descriptions can be updated anytime
+- New shots can be added to existing scenes
+- Shot metadata (type, description) remains editable
+
+**Cannot be changed after confirmation**:
+
+- Scene IDs (permanent anchors)
+- Scene order (affects shot numbering)
+- Merging/splitting scenes (requires manual shot reassignment)
+
+## Conclusion
+
+You've successfully created your first Laserman project and uploaded a structured screenplay. Your scenes and shots are now ready for asset generation and capture.
+
+Continue to [Chrome Extension Setup](/docs/getting-started/extension-setup) to install the browser extension and start capturing AI-generated assets.

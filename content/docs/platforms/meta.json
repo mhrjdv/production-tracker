@@ -1,0 +1,13 @@
+{
+  "title": "Supported Platforms",
+  "pages": [
+    "index",
+    "sora",
+    "veo",
+    "midjourney",
+    "runway",
+    "freepik",
+    "elevenlabs",
+    "suno"
+  ]
+}

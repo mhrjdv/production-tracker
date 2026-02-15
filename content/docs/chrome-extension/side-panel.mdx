@@ -1,0 +1,199 @@
+---
+title: Side Panel
+description: Understanding the persistent extension interface
+---
+
+# Side Panel
+
+The Laserman extension uses Chrome's Side Panel API to provide a persistent workspace alongside AI platform pages. Unlike traditional popups that close when you click away, the side panel stays open, enabling continuous capture workflow.
+
+## Why Side Panel, Not Popup?
+
+Traditional browser extension popups have significant limitations for production workflows:
+
+- They close when you click outside them
+- They have limited screen real estate
+- They reset state between opens
+- They don't support multi-step workflows well
+
+The side panel solves these problems by providing:
+
+- **Persistence** - Stays open while you navigate across tabs and platforms
+- **Real estate** - Full vertical height with scrollable content
+- **Statefulness** - Maintains context, forms, and queue across interactions
+- **Multi-tasking** - Work in the panel while interacting with AI platforms
+
+## Opening the Side Panel
+
+1. Click the Laserman extension icon in your browser toolbar
+2. The side panel will slide in from the right side of your browser window
+3. The panel remains open until you explicitly close it
+
+> Pin the extension icon to your toolbar for quick access.
+
+## Panel Structure
+
+The side panel is organized into distinct sections:
+
+### Header
+
+The header contains:
+
+- **Laserman Logo** - Brand identity
+- **Settings Icon** - Opens settings overlay
+
+### Tab Navigation
+
+Four primary modes accessible via tabs:
+
+- **Capture** - Active capture interface
+- **History** - Previously captured versions
+- **Queue** - Sync queue and status
+
+### Main Content Area
+
+The content area displays the interface for the currently selected mode. This is where you'll spend most of your time.
+
+### Status Bar
+
+The footer displays real-time connection status:
+
+- **Green dot** - Connected and authenticated
+- **Red dot** - Disconnected or authentication failed
+- **Yellow dot** - Syncing in progress
+- **Status text** - Detailed status message
+
+## The Four Modes
+
+### 1. Capture Mode
+
+The primary interface for saving generated assets. Contains:
+
+- **Context Selectors** - Choose project and scene
+- **Detection Banner** - Shows auto-detected platform and outputs
+- **Capture Form** - All fields for asset metadata
+- **Actions** - Save, clear, and auto-fill buttons
+
+Capture mode is covered in detail in the [Capture Mode guide](/docs/chrome-extension/capture).
+
+### 2. History Mode (Reuse)
+
+Displays previously captured asset versions for the active scene:
+
+- **Asset Cards** - Thumbnails with metadata
+- **Load Action** - Click any card to load its data into capture form
+- **Draft Management** - Restore or clear saved drafts
+
+Use History mode to:
+
+- Review what you've already captured
+- Reuse prompts and settings for iteration
+- Load a previous version as a template
+
+### 3. Queue Mode
+
+Monitors the local sync queue and provides retry controls:
+
+- **Queue Count** - Number of pending sync items
+- **Queue List** - Items waiting to sync, with status
+- **Sync Actions** - "Sync Now" and "Clear Failed" buttons
+- **Recent Preview** - Successfully synced items
+
+Queue mode is essential for:
+
+- Verifying successful uploads
+- Retrying failed syncs (up to 5 retries per item)
+- Clearing stuck items
+- Understanding sync backlog
+
+## Settings Overlay
+
+Click the gear icon to open the settings overlay:
+
+### Basic Settings
+
+- **App URL** - Your Laserman instance URL
+- **API Token** - Authentication token (starts with `lmt_`)
+
+### Advanced Settings (Optional)
+
+- **AI Base URL** - OpenRouter or OpenAI API endpoint for prompt refinement
+- **AI Model** - Model to use for AI-powered features
+- **BYOK API Key** - Bring your own key for AI features
+
+### Actions
+
+- **Save** - Persist settings to local storage
+- **Reload** - Refresh extension state
+
+> Settings are stored locally and persist across browser sessions.
+
+## Navigation Flow
+
+A typical workflow looks like this:
+
+1. Open side panel
+2. Navigate to Capture tab
+3. Select project and scene (if not already set)
+4. Visit an AI platform and generate content
+5. Detection banner shows platform and outputs
+6. Click "Auto Fill" to populate form
+7. Click "Save Capture" to add to queue
+8. Switch to Queue tab to verify sync
+9. Repeat for additional variations
+
+## Status Indicator Reference
+
+The status bar at the bottom provides real-time feedback:
+
+| Status | Color | Meaning |
+|--------|-------|---------|
+| Connected | Green | Authenticated and ready to sync |
+| Disconnected | Red | Cannot reach Laserman API or invalid token |
+| Syncing | Yellow | Currently uploading items |
+| Queue: N pending | Blue | Items waiting to sync |
+| Idle | Gray | No active operations |
+
+## Keyboard Shortcuts
+
+While focused in the side panel:
+
+- **Cmd/Ctrl + K** - Open command palette (future feature)
+- **Cmd/Ctrl + S** - Save capture
+- **Cmd/Ctrl + R** - Refresh detection
+- **Esc** - Close settings overlay
+
+## Panel Behavior
+
+### Persistence
+
+The side panel remains open when you:
+
+- Switch tabs
+- Navigate to different URLs
+- Click into the main browser window
+- Open new tabs
+
+### Closure
+
+The side panel closes only when you:
+
+- Click the close button (X)
+- Manually close it via the extension icon
+- Close the browser window
+
+### State
+
+The extension preserves state across panel opens:
+
+- Selected project and scene
+- Filled form fields
+- Queue contents
+- Settings
+
+## Next Steps
+
+- [Learn about Capture Mode](/docs/chrome-extension/capture)
+- [Reuse prompts with History](/docs/chrome-extension/reuse)
+- [Manage sync with Queue](/docs/chrome-extension/queue)
+- [Understand platform detection](/docs/chrome-extension/platform-detection)

@@ -1,0 +1,327 @@
+---
+title: "Asset Management"
+description: "Creating, filtering, and managing asset versions with metadata, status workflow, and winner selection"
+---
+
+# Asset Management
+
+Assets are the generated media files that bring your shots to life. Laserman provides comprehensive version control, metadata tracking, and comparison tools for managing assets throughout the production workflow.
+
+## Asset Types
+
+Laserman organizes assets into five primary types:
+
+- **Image** - Still images and concept frames
+- **Video** - Motion video clips
+- **Audio** - Sound effects and ambience
+- **Music** - Musical score and soundtrack
+- **Voice** - Dialogue and voiceover recordings
+
+Each type has specific metadata fields and workflow considerations.
+
+## Asset Versions
+
+Every asset exists as a version. Multiple versions can be created for the same shot, allowing you to:
+
+- Generate alternatives with different prompts
+- Iterate on creative direction
+- A/B test variations
+- Compare platforms and models
+
+**Key principle:** Versions are immutable and append-only. Selection is not deletion.
+
+## Creating Assets
+
+Assets are created on external generation platforms (Sora, Veo, Freepik, etc.) and captured into Laserman using the Chrome extension.
+
+### Capture Workflow
+
+1. Generate an asset on an external platform
+2. Open the Laserman Chrome extension side panel
+3. Extension detects the platform and available assets
+4. Select target project, scene, and shot
+5. Click "Capture" to save the asset to Laserman
+6. Asset appears in the Assets tab with metadata
+
+> The Chrome extension automates metadata capture, including platform, model, generation parameters, and file URLs.
+
+### Fan-Out Creation
+
+Create multiple versions across platforms simultaneously:
+
+1. Select a shot in Laserman
+2. Click "Fan Out" in the Assets tab
+3. Choose target platforms (Sora, Veo, Freepik)
+4. Laserman generates platform-specific prompts
+5. Open each platform and generate assets
+6. Capture results back into Laserman
+7. All versions link to the same shot for comparison
+
+Fan-out creation ensures consistent prompts while preserving platform-specific variations.
+
+## Asset Version Cards
+
+Each asset version displays as a card in the Assets tab:
+
+### Card Components
+
+- **Thumbnail** - Preview image or video first frame
+- **Asset Type Icon** - Visual indicator for type
+- **Platform Badge** - Generation platform (e.g., Sora, Veo)
+- **Status Badge** - Current workflow status
+- **Version Number** - Incremental version identifier
+- **Timestamp** - Generation or upload date
+- **Selection Indicator** - Gold star for selected winner
+
+### Card Actions
+
+Hover over a card to reveal actions:
+
+- **Preview** - Full-screen preview with playback controls
+- **Edit Metadata** - Modify asset information
+- **Download** - Save asset file locally
+- **Compare** - Add to comparison group
+- **Select as Winner** - Mark this version as the chosen one
+- **Delete** - Remove version (requires confirmation)
+
+## Filtering Assets
+
+The Assets tab provides powerful filtering to narrow your view:
+
+### Filter by Type
+
+- Show only images
+- Show only videos
+- Show only audio
+- Show only music
+- Show only voice
+- Show all types
+
+### Filter by Platform
+
+- **Sora** - OpenAI's video generation platform
+- **Veo** - Google's video generation platform
+- **Freepik** - Image generation platform
+- **Runway** - Video and image platform
+- **Midjourney** - Image generation platform
+- **Custom** - Manually uploaded or other sources
+
+### Filter by Status
+
+- **Draft** - Concept or prompt only, not yet generated
+- **Generated** - Media file created
+- **Needs Review** - Awaiting feedback
+- **Reviewed** - Has been evaluated
+- **Approved** - Accepted for use
+- **Selected** - Chosen as winner for this shot
+- **Final** - Finalized for delivery
+
+### Combining Filters
+
+Apply multiple filters simultaneously:
+
+- Images from Sora with status Approved
+- Videos from any platform with status Selected
+- All asset types from Veo with status Generated
+
+Filters persist across sessions for each scene.
+
+## Asset Metadata
+
+Each asset version stores comprehensive metadata:
+
+### Core Metadata
+
+- **File URL** - Location of the asset file
+- **File Size** - Size in MB
+- **Duration** - Length for video/audio assets
+- **Resolution** - Dimensions for image/video
+- **Frame Rate** - FPS for video
+- **Codec** - Video codec information
+- **Aspect Ratio** - Calculated from resolution
+
+### Generation Metadata
+
+- **Platform** - Generation platform used
+- **Model** - Specific model version (e.g., "sora-1.0")
+- **Prompt** - Text prompt used for generation
+- **Seed** - Random seed for reproducibility
+- **Parameters** - Additional generation settings (JSON)
+- **Generation Date** - When the asset was created
+- **Cost** - Platform credits or cost
+
+### Production Metadata
+
+- **Created By** - Team member who captured the asset
+- **Notes** - Production notes and comments
+- **Tags** - Custom tags for organization
+- **Rights Status** - Copyright and licensing information
+- **Approval By** - Team member who approved
+- **Approval Date** - When approval occurred
+
+### Editing Metadata
+
+Update metadata from the asset detail view:
+
+1. Click an asset card to open detail view
+2. Click "Edit Metadata"
+3. Modify fields as needed
+4. Save changes
+
+Metadata is versioned and tracked for audit purposes.
+
+## Status Workflow
+
+Assets progress through a defined workflow:
+
+### Status Progression
+
+1. **Draft** - Initial concept or prompt
+2. **Generated** - Media has been created
+3. **Needs Review** - Awaiting team feedback
+4. **Reviewed** - Evaluated by team members
+5. **Approved** - Accepted for use
+6. **Selected** - Chosen as the winner for this shot
+7. **Final** - Finalized and ready for delivery
+
+### Status Actions
+
+Change asset status from the asset card or detail view:
+
+- **Mark as Needs Review** - Request feedback
+- **Mark as Reviewed** - Record evaluation
+- **Approve** - Accept for use
+- **Select as Winner** - Choose this version
+- **Finalize** - Mark as complete
+
+> Only one version per shot can have status "Selected" at a time. Selecting a new winner automatically deselects the previous one.
+
+## Selecting Winners
+
+Winner selection is the core decision-making action in Laserman:
+
+### Selection Process
+
+1. Generate multiple versions of a shot
+2. Review versions individually or in compare view
+3. Evaluate based on creative direction, technical quality
+4. Click "Select as Winner" on the chosen version
+5. Winner is marked with a gold star and status "Selected"
+6. Winner appears in the timeline for final assembly
+
+### Selection Criteria
+
+Consider these factors when selecting winners:
+
+- Creative alignment with scene vision
+- Technical quality (resolution, clarity, artifacts)
+- Emotional impact and performance
+- Continuity with surrounding shots
+- Production constraints (time, budget)
+
+### Changing Winners
+
+You can change the selected winner at any time:
+
+1. Select a different version as the new winner
+2. Previous winner reverts to status "Approved"
+3. New winner receives status "Selected"
+4. Timeline updates automatically
+
+Selection history is tracked for audit and decision review.
+
+## Asset Actions
+
+### Download Assets
+
+Download asset files for offline use or external editing:
+
+1. Select one or more assets
+2. Click "Download"
+3. Choose quality/format options if available
+4. Files download to your local system
+
+Batch download multiple assets as a ZIP archive.
+
+### Delete Assets
+
+Remove unwanted asset versions:
+
+1. Select an asset
+2. Click "Delete"
+3. Confirm deletion
+4. Asset is permanently removed
+
+> Deletion is permanent. Consider keeping all versions for future reference, or archive instead of delete.
+
+### Duplicate Assets
+
+Create a copy of an asset version:
+
+1. Select an asset
+2. Click "Duplicate"
+3. New version is created with same metadata
+4. Edit new version independently
+
+Useful for creating variations or tracking iterative changes.
+
+## Asset Preview
+
+Click an asset card to open the full preview interface:
+
+### Preview Features
+
+- **Full-screen display** - Large preview of the asset
+- **Playback controls** - Play, pause, seek for video/audio
+- **Zoom and pan** - Inspect image details
+- **Frame-by-frame** - Step through video frames
+- **Metadata panel** - View all asset information
+- **Compare mode** - Side-by-side with other versions
+- **Comments** - Add timestamped feedback
+
+### Keyboard Shortcuts
+
+- **Space** - Play/pause video
+- **Left/Right Arrow** - Previous/next frame or asset
+- **+/-** - Zoom in/out on images
+- **Esc** - Close preview
+
+## Asset Organization
+
+### Tagging
+
+Add custom tags to organize assets:
+
+- **By style** - "moody", "bright", "cinematic"
+- **By quality** - "rough", "polished", "final"
+- **By purpose** - "concept", "test", "delivery"
+- **By feedback** - "needs-work", "close", "approved"
+
+Filter by tags to quickly find specific assets.
+
+### Sorting
+
+Sort assets by various criteria:
+
+- **Created Date** - Newest or oldest first
+- **File Size** - Largest or smallest first
+- **Status** - Group by workflow status
+- **Platform** - Group by generation platform
+- **Selected** - Winners first
+
+## Rights Management
+
+Track copyright and licensing information:
+
+- **Rights Status** - Clear, Pending, Restricted, Unknown
+- **License Type** - CC0, CC-BY, Commercial, Custom
+- **Attribution Required** - Yes/No
+- **Usage Restrictions** - Notes on limitations
+
+Rights information displays on asset cards and in export metadata.
+
+> Always verify rights and licensing before using assets in commercial productions.
+
+## Next Steps
+
+After managing assets, use the [Compare View](/docs/web-app/compare) to evaluate multiple versions side-by-side, or proceed to the [Timeline](/docs/web-app/timeline) to assemble your final edit.

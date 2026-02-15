@@ -33,16 +33,16 @@ describe("extension-preferences-compat", () => {
         });
     });
 
-    it("returns empty preferences on schema mismatch", async () => {
+    it("propagates database errors from getUserPreferences", async () => {
         const store = makeStore({
             getUserPreferences: async () => {
-                throw { code: "P2022" };
+                throw new Error("database unavailable");
             },
         });
 
-        const preferences = await getUserExtensionPreferences("u1", store);
-
-        expect(preferences).toEqual({});
+        await expect(
+            getUserExtensionPreferences("u1", store)
+        ).rejects.toThrow("database unavailable");
     });
 
     it("merges and persists preferences when schema is current", async () => {
@@ -91,31 +91,7 @@ describe("extension-preferences-compat", () => {
         });
     });
 
-    it("falls back to no-op persistence on schema mismatch", async () => {
-        const setUserPreferences = vi.fn(async () => {});
-        const store = makeStore({
-            getUserPreferences: async () => {
-                throw { code: "P2022" };
-            },
-            getUserById: async () => ({ id: "u1" }),
-            setUserPreferences,
-        });
-
-        const result = await saveUserExtensionPreferences(
-            "u1",
-            { lastPlatform: "Sora" },
-            store
-        );
-
-        expect(result).toEqual({
-            foundUser: true,
-            preferences: { lastPlatform: "Sora" },
-            persisted: false,
-        });
-        expect(setUserPreferences).not.toHaveBeenCalled();
-    });
-
-    it("rethrows non-schema errors", async () => {
+    it("rethrows database errors from saveUserExtensionPreferences", async () => {
         const store = makeStore({
             getUserPreferences: async () => {
                 throw new Error("database unavailable");

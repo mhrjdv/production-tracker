@@ -1,0 +1,9 @@
+{
+  "title": "Getting Started",
+  "pages": [
+    "index",
+    "installation",
+    "first-project",
+    "extension-setup"
+  ]
+}

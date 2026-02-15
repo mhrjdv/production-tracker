@@ -1,0 +1,223 @@
+---
+title: Authentication
+description: Token-based auth for Chrome extension API access
+---
+
+# Authentication
+
+The Laserman Extension API uses token-based authentication with long-lived Bearer tokens. Each token is tied to a user account and provides full access to that user's projects and scenes.
+
+## Overview
+
+Authentication flow:
+
+1. User generates an API token in the Laserman web app
+2. Token is copied and configured in the Chrome extension settings
+3. Extension includes token in the `Authorization` header for all API requests
+4. API validates token hash against database
+5. If valid and not expired, request proceeds with user context
+
+## Generating API Tokens
+
+### In the Web App
+
+1. Log in to your Laserman account
+2. Navigate to Settings or your Profile page
+3. Find the "API Tokens" or "Integrations" section
+4. Click "Create New Token"
+5. Enter a descriptive name (e.g., "Chrome Extension - Work Laptop")
+6. Click "Generate"
+7. Copy the generated token (starts with `lmt_`)
+
+> Tokens are only displayed once. Store them securely. If you lose a token, generate a new one and revoke the old one.
+
+### Token Format
+
+Tokens follow the format:
+
+```
+lmt_<random_base64_string>
+```
+
+Example:
+```
+lmt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+```
+
+## Token Storage and Hashing
+
+### Client-Side (Extension)
+
+The extension stores the raw token in Chrome's local storage:
+
+- Stored in plain text locally (Chrome encrypts local storage)
+- Transmitted over HTTPS only
+- Never logged or sent to third parties
+
+### Server-Side (API)
+
+The API stores only a SHA-256 hash of the token:
+
+- Raw token is hashed immediately upon receipt
+- Hash is compared against database records
+- Raw token is never stored server-side
+- Tokens cannot be recovered if lost
+
+## Using Tokens
+
+### In API Requests
+
+Include the token in the `Authorization` header with the `Bearer` scheme:
+
+```http
+GET /api/extension/projects HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+Content-Type: application/json
+```
+
+### In the Chrome Extension
+
+Configure the token in Settings:
+
+1. Open the Laserman extension side panel
+2. Click the gear icon (Settings)
+3. Paste your token into the "API Token" field
+4. Click "Save"
+5. Verify connection status turns green
+
+## Token Lifecycle
+
+### Expiration
+
+Tokens expire after 90 days from creation:
+
+- The API returns `401 Unauthorized` if token is expired
+- Generate a new token before expiration to avoid disruption
+- Set a calendar reminder 80 days after generation
+
+### Last Used
+
+The API updates `lastUsedAt` timestamp on every request:
+
+- Useful for auditing token activity
+- Visible in the web app token management UI
+- Helps identify unused tokens for cleanup
+
+### Revocation
+
+You can revoke tokens at any time:
+
+1. Navigate to API Tokens in the web app
+2. Find the token by name or last used date
+3. Click "Revoke"
+4. Confirm the action
+
+> Revoked tokens immediately stop working. Update the extension settings with a new token.
+
+## Security Best Practices
+
+### Do
+
+- Generate separate tokens for each device/extension installation
+- Use descriptive names to track token usage
+- Revoke tokens when changing devices or leaving an organization
+- Regenerate tokens if they may have been exposed
+- Store tokens securely (password manager or encrypted storage)
+
+### Don't
+
+- Share tokens between users
+- Commit tokens to version control
+- Log tokens in plain text
+- Send tokens over unencrypted channels
+- Reuse the same token across multiple applications
+
+## Token Permissions
+
+Currently, tokens grant full access to the user account:
+
+- Read all user projects
+- Read all user scenes
+- Create asset versions in any scene
+- Update user profile preferences
+
+Future versions may support:
+
+- **Scoped tokens** - Limit access to specific projects
+- **Read-only tokens** - Prevent mutations
+- **Expiring tokens** - Short-lived tokens for temporary access
+- **OAuth2** - Standard OAuth2 flows for third-party integrations
+
+## Error Responses
+
+### 401 Unauthorized
+
+Token is invalid, expired, or revoked:
+
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+**Fix:** Generate a new token and update extension settings.
+
+### 403 Forbidden
+
+Token is valid but lacks permissions (future feature):
+
+```json
+{
+  "error": "Insufficient permissions"
+}
+```
+
+## Token Management API (Future)
+
+Future versions will include endpoints for managing tokens via API:
+
+- `GET /api/tokens` - List all user tokens
+- `POST /api/tokens` - Create a new token programmatically
+- `DELETE /api/tokens/{id}` - Revoke a token
+- `PATCH /api/tokens/{id}` - Update token name or permissions
+
+## Troubleshooting
+
+### Token Not Working
+
+1. Verify token is copied correctly (no extra spaces or line breaks)
+2. Check that token has not been revoked in web app
+3. Verify token is not expired (check creation date + 90 days)
+4. Ensure App URL in extension settings matches your Laserman instance
+5. Check browser console for CORS errors
+
+### Connection Fails After Token Update
+
+1. Click "Reload" in extension settings to refresh state
+2. Close and reopen the side panel
+3. Restart the browser
+4. Verify new token works by testing in API client (curl, Postman)
+
+### Token Leaked
+
+If you accidentally expose a token:
+
+1. Immediately revoke it in the web app
+2. Generate a new token
+3. Update extension settings
+4. Review recent activity logs for suspicious usage
+
+## Rotation Policy
+
+For enhanced security, rotate tokens regularly:
+
+- **Individual users:** Every 90 days (automatic expiry)
+- **Teams/orgs:** Every 30 days (manual rotation)
+- **Production systems:** Every 7 days (automated rotation, future feature)
+
+## Next Steps
+
+- [Extension API endpoints](/docs/api-reference/extension-api)
+- [Chrome extension installation](/docs/chrome-extension/installation)
+- [Understanding the sync queue](/docs/chrome-extension/queue)

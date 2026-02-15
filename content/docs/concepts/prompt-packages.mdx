@@ -1,0 +1,284 @@
+---
+title: Prompt Packages
+description: Reusable intent bundles for consistent AI generation across platforms.
+---
+
+# Prompt Packages
+
+A prompt package is a structured, reusable bundle of creative intent. Instead of writing platform-specific prompts from scratch each time, you define your creative vision once in a prompt package, then fan it out to multiple platforms.
+
+Prompt packages are Laserman's answer to the "write once, generate everywhere" problem.
+
+## What Is a Prompt Package?
+
+A prompt package consists of:
+
+- **Base prompt:** The core description of what you want to generate.
+- **Negative prompt:** Terms or concepts to avoid.
+- **Style block:** Artistic style guidance (e.g., "cinematic, moody lighting, 35mm film grain").
+- **Camera block:** Camera-specific details (e.g., "wide angle, low angle, steadicam movement").
+- **Constraints:** Technical requirements like aspect ratio, duration, resolution.
+- **Target aspect ratio:** 16:9, 9:16, 1:1, etc.
+- **Target duration:** For video generation (e.g., "5 seconds").
+
+All of these fields are optional except the base prompt. You can define as much or as little as needed.
+
+## Example Prompt Package
+
+```json
+{
+  "version": "P1",
+  "basePrompt": "A futuristic city at sunset with flying cars and neon signs",
+  "negativePrompt": "people, ground vehicles, daytime",
+  "styleBlock": "cinematic, blade runner aesthetic, moody lighting, 35mm film",
+  "cameraBlock": "wide establishing shot, slow push-in, drone camera",
+  "constraints": {
+    "aspectRatio": "16:9",
+    "duration": 5,
+    "resolution": "1080p"
+  }
+}
+```
+
+This package can be sent to Sora, Veo, Runway, and other video platforms. Each platform will receive a translated version adapted to its specific syntax and capabilities.
+
+## Versioning
+
+Prompt packages are versioned: P1, P2, P3, etc.
+
+When you iterate on a prompt, you create a new version rather than editing the old one. This preserves history and allows you to compare results from different prompt iterations.
+
+**Example workflow:**
+1. Create P1: "A futuristic city at sunset."
+2. Generate on Sora. Results are too bright.
+3. Create P2: "A futuristic city at sunset, moody lighting, darker tones."
+4. Generate on Sora again. Compare P1 vs P2 results.
+5. Select best version.
+
+Versioning ensures you never lose a working prompt. If P3 doesn't work as expected, you can always roll back to P2.
+
+## Attachment Points
+
+Prompt packages can be attached at two levels:
+
+### Scene-Level Attachment
+
+Attach a prompt package to a scene. All shots in that scene inherit the package by default.
+
+**Use case:** You want a consistent visual style across all shots in Scene 5. Define the style once at the scene level.
+
+```typescript
+await prisma.scene.update({
+  where: { id: 'scene_5' },
+  data: { promptPackageId: 'pkg_cinematic_sunset' }
+});
+```
+
+### Shot-Level Attachment
+
+Attach a prompt package to a specific shot. This overrides any scene-level package.
+
+**Use case:** Scene 5 is mostly wide shots, but Shot 5C is a close-up that needs different camera settings.
+
+```typescript
+await prisma.shot.update({
+  where: { id: 'shot_5c' },
+  data: { promptPackageId: 'pkg_closeup_detail' }
+});
+```
+
+> **Inheritance rule:** If a shot has a prompt package, use it. If not, use the scene's prompt package. If neither exists, you'll need to define a prompt manually or use platform defaults.
+
+## Fan-Out Generation
+
+Fan-out is the process of generating the same creative concept on multiple platforms to compare results.
+
+**Workflow:**
+1. Create prompt package P1.
+2. Create "run cards" for Sora, Veo, and Runway.
+3. Each run card translates P1 into platform-specific syntax.
+4. Generate on all three platforms (manually or via automation).
+5. Extension captures all outputs with the same `compareGroupId`.
+6. View all three results side-by-side in Laserman.
+7. Select the best one.
+
+This allows you to leverage the strengths of different platforms without rewriting prompts from scratch.
+
+### Platform-Specific Translation
+
+Each platform has quirks:
+
+- **Sora:** Prefers natural language, detailed scene descriptions.
+- **Veo (Gemini):** Supports structured JSON input with scene, camera, and style blocks.
+- **Runway:** Shorter prompts work better. Focus on visual keywords.
+- **Midjourney:** Heavily relies on style tags and negative prompts.
+- **ElevenLabs (voice):** Needs emotion tags, speaker style, pacing.
+
+Laserman's run card system translates your prompt package into the format each platform expects. You don't need to learn every platform's syntax.
+
+## Run Cards
+
+A run card is a platform-specific instance of a prompt package. It includes:
+
+- **Platform:** Sora, Veo, Runway, etc.
+- **Model:** Specific model version (e.g., "sora-v1", "veo-2").
+- **Translated prompt:** The base prompt adapted to platform syntax.
+- **Platform-specific settings:** seed, steps, guidance scale, etc.
+- **Status:** Draft, Queued, Generating, Completed, Failed.
+
+Run cards are ephemeral execution records. Once generation is complete and the asset is captured, the run card's job is done. You can delete old run cards without affecting captured assets.
+
+> **Note:** Run cards are tracked in the database for history, but they're not as critical as asset versions. If you lose a run card, you lose the "how we asked" record, but not the generated output itself.
+
+## Reusing Prompt Packages
+
+Prompt packages are designed for reuse:
+
+### Across Shots
+
+Create a prompt package for "establishing shot" style. Attach it to Shot 1A, 3B, and 7C. Generate once for each shot with consistent style.
+
+### Across Scenes
+
+Create a prompt package for "night scene" style. Attach it to Scene 2, Scene 8, and Scene 15. All night scenes use the same cinematic treatment.
+
+### Across Projects
+
+Export a prompt package from Project A. Import it into Project B. Maintain brand consistency across multiple films or commercials.
+
+### Templates
+
+Create a library of prompt package templates:
+
+- "Cinematic Drone Shot"
+- "Close-Up Emotional"
+- "Action Sequence"
+- "Product Beauty Shot"
+
+Save these as templates. When starting a new shot, pick a template, customize it, and version it as P1.
+
+## Editing and Forking
+
+You never edit a prompt package directly. Instead, you fork it to create a new version.
+
+**Forking workflow:**
+1. Start with P1.
+2. Click "Fork" to create P2.
+3. Modify P2 (e.g., add "darker tones" to style block).
+4. Save P2 as a new version.
+5. P1 remains unchanged.
+
+This preserves the lineage. You can always trace back to see how a prompt evolved.
+
+## Prompt Package Fields Reference
+
+### Core Fields
+
+- **basePrompt (required):** Main description. Keep it clear and detailed.
+- **negativePrompt (optional):** What to avoid. Useful for Midjourney, Stable Diffusion.
+- **styleBlock (optional):** Artistic style. Examples: "oil painting", "photorealistic", "anime".
+- **cameraBlock (optional):** Camera details. Examples: "drone shot", "handheld", "50mm lens".
+
+### Technical Constraints
+
+- **aspectRatio:** "16:9", "9:16", "1:1", "4:3", "21:9".
+- **duration:** For video, in seconds (e.g., 5, 10, 30).
+- **resolution:** "720p", "1080p", "4K".
+- **fps:** Frame rate (24, 30, 60).
+
+### Metadata
+
+- **version:** P1, P2, P3, etc.
+- **createdBy:** User who created the package.
+- **createdAt, updatedAt:** Timestamps.
+- **sceneId, shotId:** Attachment points (at most one is set).
+
+## Platform Support
+
+Prompt packages work with all major AI generation platforms:
+
+### Video Platforms
+- Sora
+- Veo (Google Gemini)
+- Runway
+- Pika
+- Freepik Video
+
+### Image Platforms
+- Midjourney
+- DALL-E
+- Stable Diffusion
+- Freepik Image
+
+### Audio Platforms
+- ElevenLabs (voice, sound effects)
+- Suno (music)
+- Udio (music)
+
+The Chrome extension detects which platform you're on and adapts the prompt package accordingly.
+
+## Best Practices
+
+1. **Start broad, refine incrementally.** P1 should be a simple, clear description. Add detail in P2, P3, etc.
+2. **Use negative prompts sparingly.** Only exclude things that consistently appear when unwanted.
+3. **Keep camera and style blocks separate.** This makes it easier to mix and match (e.g., same style, different camera angle).
+4. **Version aggressively.** If you change more than a few words, create a new version. Disk space is cheap, re-doing work is expensive.
+5. **Name versions descriptively.** Add notes like "P2: darker tones, added fog" so you remember what changed.
+6. **Test on one platform first.** Generate on Sora with P1. If it works, fan out to other platforms. Don't waste credits on 5 platforms with an untested prompt.
+
+## API Usage
+
+### Create Prompt Package
+
+```typescript
+const promptPackage = await prisma.promptPackage.create({
+  data: {
+    version: 'P1',
+    basePrompt: 'A futuristic city at sunset',
+    styleBlock: 'cinematic, moody lighting',
+    cameraBlock: 'wide angle, drone shot',
+    aspectRatio: '16:9',
+    duration: 5,
+    sceneId: 'scene_5'
+  }
+});
+```
+
+### Attach to Shot
+
+```typescript
+await prisma.shot.update({
+  where: { id: 'shot_5a' },
+  data: { promptPackageId: promptPackage.id }
+});
+```
+
+### Fork Prompt Package
+
+```typescript
+const p2 = await prisma.promptPackage.create({
+  data: {
+    version: 'P2',
+    basePrompt: promptPackage.basePrompt,
+    negativePrompt: 'people, cars',  // Added
+    styleBlock: promptPackage.styleBlock + ', darker tones',  // Modified
+    cameraBlock: promptPackage.cameraBlock,
+    aspectRatio: promptPackage.aspectRatio,
+    duration: promptPackage.duration,
+    sceneId: promptPackage.sceneId
+  }
+});
+```
+
+### Query All Versions
+
+```typescript
+const versions = await prisma.promptPackage.findMany({
+  where: { sceneId: 'scene_5' },
+  orderBy: { version: 'asc' }
+});
+```
+
+## Next Steps
+
+Learn about [Rights & Provenance](/docs/concepts/rights-provenance) to understand how Laserman tracks licensing and commercial use rights for every generated asset.

@@ -1,0 +1,223 @@
+---
+title: OpenAI Sora
+description: Capturing video and image outputs from OpenAI Sora
+---
+
+# OpenAI Sora
+
+OpenAI Sora is a text-to-video model capable of generating high-quality video clips up to 20 seconds long. It also supports image generation (stills). Sora is accessed through `sora.com` or integrated into ChatGPT.
+
+## Platform Overview
+
+- **Provider:** OpenAI
+- **Specialty:** Video generation, with image stills
+- **Access:** Requires ChatGPT Plus or Pro subscription
+- **Supported Output Types:** Video, Image
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Sora on these domains:
+
+- `https://sora.com`
+- `https://sora.chatgpt.com`
+- `https://chat.openai.com/...sora`
+- `https://chatgpt.com/...sora`
+
+### What Is Auto-Detected
+
+When you generate on Sora, Laserman extracts:
+
+- **Prompt** - From the chat-style textarea or generation card
+- **Model** - "Sora" or version variant (when displayed)
+- **Aspect Ratio** - From ratio selector buttons (e.g., 16:9, 1:1, 9:16)
+- **Duration** - From duration control (if visible)
+- **Resolution** - From resolution selector
+- **Output URL** - Video `<video>` element `src` or download link
+- **Thumbnail** - Video `poster` attribute
+
+### Detection Quality
+
+- **Prompt extraction:** High - Works in both chat and dedicated creation views
+- **Settings extraction:** Medium - Some settings hidden in UI
+- **Output extraction:** High - Reliable video and image URL detection
+
+## Capture Workflow
+
+### Standard Workflow
+
+1. Open Sora generation page
+2. Write your prompt in the textarea
+3. Adjust aspect ratio and duration settings
+4. Click "Generate"
+5. Wait for video to complete (progress bar)
+6. Open Laserman extension side panel
+7. Detection banner shows "OpenAI Sora" with green dot
+8. Click "Auto Fill" in Capture mode
+9. Review filled fields (prompt, outputUrl, settings)
+10. Click "Save Capture"
+
+### Multiple Variations
+
+Sora generates one video at a time. For multiple variations:
+
+1. Generate first variation
+2. Capture as above
+3. Edit prompt slightly
+4. Generate again
+5. Click "Refresh Detection" in extension
+6. Click "Auto Fill" again
+7. Capture second variation
+
+### Stills (Images)
+
+If you generate stills instead of video:
+
+1. Asset type is auto-detected as "IMAGE"
+2. Image URL is extracted from `<img>` elements
+3. All other fields work the same
+
+## Capture Tips
+
+### Best Practices
+
+- **Wait for completion** - Don't capture while "Generating..." indicator is active
+- **Check video quality** - Sora sometimes generates lower quality on first attempt
+- **Save thumbnails** - Thumbnail URLs are critical for grid preview in web app
+- **Note model version** - Model field may show "Sora" or version (e.g., "Sora Turbo")
+
+### Common Issues
+
+**Prompt not detected:**
+- Sora hides the input after generation in some UIs
+- Manually copy prompt text before generating
+- Or extract from generation card if displayed
+
+**Video URL expired:**
+- Sora uses temporary CDN URLs (`oaiusercontent.com`)
+- Extension syncs immediately to avoid expiry
+- Verify sync success in Queue mode
+
+**Duration not captured:**
+- Duration control may be hidden after generation
+- Manually note video length and add to metadata field
+
+## Rights and Licensing
+
+### Ownership
+
+Per OpenAI's terms:
+
+- **ChatGPT Plus/Pro users** - You own the outputs you generate
+- **Commercial use** - Allowed under your plan terms
+- **Attribution** - Not required, but recommended
+
+### Restrictions
+
+- Outputs must comply with OpenAI Usage Policies
+- Cannot use for illegal or harmful content
+- Subject to content policy violations and safety filters
+
+### Laserman Rights State
+
+The extension sets `rightsState` to:
+
+- **LICENSED** - If capturing with valid subscription (inferred)
+- **UNKNOWN** - If plan status cannot be determined
+
+You can manually update rights state in the web app after reviewing your plan terms.
+
+## Known Limitations
+
+### UI Changes
+
+Sora's interface updates frequently:
+
+- Detector uses multiple fallback selectors
+- Report detection failures with screenshots
+
+### Chat Integration
+
+When Sora is accessed via ChatGPT:
+
+- Prompt is in the chat message, not a dedicated input
+- Detection extracts from last user message
+- Settings may be in conversational responses rather than UI controls
+
+### Temporary URLs
+
+Sora video URLs are temporary:
+
+- CDN links expire after several hours
+- Laserman fetches and stores immediately
+- Always verify successful sync in Queue mode
+
+### Batch Generation
+
+Sora does not support batch generation:
+
+- Must generate and capture one at a time
+- Use prompt reuse from History for iterations
+
+## Metadata Fields
+
+Sora-specific metadata captured in JSON:
+
+```json
+{
+  "duration": 5.2,
+  "aspectRatio": "16:9",
+  "resolution": "1080p",
+  "modelName": "Sora",
+  "platform": "openai-sora"
+}
+```
+
+## Example Capture
+
+A typical Sora capture in Laserman:
+
+- **Platform:** openai-sora
+- **Asset Type:** VIDEO
+- **Prompt:** "A cat wearing sunglasses walks through a futuristic city at sunset"
+- **Model:** Sora Turbo
+- **Output URL:** `https://cdn.oaiusercontent.com/video_abc123.mp4`
+- **Thumbnail:** `https://cdn.oaiusercontent.com/thumb_abc123.jpg`
+- **Metadata:** `{"duration": 5, "aspectRatio": "16:9"}`
+- **Status:** GENERATED
+- **Rights State:** LICENSED
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're on a generation or results page (not homepage)
+- Check that prompt textarea is visible or generation card is present
+- Click "Refresh Detection" after page loads
+- Grant host permissions if prompted
+
+### Output URL Not Found
+
+- Wait for video to fully load (check progress bar)
+- Look for download button and manually copy link
+- Right-click video element and "Copy video address"
+
+### Sync Failures
+
+- Check that output URL is valid (starts with `https://`)
+- Verify API token is valid and not expired
+- Check Queue mode for error messages
+- CDN URLs may expire quickly - capture immediately after generation
+
+## Related Resources
+
+- [OpenAI Sora Homepage](https://sora.com)
+- [Sora Technical Report](https://openai.com/research/video-generation-models-as-world-simulators)
+- [ChatGPT Plus](https://openai.com/chatgpt/plus)
+
+## Next Steps
+
+- [Capture workflow guide](/docs/chrome-extension/capture)
+- [Understanding rights and licensing](/docs/platforms/)
+- [Compare Sora with other platforms](/docs/platforms/)

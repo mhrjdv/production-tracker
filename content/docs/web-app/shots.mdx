@@ -1,0 +1,238 @@
+---
+title: "Shots"
+description: "Shot breakdown, shot codes, camera angles, framing, movement, and shot creation"
+---
+
+# Shots
+
+Shots are the fundamental unit of capture in Laserman. Each shot represents a specific camera setup with defined angle, framing, and movement characteristics.
+
+## Shot Breakdown
+
+Breaking down a scene into individual shots is a core part of pre-production. In Laserman, shots are organized within scenes and identified by standardized shot codes.
+
+### Shot Codes
+
+Every shot receives a unique code for easy reference:
+
+- **Format:** SH001, SH002, SH003, etc.
+- **Sequential** - Numbers increment within each scene
+- **Persistent** - Shot codes remain stable even if shots are reordered
+- **Scene-scoped** - Each scene has its own shot numbering
+
+Example: Scene 5 might have shots SH001 through SH008.
+
+> Shot codes provide a universal reference system for communicating about specific shots across your team and in external tools.
+
+## Shot Attributes
+
+Each shot is defined by three primary attributes:
+
+### Camera Angle
+
+The vertical position and orientation of the camera:
+
+- **Eye Level** - Camera at subject's eye height
+- **High Angle** - Camera positioned above subject, looking down
+- **Low Angle** - Camera positioned below subject, looking up
+- **Bird's Eye** - Extreme overhead view, looking straight down
+- **Dutch Angle** - Camera tilted on the horizontal axis
+- **Over the Shoulder (OTS)** - Camera behind one subject, facing another
+- **Point of View (POV)** - Camera represents character's perspective
+
+### Framing
+
+The composition and how much of the subject is visible:
+
+- **Extreme Wide Shot (EWS)** - Very wide view, emphasizes environment
+- **Wide Shot (WS)** - Full body and surroundings
+- **Full Shot (FS)** - Full body, minimal surroundings
+- **Medium Wide Shot (MWS)** - From knees up
+- **Medium Shot (MS)** - From waist up
+- **Medium Close-Up (MCU)** - From chest up
+- **Close-Up (CU)** - Head and shoulders
+- **Extreme Close-Up (ECU)** - Face or object detail
+- **Two-Shot** - Two subjects in frame
+- **Group Shot** - Multiple subjects in frame
+
+### Camera Movement
+
+How the camera moves during the shot:
+
+- **Static** - No camera movement
+- **Pan** - Horizontal rotation on a fixed axis
+- **Tilt** - Vertical rotation on a fixed axis
+- **Dolly/Track** - Camera moves horizontally on a track
+- **Zoom** - Lens focal length changes
+- **Crane** - Camera moves vertically on a crane
+- **Handheld** - Unsteady, naturalistic movement
+- **Steadicam** - Smooth, fluid handheld-style movement
+- **Orbit** - Camera circles around subject
+- **Push In** - Camera moves toward subject
+- **Pull Out** - Camera moves away from subject
+
+## Creating Shots Manually
+
+Create a shot from the Shots tab in scene detail view:
+
+1. Click "New Shot"
+2. Shot code is assigned automatically
+3. Select camera angle from dropdown
+4. Select framing from dropdown
+5. Select movement from dropdown
+6. Add shot description (what happens in the shot)
+7. Optionally specify duration
+8. Save the shot
+
+### Shot Description
+
+Write a clear, concise description of what happens in the shot:
+
+- Focus on action and subject
+- Mention key props or background elements
+- Note emotional tone or atmosphere
+- Include any special requirements
+
+**Example:** "Jane enters the abandoned warehouse, her flashlight beam cutting through the darkness. She pauses, sensing danger."
+
+## AI-Assisted Shot Creation
+
+Use AI to generate shot breakdowns automatically:
+
+### Automatic Scene Breakdown
+
+1. Open a scene's Shots tab
+2. Click "Generate Shot List"
+3. Laserman analyzes the scene script
+4. AI suggests appropriate shots with angles, framing, and movement
+5. Review the suggested shots
+6. Edit, accept, or reject individual shots
+7. Confirm to add shots to the scene
+
+> AI-generated shot lists provide a professional starting point based on filmmaking conventions. Always review and adjust to match your creative vision.
+
+### Shot-by-Shot Generation
+
+Generate shots one at a time with more control:
+
+1. Click "Generate Next Shot"
+2. Provide context: previous shot, desired coverage style
+3. AI suggests a complementary shot
+4. Edit and accept or regenerate
+
+## Shot List Management
+
+### Viewing Shots
+
+The Shots tab displays all shots for a scene in a list or grid view:
+
+- **List View** - Detailed table with all attributes visible
+- **Grid View** - Compact cards with thumbnails
+
+Toggle between views using the view selector.
+
+### Reordering Shots
+
+Change shot order by dragging and dropping:
+
+1. Click and hold a shot row or card
+2. Drag to the desired position
+3. Release to reorder
+
+Shot codes remain stable; display order changes.
+
+### Filtering Shots
+
+Filter shots by attributes:
+
+- **Angle** - Show only specific angles
+- **Framing** - Show only specific framing types
+- **Movement** - Show only specific movements
+- **Status** - Show shots with or without assets
+
+### Duplicating Shots
+
+Create a copy of an existing shot:
+
+1. Select a shot
+2. Click "Duplicate"
+3. New shot is created with the same attributes
+4. Edit the duplicate as needed
+
+Useful for similar shots with slight variations.
+
+## Shot Metadata
+
+Additional metadata for each shot:
+
+- **Duration** - Expected shot length in seconds
+- **Characters** - Characters visible in the shot
+- **Props** - Required props or objects
+- **VFX Notes** - Special effects requirements
+- **Priority** - High, medium, low importance
+- **Status** - Draft, Ready, In Progress, Complete
+- **Notes** - Production notes and comments
+
+## Linking Shots to Assets
+
+When you generate assets on external platforms and capture them using the Chrome extension, you link them to specific shots:
+
+1. In the extension, select the target shot
+2. Capture the asset
+3. Asset is automatically linked to the shot
+4. View linked assets in the Assets tab
+
+Multiple asset versions can be linked to a single shot for comparison.
+
+## Shot Coverage Patterns
+
+Laserman recognizes common coverage patterns:
+
+### Standard Coverage
+
+- Master shot (wide)
+- Medium shots of main characters
+- Close-ups for emotional moments
+- Cutaways and inserts
+
+### Dialogue Coverage
+
+- Over-the-shoulder shots
+- Matching single shots
+- Two-shots or group shots
+
+### Action Coverage
+
+- Establishing wide shots
+- Dynamic medium shots
+- Close-ups for impact
+- POV shots for immersion
+
+Use coverage patterns as templates when generating shot lists.
+
+## Shot Export
+
+Export shot lists for production or reference:
+
+- **Shot List PDF** - Formatted shot list with descriptions
+- **Storyboard Template** - Layout for adding storyboard sketches
+- **CSV Export** - Import into spreadsheet or production software
+- **JSON Export** - Machine-readable format for integrations
+
+> Share shot lists with your cinematographer, VFX team, or generation platform as a reference for creating assets.
+
+## Shot Status Workflow
+
+Track shot progress through production:
+
+1. **Draft** - Shot defined but no assets generated
+2. **Ready** - Shot ready for asset generation
+3. **In Progress** - Assets being generated
+4. **Review** - Assets generated, awaiting selection
+5. **Complete** - Winner selected and approved
+
+Shot status updates automatically based on linked asset workflow.
+
+## Next Steps
+
+After defining shots, proceed to [Asset Management](/docs/web-app/assets) to generate, capture, and manage the actual media files for each shot.

@@ -1,0 +1,86 @@
+---
+title: Chrome Extension
+description: The capture bridge between AI platforms and Laserman
+---
+
+# Chrome Extension
+
+The Laserman Chrome Extension is the capture bridge between AI generation platforms and your Laserman production workspace. It enables you to capture prompts, settings, and generated outputs directly from third-party AI platforms like Sora, Veo, Midjourney, and Freepik, then sync them seamlessly to your project scenes.
+
+## Overview
+
+The extension operates as a persistent side panel that runs alongside AI platform pages in your browser. It automatically detects which platform you're on, extracts generation parameters, and provides one-click saving to your active scene context.
+
+## Key Features
+
+### Persistent Side Panel
+
+Unlike traditional popup extensions, Laserman uses Chrome's Side Panel API to provide a persistent workflow surface that stays open while you work across multiple platforms and tabs.
+
+### Four Modes
+
+The extension is organized into four focused modes:
+
+- **Capture** - Save generated assets with auto-detected metadata
+- **History** - View and reuse previously captured versions
+- **Queue** - Monitor sync status and retry failed uploads
+- **Settings** - Configure connection and preferences
+
+### Auto-Detection
+
+The extension intelligently detects:
+
+- Current AI platform (Sora, Veo, Midjourney, etc.)
+- Active prompts and negative prompts
+- Generation settings (model, aspect ratio, duration, etc.)
+- Output media (images, videos, audio)
+- Page context and URLs
+
+### Ruthless Defaults
+
+One-click capture works by remembering your last active context:
+
+- Last selected project
+- Last selected scene
+- Last used platform
+- Last asset type and status
+
+When you hit "Save Capture," the extension applies these defaults automatically, allowing you to capture dozens of variations without repetitive form filling.
+
+## Architecture
+
+The extension is built using Manifest V3 with a modular architecture:
+
+- **Service Worker** - Background process handling sync queue and alarms
+- **Content Scripts** - Injected into AI platform pages for DOM-based detection
+- **Side Panel** - Persistent UI for capture and queue management
+- **Platform Detectors** - Modular detection logic per platform
+
+## Security and Privacy
+
+The extension uses token-based authentication with Bearer tokens to communicate securely with your Laserman instance. Host permissions are required only for the AI platforms you enable.
+
+All capture is DOM-based and user-initiated. The extension does not perform passive network surveillance or background sniffing.
+
+## Data Flow
+
+1. User generates content on an AI platform (e.g., Sora)
+2. Extension detects platform and extracts prompt/settings via content script
+3. User reviews captured data in side panel and clicks "Save Capture"
+4. Item is added to local sync queue
+5. Background service worker syncs to Laserman API
+6. On success, item appears in scene assets panel in web app
+7. On failure, item remains in queue with retry capability (up to 5 attempts)
+
+## System Requirements
+
+- Chrome, Edge, or Brave browser (Manifest V3 support required)
+- Laserman account with API token
+- Host permissions for AI platforms you want to capture from
+
+## Next Steps
+
+- [Installation Guide](/docs/chrome-extension/installation)
+- [Using the Side Panel](/docs/chrome-extension/side-panel)
+- [Capture Mode](/docs/chrome-extension/capture)
+- [Platform Detection](/docs/chrome-extension/platform-detection)

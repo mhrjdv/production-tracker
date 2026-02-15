@@ -1,0 +1,312 @@
+---
+title: Queue Mode
+description: Managing sync queue, retry logic, and upload status
+---
+
+# Queue Mode
+
+Queue Mode displays the local sync queue and enables you to monitor upload status, retry failed items, and clear stuck entries. It's essential for understanding what has synced successfully and diagnosing sync failures.
+
+## Overview
+
+When you click "Save Capture," the extension:
+
+1. Validates required fields
+2. Adds the item to the local queue
+3. Immediately shows it in Queue Mode with "Pending" status
+4. Background service worker picks up the item
+5. Attempts to sync to Laserman API
+6. Updates status to "Synced" or "Failed"
+
+All of this happens asynchronously, so you can continue capturing while syncs process in the background.
+
+## Interface Components
+
+### Queue Header
+
+At the top of Queue Mode:
+
+- **Queue Count Badge** - Number of items pending sync (green if 0, yellow/red if pending)
+- **"Pending" Label** - Clarifies the count represents pending items
+
+### Queue List
+
+The queue list shows all items waiting to sync:
+
+#### Item Card
+
+Each queued item displays:
+
+- **Thumbnail** - Preview from output URL (if image/video)
+- **Scene ID** - Which scene this belongs to
+- **Platform** - Which AI platform generated it
+- **Prompt Preview** - First 80 characters
+- **Status Badge** - Pending, Syncing, Failed, Synced
+- **Retry Count** - How many retry attempts have been made (max 5)
+- **Error Message** - If failed, shows the API error
+
+#### Item Actions
+
+- **Retry** - Manually trigger sync for this item (available on failed items)
+- **Remove** - Delete item from queue (does not affect already-synced data)
+
+### Queue Actions
+
+Two global actions at the bottom:
+
+**Sync Now**
+- Immediately triggers sync worker
+- Processes all pending items
+- Useful after network interruption or API downtime
+
+**Clear Failed**
+- Removes all items with "Failed" status after 5 retries
+- Does not remove pending or syncing items
+- Cannot be undone
+
+### Recent Preview
+
+Below the queue actions, a "Recent" section shows:
+
+- **Successfully synced items** from the last 24 hours
+- **Thumbnail** and **Scene ID**
+- **"View in app" link** (opens web app to that scene)
+
+This provides confidence that sync is working and allows quick navigation to recently captured assets.
+
+## Sync Status Lifecycle
+
+### Pending
+
+- Item was just added to queue
+- Waiting for background worker to pick it up
+- Next sync attempt will happen within 1-2 seconds
+
+### Syncing
+
+- Background worker is currently uploading this item
+- Shows progress indicator (spinner)
+- Usually completes within 2-5 seconds depending on file size
+
+### Synced
+
+- Successfully uploaded to Laserman API
+- Item is removed from queue and moved to "Recent"
+- Accessible in web app scene detail view
+
+### Failed
+
+- API returned an error (authentication, validation, server error)
+- Shows error message
+- Item remains in queue for retry
+- Manual retry or automatic retry after 1 minute
+
+## Retry Logic
+
+The extension uses exponential backoff with up to 5 retry attempts:
+
+- **Attempt 1** - Immediate (when "Save Capture" is clicked)
+- **Attempt 2** - After 30 seconds
+- **Attempt 3** - After 2 minutes
+- **Attempt 4** - After 5 minutes
+- **Attempt 5** - After 15 minutes
+
+After 5 failed attempts, the item is marked as permanently failed and requires manual intervention.
+
+### When to Retry Manually
+
+Click "Retry" on a failed item if:
+
+- Network was down temporarily
+- Laserman API was restarting
+- API token expired and you've updated it
+- You've fixed validation errors (e.g., corrected output URL)
+
+### When to Clear Failed Items
+
+Click "Clear Failed" if:
+
+- You've confirmed the asset exists in the web app (duplicate)
+- The output URL expired before sync (platform CDN timeout)
+- The asset is no longer relevant
+- You want to start fresh after troubleshooting
+
+> Clearing a failed item does not delete anything from the web app. It only removes the queue entry.
+
+## Common Sync Failures
+
+### 401 Unauthorized
+
+**Cause:** Invalid or expired API token
+
+**Fix:**
+1. Click the gear icon to open Settings
+2. Check that your API token is correct
+3. Regenerate token in web app if expired
+4. Update token in Settings
+5. Click "Sync Now" to retry
+
+### 404 Not Found
+
+**Cause:** Project or scene does not exist
+
+**Fix:**
+1. Verify project and scene IDs in Capture form
+2. Check that the scene exists in the web app
+3. Re-select project and scene from dropdowns
+4. Clear the failed item (already captured data is lost)
+5. Capture again with correct context
+
+### 400 Bad Request
+
+**Cause:** Validation error (missing field, invalid URL, etc.)
+
+**Fix:**
+1. Expand the failed item to see the error message
+2. Note which field failed validation
+3. Clear the failed item
+4. Re-fill the form with corrected data
+5. Capture again
+
+### 500 Internal Server Error
+
+**Cause:** Laserman API encountered an error
+
+**Fix:**
+1. Wait a few minutes (may be temporary)
+2. Click "Sync Now" to retry
+3. If it persists, check web app for outages
+4. Contact support if the issue continues
+
+### Network Error
+
+**Cause:** No internet connection or Laserman API unreachable
+
+**Fix:**
+1. Verify your internet connection
+2. Verify Laserman instance is running
+3. Check App URL in Settings
+4. Items will retry automatically once network is restored
+
+## Monitoring Sync Health
+
+### Green Badge (0 Pending)
+
+All items have synced successfully. Queue is empty.
+
+### Yellow Badge (1-5 Pending)
+
+Normal operational state. Items are syncing.
+
+### Red Badge (6+ Pending)
+
+Potential sync issue. Check for:
+
+- Network connectivity
+- API token validity
+- Failed items with error messages
+
+## Background Sync
+
+The extension uses a background service worker to sync asynchronously:
+
+- Syncs run even when side panel is closed
+- Syncs run across browser tabs
+- Alarms trigger periodic sync checks (every 1 minute)
+- Exponential backoff prevents hammering the API
+
+> Close the side panel freely. The queue will continue syncing in the background.
+
+## Local Storage
+
+The queue is stored in Chrome's local storage:
+
+- Persists across browser restarts
+- Survives extension updates
+- Maximum ~5MB total storage (shared with settings and drafts)
+- If storage is full, new captures will fail
+
+To free up storage:
+
+1. Clear old failed items
+2. Let pending items sync successfully
+3. Clear browser extension storage (extreme)
+
+## Queue Persistence
+
+The queue is durable:
+
+- Syncs happen even if you close the browser
+- When you reopen, pending items will resume syncing
+- Failed items remain for manual intervention
+- Successfully synced items move to "Recent"
+
+## Bulk Operations (Future)
+
+Future versions will support:
+
+- **Retry All** - Retry all failed items at once
+- **Remove All** - Clear entire queue (with confirmation)
+- **Export Queue** - Export queue as JSON for debugging
+- **Import Queue** - Restore queue from backup
+
+## Best Practices
+
+### Monitor After Batch Captures
+
+After capturing 10+ variations:
+
+1. Switch to Queue mode
+2. Verify all items are syncing
+3. Address any failures immediately
+4. Confirm successful sync before closing browser
+
+### Clear Failed Regularly
+
+Don't let failed items accumulate:
+
+- Review failed items weekly
+- Determine if they're worth retrying
+- Clear items that are no longer relevant
+- Keep queue clean for better visibility
+
+### Use Recent Preview
+
+The Recent section confirms sync success:
+
+- Quickly verify your last capture synced
+- Click "View in app" to see it in context
+- Useful for checking thumbnail rendering
+
+## Troubleshooting
+
+### Queue Stuck at "Syncing"
+
+- Refresh the page or close/reopen side panel
+- Click "Sync Now" to re-trigger worker
+- Check browser console for errors
+- Verify API token is valid
+
+### Items Disappear from Queue
+
+- Successfully synced items are removed automatically
+- Check "Recent" section to confirm
+- Verify in web app scene detail view
+
+### Retry Count Not Incrementing
+
+- Retries happen in background (not immediate)
+- Check back after the next retry interval
+- Manual "Retry" resets the automatic backoff
+
+### "Recent" Section Empty
+
+- Recent preview only shows last 24 hours
+- Only shows items synced during this session
+- Older items are not retained in local queue
+
+## Next Steps
+
+- [Platform detection reference](/docs/chrome-extension/platform-detection)
+- [Extension API reference](/docs/api-reference/extension-api)
+- [Authentication guide](/docs/api-reference/authentication)

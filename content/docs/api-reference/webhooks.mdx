@@ -1,0 +1,357 @@
+---
+title: Webhooks & Events
+description: Event-driven integrations (future feature)
+---
+
+# Webhooks & Events
+
+> This feature is planned for a future release. This document describes the intended design and will be updated as implementation progresses.
+
+## Overview
+
+Webhooks enable real-time notifications when events occur in your Laserman workspace. You'll be able to register HTTP endpoints to receive payloads when assets are created, statuses change, or selections are made.
+
+## Planned Events
+
+### asset.created
+
+Triggered when a new asset version is captured via the extension or created in the web app.
+
+#### Payload
+
+```json
+{
+  "event": "asset.created",
+  "timestamp": "2026-02-14T12:00:00Z",
+  "data": {
+    "assetVersionId": "asset_xyz789",
+    "projectId": "proj_abc123",
+    "sceneId": "scene_001",
+    "shotId": "shot_xyz789",
+    "assetType": "VIDEO",
+    "platformKey": "openai-sora",
+    "status": "GENERATED",
+    "outputUrl": "https://cdn.sora.com/video123.mp4",
+    "prompt": "A futuristic spaceship bridge..."
+  }
+}
+```
+
+#### Use Cases
+
+- Trigger downstream processing (transcoding, thumbnail generation)
+- Update external asset management systems
+- Notify team members via Slack/Discord
+- Log asset creation for analytics
+
+---
+
+### asset.status_changed
+
+Triggered when an asset version's status changes (e.g., GENERATED -> SELECTED -> APPROVED).
+
+#### Payload
+
+```json
+{
+  "event": "asset.status_changed",
+  "timestamp": "2026-02-14T12:30:00Z",
+  "data": {
+    "assetVersionId": "asset_xyz789",
+    "projectId": "proj_abc123",
+    "sceneId": "scene_001",
+    "oldStatus": "GENERATED",
+    "newStatus": "SELECTED",
+    "changedBy": "user_abc123"
+  }
+}
+```
+
+#### Use Cases
+
+- Notify directors when assets need review
+- Track approval workflow progress
+- Trigger exports when status reaches FINAL
+- Update project management tools
+
+---
+
+### asset.selected
+
+Triggered when an asset version is marked as the selected winner for a scene/shot.
+
+#### Payload
+
+```json
+{
+  "event": "asset.selected",
+  "timestamp": "2026-02-14T13:00:00Z",
+  "data": {
+    "assetVersionId": "asset_xyz789",
+    "projectId": "proj_abc123",
+    "sceneId": "scene_001",
+    "shotId": "shot_xyz789",
+    "assetType": "VIDEO",
+    "previousSelectedId": "asset_old456",
+    "selectedBy": "user_abc123"
+  }
+}
+```
+
+#### Use Cases
+
+- Auto-add selected assets to timeline
+- Generate preview sequences
+- Notify post-production team
+- Update production tracking dashboards
+
+---
+
+### scene.completed
+
+Triggered when all required shots in a scene reach APPROVED status (future).
+
+#### Payload
+
+```json
+{
+  "event": "scene.completed",
+  "timestamp": "2026-02-14T14:00:00Z",
+  "data": {
+    "sceneId": "scene_001",
+    "projectId": "proj_abc123",
+    "completedShotCount": 8,
+    "totalShotCount": 8
+  }
+}
+```
+
+---
+
+## Webhook Registration (Planned UI)
+
+### In the Web App
+
+1. Navigate to Settings -> Integrations -> Webhooks
+2. Click "Add Webhook"
+3. Configure:
+   - **Endpoint URL** - Your HTTPS endpoint
+   - **Events** - Select which events to receive
+   - **Secret** - Optional signing secret for verification
+   - **Active** - Enable/disable without deleting
+
+4. Click "Save"
+5. Test with "Send Test Event" button
+
+### Webhook Properties
+
+- **URL** - Must be HTTPS (HTTP allowed in development)
+- **Method** - Always POST
+- **Timeout** - 10 seconds
+- **Retries** - Up to 3 retries with exponential backoff
+- **Headers** - Includes `X-Laserman-Signature` for verification
+
+---
+
+## Security
+
+### Request Signing
+
+Each webhook request includes a signature header:
+
+```
+X-Laserman-Signature: sha256=abc123def456...
+```
+
+The signature is computed as:
+
+```
+HMAC-SHA256(secret, timestamp + "." + body)
+```
+
+### Verification (Example)
+
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(request, secret) {
+  const signature = request.headers['x-laserman-signature'];
+  const timestamp = request.headers['x-laserman-timestamp'];
+  const body = request.body;
+
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(timestamp + '.' + JSON.stringify(body))
+    .digest('hex');
+
+  return signature === `sha256=${expectedSignature}`;
+}
+```
+
+### Best Practices
+
+- Always verify signatures in production
+- Implement replay attack protection (check timestamp)
+- Use HTTPS endpoints
+- Rate limit your webhook handler
+- Respond with 200 OK quickly (process asynchronously)
+
+---
+
+## Delivery
+
+### Request Format
+
+```http
+POST /your/webhook/endpoint HTTP/1.1
+Host: your-server.com
+Content-Type: application/json
+X-Laserman-Signature: sha256=abc123...
+X-Laserman-Timestamp: 1708012800
+X-Laserman-Event: asset.created
+
+{
+  "event": "asset.created",
+  "timestamp": "2026-02-14T12:00:00Z",
+  "data": { ... }
+}
+```
+
+### Response
+
+Your endpoint should respond with:
+
+- **Status Code** - 200 OK (any 2xx is success)
+- **Body** - Optional (ignored by Laserman)
+- **Timeout** - Respond within 10 seconds
+
+### Failure Handling
+
+If your endpoint fails (non-2xx, timeout, network error):
+
+- Laserman retries up to 3 times
+- Backoff intervals: 30s, 2m, 10m
+- After 3 failures, webhook delivery is marked as failed
+- Failed deliveries appear in webhook logs (planned UI)
+
+---
+
+## Webhook Logs (Planned)
+
+View webhook delivery history:
+
+- **Event** - Which event was triggered
+- **Timestamp** - When it was sent
+- **Status** - Success, Failed, Retrying
+- **Response Code** - HTTP status from your endpoint
+- **Retry Count** - How many retries occurred
+- **Payload** - Full JSON payload (for debugging)
+
+---
+
+## Rate Limiting
+
+To prevent overwhelming your endpoint:
+
+- Maximum 100 webhooks per minute per endpoint
+- Burst allowance of 20 requests in 10 seconds
+- If exceeded, deliveries are queued and slowed
+
+---
+
+## Testing
+
+### Local Development
+
+Use tools like ngrok to expose your local server:
+
+```bash
+ngrok http 3000
+```
+
+Then register the ngrok URL as your webhook endpoint.
+
+### Test Events
+
+The webhook UI will include a "Send Test Event" button that sends a sample payload to verify your endpoint works.
+
+---
+
+## Example Integrations
+
+### Slack Notification
+
+```javascript
+// Your webhook handler
+app.post('/webhooks/laserman', async (req, res) => {
+  const { event, data } = req.body;
+
+  if (event === 'asset.selected') {
+    await fetch(process.env.SLACK_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `New asset selected for Scene ${data.sceneId}: ${data.prompt.slice(0, 100)}...`
+      })
+    });
+  }
+
+  res.status(200).send('OK');
+});
+```
+
+### Timeline Auto-Update
+
+```javascript
+app.post('/webhooks/laserman', async (req, res) => {
+  const { event, data } = req.body;
+
+  if (event === 'asset.selected') {
+    // Add selected asset to timeline
+    await timelineService.addClip({
+      sceneId: data.sceneId,
+      assetVersionId: data.assetVersionId,
+      outputUrl: data.outputUrl
+    });
+  }
+
+  res.status(200).send('OK');
+});
+```
+
+### Analytics Tracking
+
+```javascript
+app.post('/webhooks/laserman', async (req, res) => {
+  const { event, data } = req.body;
+
+  await analytics.track({
+    event,
+    projectId: data.projectId,
+    timestamp: req.body.timestamp,
+    properties: data
+  });
+
+  res.status(200).send('OK');
+});
+```
+
+---
+
+## Roadmap
+
+Planned enhancements:
+
+- **Webhook Templates** - Pre-built integrations for Slack, Discord, Zapier
+- **Filtering** - Only trigger on specific projects or scenes
+- **Batching** - Receive multiple events in one payload
+- **Replay** - Re-send failed webhook deliveries
+- **API Management** - CRUD webhooks via REST API
+
+---
+
+## Next Steps
+
+- [Extension API reference](/docs/api-reference/extension-api)
+- [Authentication guide](/docs/api-reference/authentication)
+- [Chrome extension integration](/docs/chrome-extension/)

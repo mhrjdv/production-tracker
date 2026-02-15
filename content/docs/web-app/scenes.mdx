@@ -1,0 +1,219 @@
+---
+title: "Scenes"
+description: "Scene management, script parsing, scene detail tabs, and production organization"
+---
+
+# Scenes
+
+Scenes are the fundamental organizational unit in Laserman. Each scene represents a distinct segment of your script, typically defined by a single location and time period.
+
+## Scene List View
+
+The Scenes tab in your project displays all scenes in a grid of scene cards.
+
+### Scene Cards
+
+Each scene card shows:
+
+- **Scene Number** - Sequential scene identifier (e.g., Scene 1, Scene 2)
+- **Scene Heading** - Location and time (e.g., INT. COFFEE SHOP - DAY)
+- **Description** - First few lines of action or dialogue
+- **Shot Count** - Number of shots defined for this scene
+- **Asset Count** - Number of generated assets
+- **Thumbnail** - Preview image from the first selected asset
+- **Status Badge** - Overall scene status based on asset workflow
+
+### Scene Card Actions
+
+Click a scene card to open the scene detail view. Hover over a card to reveal quick actions:
+
+- **Edit Scene** - Modify scene heading or description
+- **Add Shot** - Create a new shot for this scene
+- **Duplicate Scene** - Copy scene structure to create variations
+- **Delete Scene** - Remove the scene (requires confirmation)
+
+## Scene IDs and Numbering
+
+Scenes are automatically numbered sequentially based on their position in the script. Scene numbers update automatically if scenes are reordered.
+
+Each scene also has a unique internal ID for database tracking, separate from its display number.
+
+## Creating Scenes
+
+### Automatic Parsing
+
+When you upload or paste a script, Laserman automatically creates scenes based on scene headings:
+
+- Detects INT/EXT indicators
+- Identifies location names
+- Recognizes time-of-day indicators (DAY, NIGHT, MORNING, etc.)
+- Splits script text into individual scenes
+
+### Manual Scene Creation
+
+Create a scene manually from the Scenes tab:
+
+1. Click "New Scene"
+2. Enter scene heading components:
+   - Interior/Exterior
+   - Location name
+   - Time of day
+3. Add action description
+4. Save the scene
+
+### AI-Assisted Scene Generation
+
+Generate scene descriptions using AI:
+
+1. Click "Generate Scene Description"
+2. Provide context: tone, style, key action
+3. Review AI-generated description
+4. Edit and approve
+
+> AI-generated descriptions serve as starting points. Always review and customize them to match your creative vision.
+
+## Scene Detail View
+
+Click a scene card to open the detailed scene view with five tabs:
+
+### Script Tab
+
+View the full script text for this scene:
+
+- Scene heading
+- Action lines
+- Character dialogue
+- Scene transitions
+
+Edit script text directly in this tab. Changes sync immediately.
+
+### Shots Tab
+
+The [Shots tab](/docs/web-app/shots) displays all defined camera shots for this scene:
+
+- Shot breakdown with shot codes (SH001, SH002, etc.)
+- Camera angles, framing, and movement
+- Shot descriptions
+- Create new shots manually or with AI assistance
+
+### Assets Tab
+
+The [Assets tab](/docs/web-app/assets) shows all generated media for this scene:
+
+- Filter by asset type (image, video, audio)
+- Filter by platform (Sora, Veo, Freepik)
+- Filter by status (Draft, Generated, Approved, etc.)
+- Version cards with thumbnails and metadata
+- Select winners and approve assets
+
+### Compare Tab
+
+The [Compare view](/docs/web-app/compare) enables side-by-side comparison:
+
+- View multiple asset versions simultaneously
+- Auto-group similar assets
+- Metadata overlay for quick reference
+- Select winners directly from comparison
+- Create custom comparison groups
+
+### Timeline Tab
+
+The [Timeline tab](/docs/web-app/timeline) provides a visual assembly view:
+
+- Dedicated lanes for each asset type
+- Drag-and-drop shot ordering
+- Duration visualization
+- Export timeline for editing software
+
+## Scene Metadata
+
+Each scene stores additional metadata:
+
+- **Location** - Primary filming or generation location
+- **Characters** - Characters appearing in the scene
+- **Props** - Key props or objects
+- **VFX Notes** - Special effects requirements
+- **Duration Estimate** - Expected scene length
+- **Status** - Draft, In Progress, Complete
+
+Edit metadata from the scene detail view or scene settings.
+
+## Scene Status Workflow
+
+Scene status automatically updates based on asset workflow:
+
+1. **Draft** - Scene created, no shots or assets yet
+2. **In Progress** - Shots defined, assets being generated
+3. **Review** - Assets generated, awaiting review
+4. **Complete** - All shots have approved, selected assets
+
+## Organizing Scenes
+
+### Reordering Scenes
+
+Drag and drop scene cards to reorder:
+
+1. Click and hold a scene card
+2. Drag to the desired position
+3. Release to reorder
+
+Scene numbers update automatically.
+
+### Grouping Scenes
+
+Create scene groups for multi-scene sequences:
+
+1. Select multiple scene cards (Shift+Click or Cmd+Click)
+2. Click "Group Scenes"
+3. Enter group name (e.g., "Chase Sequence")
+4. Scenes remain individually accessible but display as a group
+
+### Filtering Scenes
+
+Use filters to find specific scenes:
+
+- **By Status** - Draft, In Progress, Review, Complete
+- **By Location** - Filter by scene location
+- **By Character** - Scenes featuring specific characters
+- **By Shot Count** - Scenes with many or few shots
+- **By Asset Count** - Scenes with generated assets
+
+### Searching Scenes
+
+Use the search bar to find scenes by:
+
+- Scene heading text
+- Location name
+- Action description keywords
+- Character names
+
+Results highlight matching text.
+
+## Scene Notes and Comments
+
+Add production notes and comments to scenes:
+
+1. Open scene detail view
+2. Click "Notes" in the sidebar
+3. Add text notes, checklists, or links
+4. Tag team members for attention
+5. Mark notes as resolved when addressed
+
+Team members receive notifications when mentioned in notes.
+
+## Scene Export
+
+Export scene data for external tools:
+
+- **Script Export** - Scene script text only
+- **Shot List Export** - All shots with descriptions
+- **Asset List Export** - All assets with metadata
+- **Full Scene Export** - Complete scene package
+
+Supported formats: PDF, CSV, JSON.
+
+> Export shot lists and asset lists to share with external teams or import into production management software.
+
+## Next Steps
+
+After organizing your scenes, proceed to [Shots](/docs/web-app/shots) to break down individual camera shots for each scene.

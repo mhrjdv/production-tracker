@@ -1,0 +1,303 @@
+---
+title: Capture Mode
+description: Saving generated assets with auto-detected metadata
+---
+
+# Capture Mode
+
+Capture Mode is the primary interface for saving generated assets from AI platforms to your Laserman scenes. It combines auto-detection, ruthless defaults, and one-click saving to minimize friction in high-volume capture workflows.
+
+## Overview
+
+When you generate content on an AI platform, Capture Mode:
+
+1. Auto-detects the platform, prompt, settings, and outputs
+2. Pre-fills form fields with detected data
+3. Applies context defaults (last project, scene, asset type)
+4. Enables one-click save to queue
+5. Syncs to your Laserman web app in the background
+
+## Interface Components
+
+### Context Selectors
+
+At the top of Capture Mode, you'll find two dropdown selectors:
+
+- **Project** - Choose which film project this asset belongs to
+- **Scene** - Choose which scene this asset belongs to
+
+These selectors remember your last selection and apply it as the default for subsequent captures.
+
+> Selecting a scene automatically loads that scene's existing assets into History mode for reference.
+
+### Detection Banner
+
+The detection banner displays real-time platform and output detection:
+
+- **Platform Indicator** - Shows detected platform name and logo
+- **Detection Dot** - Green (detected), red (not detected)
+- **Asset Type** - Shows detected output type (image, video, audio)
+- **Auto Fill Button** - Populates form with detected data
+- **Refresh Button** - Re-runs detection on current page
+
+#### Platform Detection States
+
+- **Green dot + platform name** - Successfully detected, ready to capture
+- **Red dot + "No platform detected"** - Not on a supported platform or detection failed
+- **Yellow dot + "Detecting..."** - Detection in progress
+
+### Capture Form
+
+The form is organized into essential and advanced fields:
+
+#### Essential Fields (Always Visible)
+
+**Platform**
+- Auto-filled from detection
+- Dropdown to manually override if needed
+- Synced from your Laserman platform list
+
+**Prompt**
+- The text prompt used to generate this asset
+- Auto-filled from page content
+- Actions:
+  - **Apply** - Inject prompt back into platform page
+  - **Refine** - AI-powered prompt enhancement (requires AI config)
+  - **Clear** - Reset field
+
+**Output URL**
+- Direct link to the generated media file
+- Auto-detected from video/image elements
+- Used by Laserman to fetch and store the asset
+
+**Type**
+- Asset type: Image, Video, Audio, Music, Voice, Narration, Storyboard, Other
+- Defaults to detected type
+- Controls how asset is displayed in web app
+
+**Status**
+- Asset status: Draft, Generated, Selected
+- Controls review workflow in web app
+- Defaults to "Generated"
+
+#### Advanced Fields (Expandable)
+
+Click "More fields" to reveal:
+
+**Title**
+- Optional descriptive name for this variant
+- Useful for tracking iterations ("take-2", "director-notes")
+
+**Negative Prompt**
+- Things to avoid in generation
+- Auto-filled if platform supports negative prompts
+
+**Model**
+- AI model name/version (e.g., "Veo-3", "Sora-turbo")
+- Auto-filled from platform UI when visible
+
+**External ID**
+- Platform's job ID or generation ID
+- Useful for tracing back to platform
+
+**Source URL**
+- The platform page URL where this was generated
+- Auto-filled with current tab URL
+
+**Thumbnail URL**
+- Preview image URL (for video assets)
+- Auto-detected from video poster attribute
+
+**Tags**
+- Comma-separated tags (e.g., "hero, approved, pass-2")
+- Useful for filtering and search
+
+**Metadata JSON**
+- Additional structured data in JSON format
+- Example: `{"seed": 42, "steps": 50}`
+- Auto-populated with detected settings
+
+**Notes**
+- Free-form text notes about this version
+
+### Actions
+
+**Clear All**
+- Resets the entire form to defaults
+- Preserves project and scene selection
+
+**Save Capture**
+- Adds item to sync queue
+- Optimistically marks as "queued"
+- Background worker syncs to Laserman API
+- Shows success or failure in Queue mode
+
+## Auto-Fill Workflow
+
+The recommended workflow leverages auto-detection:
+
+1. Navigate to an AI platform and generate content
+2. Wait for generation to complete
+3. Detection banner turns green with platform name
+4. Click "Auto Fill" in the detection banner
+5. Review auto-populated fields
+6. Adjust Type or Status if needed
+7. Click "Save Capture"
+
+> Auto-fill extracts prompt, settings, output URLs, and metadata from the page DOM.
+
+## Ruthless Defaults
+
+To enable one-click capture, the extension remembers and applies:
+
+### Last Active Context
+
+- **Project** - Last selected project
+- **Scene** - Last selected scene
+- **Asset Type** - Last used type
+- **Status** - Last used status
+
+These defaults persist across browser sessions.
+
+### Auto-Detected Values
+
+- **Platform** - Detected from current URL
+- **Prompt** - Extracted from prompt input or generation card
+- **Output URL** - Extracted from video/image elements
+- **Model Name** - Extracted from UI badges
+- **Aspect Ratio** - Extracted from settings
+- **Duration** - Extracted from video controls
+- **Source URL** - Current tab URL
+
+### Fallback Behavior
+
+If detection fails for a field, the extension:
+
+- Leaves the field empty
+- Does not block capture (only Platform, Prompt, and Output URL are required)
+- Allows manual entry
+
+## Batch Capture
+
+For platforms that generate multiple variations at once:
+
+1. Click "Auto Fill" to detect the first output
+2. Review and adjust fields
+3. Click "Save Capture"
+4. Click "Refresh Detection" to detect the next output
+5. Click "Auto Fill" again
+6. Repeat until all variants are captured
+
+> Future versions may support true batch capture with a "Save All" button.
+
+## Manual Capture
+
+If auto-detection fails, you can manually capture:
+
+1. Copy the prompt text from the platform
+2. Paste into the Prompt field
+3. Right-click the generated output and copy image/video address
+4. Paste into Output URL field
+5. Manually select Platform from dropdown
+6. Fill any other desired fields
+7. Click "Save Capture"
+
+## Field Validation
+
+The extension validates required fields before queueing:
+
+- **Project** - Required
+- **Scene** - Required
+- **Platform** - Required
+- **Prompt** - Required (minimum 3 characters)
+- **Output URL** - Required (must be valid URL)
+- **Asset Type** - Required
+
+If validation fails, the extension highlights the missing field and shows an error message.
+
+## Capture Tips
+
+### For Video Assets
+
+- Ensure the video is fully loaded before capturing
+- Check that thumbnailUrl is detected (used for grid previews)
+- Capture duration and resolution metadata when available
+
+### For Image Assets
+
+- Wait for high-resolution image to load (not just thumbnail)
+- Verify the URL points to the full-size image, not a preview
+- Some platforms serve images via CDN with expiring URLs
+
+### For Audio Assets
+
+- Capture waveform or spectrogram thumbnail if available
+- Include duration in metadata
+- Note licensing (especially for music platforms)
+
+### For Prompt Reuse
+
+- Keep prompts clean and reusable (avoid one-off references)
+- Use prompt refinement to standardize formatting
+- Tag prompts that work well for later reuse
+
+## Integration with Other Modes
+
+### History Mode
+
+After capturing an asset:
+
+- It appears in History mode for the scene
+- You can click it to load its data back into the form
+- Useful for iterating on a winning prompt
+
+### Queue Mode
+
+After clicking "Save Capture":
+
+- Item is added to the sync queue
+- Background worker attempts upload
+- Check Queue mode to verify success
+- Failed items remain in queue for retry (up to 5 attempts)
+
+## Troubleshooting
+
+### Platform Not Detected
+
+- Verify you're on a supported platform
+- Check that you're on a generation or results page
+- Click the refresh icon to retry detection
+- Grant host permissions if prompted
+
+### Prompt Not Extracted
+
+- Some platforms hide prompts after generation
+- Manually copy/paste the prompt before generating
+- Check "More fields" for negative prompt
+
+### Output URL Not Found
+
+- Ensure content is fully loaded
+- Look for download buttons or links
+- Right-click the media and copy address manually
+- Some platforms require user interaction to reveal URLs
+
+### Save Fails Immediately
+
+- Check that all required fields are filled
+- Verify project and scene are selected
+- Ensure Output URL is a valid HTTP/HTTPS URL
+- Check browser console for validation errors
+
+### Item Stuck in Queue
+
+- Switch to Queue mode to check sync status
+- Click "Sync Now" to retry
+- Clear the item if it fails after 5 retries
+- Verify your API token is valid and not expired
+
+## Next Steps
+
+- [Reuse captured prompts](/docs/chrome-extension/reuse)
+- [Manage the sync queue](/docs/chrome-extension/queue)
+- [Platform detection reference](/docs/chrome-extension/platform-detection)

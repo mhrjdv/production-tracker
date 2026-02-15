@@ -1,0 +1,250 @@
+---
+title: Installation
+description: Install and configure the Laserman web application.
+---
+
+# Installation
+
+This guide walks you through setting up Laserman on your local development environment. By the end, you'll have a running instance of the web application with a seeded database.
+
+## Prerequisites Check
+
+Before proceeding, verify that you have:
+
+- Node.js 18 or higher installed (`node --version`)
+- PostgreSQL 14 or higher running locally or remotely
+- A Cloudflare R2 account with a bucket created
+- Git installed for cloning the repository
+
+## Step 1: Clone the Repository
+
+Clone the Laserman repository to your local machine:
+
+```bash
+git clone https://github.com/yourusername/laserman_v2.git
+cd laserman_v2
+```
+
+## Step 2: Install Dependencies
+
+Install all required Node.js packages:
+
+```bash
+npm install
+```
+
+This will install Next.js, Prisma, React, and all other dependencies defined in `package.json`.
+
+> **Note:** If you prefer `pnpm` or `yarn`, you can use those package managers instead. Laserman has no specific npm-only requirements.
+
+## Step 3: Configure Environment Variables
+
+Create a `.env` file in the project root by copying the example:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` in your text editor and configure the following variables:
+
+### Database Configuration
+
+```bash
+DATABASE_URL="postgresql://username:password@localhost:5432/laserman_dev?schema=public"
+```
+
+Replace `username`, `password`, and database name (`laserman_dev`) with your PostgreSQL credentials. If your database runs on a different host or port, update `localhost:5432` accordingly.
+
+> **Note:** The database name (`laserman_dev`) will be created automatically when you run migrations in Step 4.
+
+### Authentication Configuration
+
+```bash
+AUTH_SECRET="your-random-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+Generate a secure random string for `AUTH_SECRET`:
+
+```bash
+openssl rand -base64 32
+```
+
+For local development, `NEXTAUTH_URL` should remain `http://localhost:3000`. In production, change this to your actual domain.
+
+### OpenRouter Configuration
+
+```bash
+OPENROUTER_API_KEY="sk-or-v1-your-api-key-here"
+```
+
+Laserman uses OpenRouter for AI-powered script parsing and analysis. Get your API key from [OpenRouter](https://openrouter.ai/keys).
+
+> **Note:** Script parsing is optional for initial setup. You can leave this blank and add it later if you want to test the application without AI features first.
+
+### Cloudflare R2 Configuration
+
+```bash
+R2_ACCOUNT_ID="your-cloudflare-account-id"
+R2_ACCESS_KEY_ID="your-r2-access-key-id"
+R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+R2_BUCKET_NAME="laserman-assets"
+R2_PUBLIC_URL="https://your-public-r2-domain.com"
+```
+
+To obtain these credentials:
+
+1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Navigate to **R2** in the sidebar
+3. Create a new bucket (e.g., `laserman-assets`)
+4. Go to **Manage R2 API Tokens** and create a new API token with read/write permissions
+5. Copy the `Access Key ID` and `Secret Access Key`
+6. Set up a public domain for your bucket (optional but recommended for asset URLs)
+
+> **Note:** R2 is S3-compatible. If you prefer AWS S3 or another provider, you can modify the storage configuration in `src/lib/storage.ts`.
+
+### Complete .env.example Format
+
+Your `.env` file should look like this:
+
+```bash
+# Database
+DATABASE_URL="postgresql://username:password@localhost:5432/laserman_dev?schema=public"
+
+# Authentication
+AUTH_SECRET="your-random-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+
+# AI Provider
+OPENROUTER_API_KEY="sk-or-v1-your-api-key-here"
+
+# Cloudflare R2 Storage
+R2_ACCOUNT_ID="your-cloudflare-account-id"
+R2_ACCESS_KEY_ID="your-r2-access-key-id"
+R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
+R2_BUCKET_NAME="laserman-assets"
+R2_PUBLIC_URL="https://your-public-r2-domain.com"
+```
+
+## Step 4: Set Up the Database
+
+Create the PostgreSQL database if it doesn't exist:
+
+```bash
+createdb laserman_dev
+```
+
+Run Prisma migrations to create all required tables:
+
+```bash
+npx prisma migrate dev
+```
+
+This command will:
+- Create all database tables (projects, scenes, shots, asset versions, etc.)
+- Apply any pending migrations
+- Generate the Prisma Client TypeScript types
+
+> **Note:** The `migrate dev` command is for development only. For production, use `npx prisma migrate deploy`.
+
+## Step 5: Seed the Database
+
+Populate the database with sample data:
+
+```bash
+npx prisma db seed
+```
+
+This will create:
+- A sample user account
+- An example project ("Laserman V2")
+- Sample scenes from the Laserman script
+- Example shot structures and prompt packages
+
+> **Note:** You can inspect the seed data in `prisma/seed.ts` to understand the data model.
+
+## Step 6: Start the Development Server
+
+Launch the Next.js development server:
+
+```bash
+npm run dev
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000).
+
+You should see output similar to:
+
+```
+  ▲ Next.js 16.0.0
+  - Local:        http://localhost:3000
+  - Ready in 1.2s
+```
+
+## Step 7: Verify Installation
+
+Open your browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the Laserman landing page or login screen.
+
+To verify the database connection, check the Prisma Studio (database GUI):
+
+```bash
+npx prisma studio
+```
+
+This opens a browser-based interface at [http://localhost:5555](http://localhost:5555) where you can inspect your database tables and seeded data.
+
+## Common Issues
+
+### Database Connection Failed
+
+If you see `Error: P1001: Can't reach database server`, verify:
+
+- PostgreSQL is running (`pg_isready` command)
+- Database credentials in `.env` are correct
+- Database exists (`psql -l` to list databases)
+
+### R2 Upload Errors
+
+If asset uploads fail:
+
+- Verify R2 credentials are correct
+- Check bucket permissions allow read/write
+- Ensure `R2_PUBLIC_URL` matches your bucket's public domain
+
+### Port Already in Use
+
+If port 3000 is occupied:
+
+```bash
+PORT=3001 npm run dev
+```
+
+Update `NEXTAUTH_URL` in `.env` to match the new port.
+
+## Next Steps
+
+Now that Laserman is running, proceed to [Your First Project](/docs/getting-started/first-project) to create a production project and upload a script.
+
+## Development Tools
+
+Useful commands for working with Laserman:
+
+```bash
+# Run type checking
+npm run type-check
+
+# Run linter
+npm run lint
+
+# Format code
+npm run format
+
+# View database schema
+npx prisma studio
+
+# Reset database (WARNING: deletes all data)
+npx prisma migrate reset
+
+# Generate Prisma Client after schema changes
+npx prisma generate
+```

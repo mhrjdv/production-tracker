@@ -1,0 +1,19 @@
+{
+  "root": true,
+  "title": "Laserman",
+  "pages": [
+    "index",
+    "---Getting Started---",
+    "getting-started",
+    "---Core Concepts---",
+    "concepts",
+    "---Web App---",
+    "web-app",
+    "---Chrome Extension---",
+    "chrome-extension",
+    "---API Reference---",
+    "api-reference",
+    "---Supported Platforms---",
+    "platforms"
+  ]
+}

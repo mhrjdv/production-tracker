@@ -1,0 +1,241 @@
+---
+title: Freepik Pikaso
+description: Capturing AI-generated images from Freepik Pikaso
+---
+
+# Freepik Pikaso
+
+Freepik Pikaso is an AI image generator with style presets and an intuitive interface. It's part of the Freepik ecosystem and supports text-to-image, image-to-image, and real-time editing.
+
+## Platform Overview
+
+- **Provider:** Freepik
+- **Specialty:** Image generation with style presets
+- **Access:** Free tier available, Premium for commercial use
+- **Supported Output Types:** Image
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Freepik on these domains:
+
+- `https://www.freepik.com/pikaso`
+- `https://www.freepik.com/ai/`
+- `https://www.freepik.com/**/image-generator`
+- `https://www.freepik.com/**/ai-image`
+
+### What Is Auto-Detected
+
+When you generate with Pikaso, Laserman extracts:
+
+- **Prompt** - From main prompt textarea
+- **Negative Prompt** - From negative prompt field (if used)
+- **Style** - From style preset selector (e.g., "Photorealistic", "Anime")
+- **Aspect Ratio** - From size/ratio buttons (1:1, 16:9, etc.)
+- **Model** - From model selector (if visible)
+- **Image Count** - Number of images to generate
+- **Output URL** - Image `src` from result grid
+- **Thumbnail** - Same as output URL
+
+### Detection Quality
+
+- **Prompt extraction:** High - Dedicated prompt textarea
+- **Settings extraction:** High - Most settings visible and consistent
+- **Output extraction:** High - Reliable image URL detection
+
+## Capture Workflow
+
+### Standard Workflow
+
+1. Open Freepik Pikaso
+2. Enter your prompt in the text area
+3. Optionally add negative prompt
+4. Choose style preset (e.g., "3D Render", "Watercolor")
+5. Select aspect ratio
+6. Click "Generate"
+7. Wait for image(s) to appear
+8. Open Laserman extension side panel
+9. Detection banner shows "Freepik Pikaso"
+10. Click "Auto Fill"
+11. Review fields
+12. Click "Save Capture"
+
+### Multiple Images
+
+Pikaso can generate 2-4 images per prompt:
+
+1. After generation, grid shows multiple variants
+2. Click "Refresh Detection" for each image
+3. Extension cycles through detected outputs
+4. Click "Auto Fill" for first image
+5. Save capture
+6. Refresh detection again
+7. Auto fill next image
+8. Repeat for all variants
+
+### Style Iterations
+
+To iterate on a style:
+
+1. Capture first generation
+2. Change style preset (keep prompt same)
+3. Generate again
+4. Capture new variant
+5. Compare styles in web app
+
+## Capture Tips
+
+### Best Practices
+
+- **Use negative prompts** - Helps refine output quality
+- **Try style presets** - Freepik has excellent preset quality
+- **Note aspect ratios** - Important for shot planning
+- **Tag by style** - Use tags like "photorealistic", "anime" for filtering
+
+### Common Issues
+
+**Multiple images detected:**
+- Pikaso generates 2-4 variants per prompt
+- Capture each individually
+- Use "Refresh Detection" to cycle through
+
+**Style not captured:**
+- Style preset is captured in metadata
+- Manually note style in tags if needed
+
+**Negative prompt ignored:**
+- Ensure negative prompt field is filled before generating
+- Detector specifically looks for this field
+
+## Rights and Licensing
+
+### Free vs Premium
+
+Freepik has clear licensing tiers:
+
+#### Free Plan
+
+- Non-commercial use only
+- Cannot use in commercial projects
+- Attribution recommended
+- Freepik branding on some outputs
+
+#### Premium Plan
+
+- Full commercial license
+- No attribution required
+- No branding on outputs
+- Use in client projects, sales, marketing
+
+### User Responsibility
+
+Per Freepik's terms:
+
+- You are responsible for ensuring outputs don't infringe third-party rights
+- Platform cannot guarantee output originality
+- Review content before commercial use
+
+### Laserman Rights State
+
+The extension sets `rightsState` based on manual input:
+
+- **RESTRICTED** - If you note "free plan" in settings (future feature)
+- **LICENSED** - If you note "premium plan"
+- **UNKNOWN** - Default if plan unknown
+
+> Manually set rights state in web app after capture based on your plan.
+
+## Known Limitations
+
+### UI Updates
+
+Freepik updates Pikaso frequently:
+
+- Detector uses fallback selectors
+- Report detection failures if UI changes
+
+### Real-Time Editing
+
+Pikaso supports real-time editing:
+
+- Detector may capture intermediate states
+- Wait for final result before capturing
+
+### Grid Layout
+
+Multiple images in a grid:
+
+- Detector finds all images
+- Refreshing detection cycles through them
+- May need manual verification of correct output
+
+## Metadata Fields
+
+Freepik-specific metadata:
+
+```json
+{
+  "style": "Photorealistic",
+  "aspectRatio": "16:9",
+  "imageCount": 4,
+  "negativePrompt": "blurry, low quality",
+  "platform": "freepik-ai"
+}
+```
+
+## Example Capture
+
+A typical Freepik capture in Laserman:
+
+- **Platform:** freepik-ai
+- **Asset Type:** IMAGE
+- **Prompt:** "A serene mountain lake at sunset with reflection"
+- **Negative Prompt:** "people, buildings, text"
+- **Style:** Photorealistic
+- **Output URL:** `https://img.freepik.com/ai-generated/abc123.jpg`
+- **Thumbnail:** (same)
+- **Metadata:** `{"style": "Photorealistic", "aspectRatio": "16:9"}`
+- **Status:** GENERATED
+- **Rights State:** RESTRICTED (free plan) or LICENSED (premium)
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're on the Pikaso page (not main Freepik site)
+- Wait for images to fully load
+- Click "Refresh Detection"
+- Check browser console for errors
+
+### Wrong Image Captured
+
+- Multiple images may be in the grid
+- Detector captures first found image
+- Refresh detection to cycle to next
+- Manually verify correct output URL
+
+### Style Not Detected
+
+- Style preset should be captured automatically
+- If missing, manually add to tags field
+- Check that style selector is visible on page
+
+### Commercial Use Uncertainty
+
+- Review Freepik plan terms carefully
+- Set rights state to RESTRICTED if on free plan
+- Upgrade to Premium for commercial projects
+- Consult Freepik support if unsure
+
+## Related Resources
+
+- [Freepik Pikaso](https://www.freepik.com/pikaso)
+- [Freepik Pricing](https://www.freepik.com/pricing)
+- [Freepik License Terms](https://www.freepik.com/legal/terms-of-use)
+
+## Next Steps
+
+- [Compare with Midjourney](/docs/platforms/midjourney)
+- [Understanding rights tracking](/docs/platforms/)
+- [Capture workflow guide](/docs/chrome-extension/capture)

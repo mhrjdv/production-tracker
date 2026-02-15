@@ -1,0 +1,15 @@
+{
+  "title": "Web App",
+  "pages": [
+    "index",
+    "dashboard",
+    "projects",
+    "scenes",
+    "shots",
+    "assets",
+    "compare",
+    "timeline",
+    "characters",
+    "command-palette"
+  ]
+}

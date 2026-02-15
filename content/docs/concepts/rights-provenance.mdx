@@ -1,0 +1,366 @@
+---
+title: Rights & Provenance
+description: Track licensing, commercial use rights, and content provenance for every asset.
+---
+
+# Rights & Provenance
+
+One of Laserman's core responsibilities is tracking the licensing rights and content provenance of every asset you generate. When you're ready to ship, you need to know: "Can I legally use this? Do I have commercial rights? Where did it come from?"
+
+Laserman makes these questions answerable at a glance.
+
+## The Four Rights States
+
+Every asset version has a `rightsState` field with one of four values:
+
+### 1. Unknown
+
+The licensing status has not been determined.
+
+**When this happens:**
+- Asset was manually uploaded without metadata.
+- Extension captured the asset but couldn't determine platform or account type.
+- Platform doesn't provide clear licensing information.
+
+**What to do:** Manually review the asset, check the platform's terms, and update the rights state.
+
+### 2. Non-Commercial
+
+The asset can be used for non-commercial purposes only.
+
+**Common scenarios:**
+- Generated on a free tier of Midjourney, Runway, or Sora.
+- Platform explicitly restricts commercial use for unpaid accounts.
+- Asset is a remix or derivative of content with non-commercial restrictions.
+
+**What to do:** Do NOT ship this in commercial projects. Either regenerate on a paid plan or use it only for internal reference.
+
+### 3. Commercial Allowed
+
+The asset can be used commercially.
+
+**Common scenarios:**
+- Generated on a paid subscription (Midjourney Pro, Sora paid tier, etc.).
+- Platform grants commercial rights to all outputs.
+- Asset is original content without third-party dependencies.
+
+**What to do:** Safe to ship in commercial projects. Verify platform terms haven't changed.
+
+### 4. Restricted
+
+The asset has specific restrictions beyond simple non-commercial use.
+
+**Common scenarios:**
+- Platform requires attribution.
+- Asset can be used in specific contexts only (e.g., editorial use only).
+- Asset includes recognizable third-party IP (characters, brands, music samples).
+- Asset was generated with a reference image that has its own licensing restrictions.
+
+**What to do:** Review the specific restrictions. Add notes to the asset version. Consult legal if uncertain.
+
+> **Important:** Laserman tracks what it can detect automatically. You are ultimately responsible for verifying rights and compliance with platform terms. Laserman surfaces what it knows and flags uncertainty clearly.
+
+## Platform-Specific Licensing
+
+Different platforms have different licensing models. Laserman tracks these automatically when possible.
+
+### Sora (OpenAI)
+
+- **Paid tier:** Commercial use allowed. You own the output.
+- **Free tier (if available):** Check OpenAI's terms. May be non-commercial.
+- **Attribution:** Not required.
+
+### Midjourney
+
+- **Free tier:** Non-commercial use only.
+- **Basic/Standard plans:** Commercial use allowed up to $10K/year revenue.
+- **Pro/Mega plans:** Full commercial rights, no revenue cap.
+- **Attribution:** Not required but appreciated.
+
+### Veo (Google Gemini)
+
+- **Gemini free tier:** Non-commercial use only.
+- **Google One AI Premium:** Commercial use allowed.
+- **Watermarking:** All outputs include SynthID watermark (invisible, detectable).
+- **Attribution:** Required for some use cases (check terms).
+
+### Runway
+
+- **Free tier:** Non-commercial use only.
+- **Standard/Pro/Unlimited plans:** Commercial use allowed.
+- **Attribution:** Not required.
+
+### ElevenLabs
+
+- **Free tier:** Non-commercial use only.
+- **Paid tiers:** Commercial use allowed.
+- **Voice cloning:** Requires consent from voice owner. Laserman cannot verify this automatically.
+- **Attribution:** Not required.
+
+### Freepik
+
+- **Free tier:** Commercial use allowed with attribution.
+- **Premium tier:** Commercial use allowed, no attribution required.
+- **Editorial vs. commercial:** Check individual asset licenses.
+
+### Suno / Udio (Music)
+
+- **Free tier:** Non-commercial use only.
+- **Pro tier:** Commercial use allowed up to $1M/year revenue.
+- **Music licensing:** Complex. May require additional clearances for samples or similar melodies.
+
+> **Note:** Platform terms change frequently. Laserman captures the rights state at generation time. Always verify current terms before final delivery.
+
+## Automatic Rights Detection
+
+The Chrome extension attempts to detect rights state automatically:
+
+1. **Detect platform** from the current webpage (URL, DOM structure).
+2. **Detect account type** from user profile or page indicators (free, paid, pro).
+3. **Look up platform licensing** from internal database.
+4. **Set rights state** based on platform + account type mapping.
+
+**Example:** Extension detects Midjourney, sees "Basic Plan" in the UI, sets `rightsState: 'Commercial Allowed'`.
+
+If detection fails, rights state defaults to `Unknown` and you'll see a warning in the UI.
+
+## Content Provenance
+
+Provenance tracking answers: "Where did this content come from? Can we prove it?"
+
+Laserman captures multiple provenance signals:
+
+### SynthID Watermarks (Google/DeepMind)
+
+Veo outputs include SynthID, an invisible watermark that survives editing, compression, and re-encoding.
+
+- **Stored in:** `provenance.synthId` JSON blob.
+- **Verified by:** Google's SynthID detector (external tool).
+- **Purpose:** Prove an asset was generated by Google AI, not stolen or modified from another source.
+
+### Content Credentials (C2PA)
+
+Some platforms (Adobe Firefly, potentially others) embed Content Credentials metadata following the C2PA standard.
+
+- **Stored in:** `provenance.c2pa` JSON blob.
+- **Verified by:** C2PA validator tools.
+- **Purpose:** Provide a tamper-evident chain of custody from generation to delivery.
+
+### Platform Metadata
+
+Laserman captures platform-specific metadata:
+
+- **Generation timestamp** from the platform (not just capture timestamp).
+- **Model version** (e.g., "sora-v1", "midjourney-v6.1").
+- **Account ID** or username (hashed for privacy).
+- **Job ID** or request ID from the platform.
+
+This metadata can be used to trace back to the original generation request if disputes arise.
+
+### Prompt and Settings
+
+Every asset version records:
+
+- **basePrompt:** The exact prompt used.
+- **negativePrompt:** Terms excluded.
+- **settings:** Model-specific parameters (seed, steps, guidance, etc.).
+
+This is not provenance in the cryptographic sense, but it's valuable documentation. If a client questions how an asset was made, you have receipts.
+
+## The "OK to Ship?" Checklist
+
+Before final delivery, Laserman surfaces a checklist for each asset:
+
+- [ ] **Rights state is Commercial Allowed or Restricted (with acceptable restrictions).**
+- [ ] **Platform terms have been reviewed and are current.**
+- [ ] **Provenance metadata is present (SynthID or C2PA if applicable).**
+- [ ] **No recognizable third-party IP is present (characters, brands, music, etc.).**
+- [ ] **If voice cloning was used, consent is documented.**
+- [ ] **Attribution requirements are met (if any).**
+- [ ] **Asset has been reviewed and approved by appropriate stakeholders.**
+
+This checklist is a guide, not a guarantee. You are responsible for final legal review, but Laserman makes it easy to spot potential issues early.
+
+## Rights State Overrides
+
+Sometimes automatic detection is wrong. You can manually override the rights state:
+
+```typescript
+await prisma.sceneAssetVersion.update({
+  where: { id: 'asset_xyz' },
+  data: {
+    rightsState: 'Commercial Allowed',
+    rightsNotes: 'Confirmed with Runway support: Pro plan grants commercial rights.'
+  }
+});
+```
+
+**Always add notes** when overriding. Future you (or your legal team) will need to know why the override was made.
+
+## Restricted Assets: Use Cases
+
+The `Restricted` state is for assets that don't fit cleanly into "non-commercial" or "commercial allowed."
+
+**Examples:**
+
+### Attribution Required
+
+Asset is commercial-use-OK, but you must credit the platform.
+
+```json
+{
+  "rightsState": "Restricted",
+  "rightsNotes": "Commercial use allowed. Attribution required: 'Generated with Freepik AI'."
+}
+```
+
+### Editorial Use Only
+
+Asset contains real people, locations, or events. OK for news/documentary, not for advertising.
+
+```json
+{
+  "rightsState": "Restricted",
+  "rightsNotes": "Editorial use only. Do not use in commercial advertising."
+}
+```
+
+### Time-Limited License
+
+Asset license expires after a certain date (e.g., stock music with 1-year term).
+
+```json
+{
+  "rightsState": "Restricted",
+  "rightsNotes": "Commercial use allowed until 2027-01-31. Renew license before shipping updates."
+}
+```
+
+### Third-Party IP
+
+Asset includes recognizable characters, brands, or music.
+
+```json
+{
+  "rightsState": "Restricted",
+  "rightsNotes": "Contains Superman likeness. Requires DC Comics clearance for commercial use."
+}
+```
+
+## Querying by Rights State
+
+Common queries:
+
+**Get all commercial-ready assets:**
+```typescript
+const readyToShip = await prisma.sceneAssetVersion.findMany({
+  where: {
+    rightsState: 'Commercial Allowed',
+    status: 'Approved',
+    selected: true
+  }
+});
+```
+
+**Get all assets with unknown rights:**
+```typescript
+const needsReview = await prisma.sceneAssetVersion.findMany({
+  where: { rightsState: 'Unknown' }
+});
+```
+
+**Get all restricted assets:**
+```typescript
+const restricted = await prisma.sceneAssetVersion.findMany({
+  where: { rightsState: 'Restricted' }
+});
+```
+
+**Get all non-commercial assets (potential blockers):**
+```typescript
+const blockers = await prisma.sceneAssetVersion.findMany({
+  where: {
+    rightsState: 'Non-Commercial',
+    selected: true  // Flagged as preferred but not shippable
+  }
+});
+```
+
+## UI Indicators
+
+Laserman's UI uses color-coded badges for rights state:
+
+- **Unknown:** Gray with "?" icon.
+- **Non-Commercial:** Red with "NC" badge.
+- **Commercial Allowed:** Green with checkmark.
+- **Restricted:** Yellow with "!" icon.
+
+Hovering over the badge shows detailed notes and platform terms.
+
+## Provenance Export
+
+When exporting final assets, Laserman can generate a provenance report in JSON or PDF format:
+
+```json
+{
+  "assetId": "asset_xyz",
+  "title": "Scene 5 - Establishing Shot",
+  "platform": "Sora",
+  "model": "sora-v1",
+  "generatedAt": "2026-02-15T10:30:00Z",
+  "capturedAt": "2026-02-15T10:32:00Z",
+  "rightsState": "Commercial Allowed",
+  "basePrompt": "A futuristic city at sunset with flying cars",
+  "settings": {
+    "seed": 42,
+    "steps": 50,
+    "guidance": 7.5
+  },
+  "provenance": {
+    "synthId": "...",
+    "platformJobId": "sora_job_12345"
+  },
+  "approvedBy": "user_abc",
+  "approvedAt": "2026-02-15T14:00:00Z"
+}
+```
+
+This report serves as documentation for legal review, client delivery, or regulatory compliance.
+
+## Best Practices
+
+1. **Check rights state immediately after capture.** Don't wait until final delivery to discover a licensing issue.
+2. **Regenerate non-commercial assets on paid plans.** Don't risk legal issues to save a few dollars on subscriptions.
+3. **Document restricted assets clearly.** Add detailed notes about attribution requirements, editorial restrictions, etc.
+4. **Verify platform terms periodically.** Licensing policies change. What was OK last year may not be OK today.
+5. **Use provenance metadata when available.** SynthID and C2PA provide strong evidence of origin.
+6. **Export provenance reports for final delivery.** Clients and legal teams appreciate having receipts.
+7. **When in doubt, set to Restricted.** It's safer to flag something for manual review than to assume it's OK.
+
+## Limitations and Disclaimers
+
+Laserman tracks rights and provenance to the best of its ability, but it is not a substitute for legal advice.
+
+**What Laserman can do:**
+- Detect platform and account type.
+- Look up common licensing terms.
+- Capture provenance metadata.
+- Surface uncertainty clearly.
+
+**What Laserman cannot do:**
+- Verify that platform terms haven't changed since generation.
+- Detect third-party IP (characters, brands, music) in generated content.
+- Determine if a voice clone has proper consent.
+- Guarantee that an asset is legally safe to ship.
+
+Always consult legal counsel for commercial projects, especially when:
+- Shipping to a large audience.
+- Using assets with Restricted or Unknown rights state.
+- Incorporating third-party IP.
+- Operating in regulated industries (finance, healthcare, etc.).
+
+## Next Steps
+
+You've completed the Core Concepts section. For hands-on guidance, see the [Getting Started](/docs/getting-started) guide to begin using Laserman in your production workflow.
+
+For specific workflows like capturing outputs from Sora or comparing versions across platforms, see the [Guides](/docs/guides) section.

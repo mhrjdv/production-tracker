@@ -1,0 +1,10 @@
+{
+  "title": "Core Concepts",
+  "pages": [
+    "index",
+    "object-model",
+    "asset-lifecycle",
+    "prompt-packages",
+    "rights-provenance"
+  ]
+}

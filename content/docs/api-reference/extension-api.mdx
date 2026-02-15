@@ -1,0 +1,503 @@
+---
+title: Extension API Endpoints
+description: Complete reference for extension REST endpoints
+---
+
+# Extension API Endpoints
+
+This document provides detailed reference for all Chrome extension API endpoints, including request/response formats and examples.
+
+## Base URL
+
+All endpoints are relative to your Laserman instance:
+
+```
+https://laserman.yourdomain.com/api/extension
+```
+
+## Authentication
+
+All endpoints require Bearer token authentication:
+
+```http
+Authorization: Bearer lmt_your_token_here
+```
+
+See [Authentication](/docs/api-reference/authentication) for details.
+
+---
+
+## GET /api/extension/projects
+
+List all projects for the authenticated user.
+
+### Request
+
+```http
+GET /api/extension/projects HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+```
+
+### Response
+
+```json
+{
+  "projects": [
+    {
+      "id": "proj_abc123",
+      "name": "Feature Film - The Awakening",
+      "status": "DEVELOPMENT",
+      "genre": "Sci-Fi",
+      "updatedAt": "2026-02-14T10:30:00Z",
+      "sceneCount": 42
+    },
+    {
+      "id": "proj_def456",
+      "name": "Commercial - Tech Product",
+      "status": "PRODUCTION",
+      "genre": "Commercial",
+      "updatedAt": "2026-02-13T15:20:00Z",
+      "sceneCount": 8
+    }
+  ]
+}
+```
+
+### Fields
+
+- `id` (string) - Unique project identifier
+- `name` (string) - Project name
+- `status` (string) - Project status: DEVELOPMENT, PRE_PRODUCTION, PRODUCTION, POST_PRODUCTION, COMPLETED, ARCHIVED
+- `genre` (string) - Project genre (nullable)
+- `updatedAt` (string) - ISO 8601 timestamp of last update
+- `sceneCount` (number) - Total number of scenes in project
+
+### Status Codes
+
+- `200` - Success
+- `401` - Unauthorized (invalid or expired token)
+
+---
+
+## GET /api/extension/scenes
+
+List all scenes for a specific project.
+
+### Request
+
+```http
+GET /api/extension/scenes?projectId=proj_abc123 HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+```
+
+### Query Parameters
+
+- `projectId` (string, required) - Project ID to fetch scenes for
+
+### Response
+
+```json
+{
+  "scenes": [
+    {
+      "id": "scene_001",
+      "sceneId": "001",
+      "storyBeat": "INT. SPACESHIP BRIDGE - DAY\n\nCommander watches the stars...",
+      "act": 1,
+      "macroScene": "Opening sequence"
+    },
+    {
+      "id": "scene_002",
+      "sceneId": "002",
+      "storyBeat": "EXT. ALIEN PLANET - CONTINUOUS\n\nThe crew explores...",
+      "act": 1,
+      "macroScene": "Discovery"
+    }
+  ]
+}
+```
+
+### Fields
+
+- `id` (string) - Unique scene database identifier
+- `sceneId` (string) - Scene number (e.g., "001", "002A")
+- `storyBeat` (string) - Scene description/action (nullable)
+- `act` (number) - Act number (nullable)
+- `macroScene` (string) - Macro scene/sequence name (nullable)
+
+### Status Codes
+
+- `200` - Success
+- `400` - Bad Request (missing projectId)
+- `401` - Unauthorized
+- `404` - Project not found or not owned by user
+
+---
+
+## GET /api/extension/scene-assets
+
+List asset versions for a specific scene.
+
+### Request
+
+```http
+GET /api/extension/scene-assets?projectId=proj_abc123&sceneId=001&assetType=VIDEO&limit=30 HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+```
+
+### Query Parameters
+
+- `projectId` (string, required) - Project ID
+- `sceneId` (string, required) - Scene ID (e.g., "001")
+- `assetType` (string, optional) - Filter by asset type: IMAGE, VIDEO, AUDIO, MUSIC, VOICE, NARRATION, STORYBOARD, OTHER
+- `limit` (number, optional) - Max results (default: 30, max: 100)
+
+### Response
+
+```json
+{
+  "scene": {
+    "id": "scene_001",
+    "sceneId": "001",
+    "storyBeat": "INT. SPACESHIP BRIDGE - DAY..."
+  },
+  "assets": [
+    {
+      "id": "asset_xyz789",
+      "assetType": "VIDEO",
+      "platformKey": "openai-sora",
+      "prompt": "A futuristic spaceship bridge with holographic displays",
+      "outputUrl": "https://cdn.sora.com/video123.mp4",
+      "thumbnailUrl": "https://cdn.sora.com/thumb123.jpg",
+      "status": "GENERATED",
+      "versionNumber": 3,
+      "createdAt": "2026-02-14T12:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Fields
+
+#### Scene Object
+
+- `id` (string) - Scene database ID
+- `sceneId` (string) - Scene number
+- `storyBeat` (string) - Scene description
+
+#### Asset Object
+
+- `id` (string) - Asset version ID
+- `assetType` (string) - Asset type
+- `platformKey` (string) - Platform slug
+- `prompt` (string) - Generation prompt
+- `outputUrl` (string) - Media file URL
+- `thumbnailUrl` (string) - Thumbnail URL (nullable)
+- `status` (string) - DRAFT, GENERATED, SELECTED, APPROVED, FINAL
+- `versionNumber` (number) - Version number within scene/type/platform
+- `createdAt` (string) - ISO 8601 timestamp
+
+### Status Codes
+
+- `200` - Success
+- `400` - Bad Request (missing required params)
+- `401` - Unauthorized
+- `404` - Project or scene not found
+
+---
+
+## GET /api/extension/platforms
+
+List all available AI platforms.
+
+### Request
+
+```http
+GET /api/extension/platforms HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+```
+
+### Response
+
+```json
+{
+  "platforms": [
+    {
+      "id": "platform_001",
+      "slug": "openai-sora",
+      "name": "OpenAI Sora",
+      "provider": "OpenAI",
+      "specialties": ["video", "image"],
+      "supportedOutput": ["VIDEO", "IMAGE"],
+      "homepageUrl": "https://sora.com",
+      "docsUrl": "https://platform.openai.com/docs/sora"
+    },
+    {
+      "id": "platform_002",
+      "slug": "google-veo",
+      "name": "Google Gemini / Veo",
+      "provider": "Google",
+      "specialties": ["video", "image", "multi"],
+      "supportedOutput": ["VIDEO", "IMAGE"],
+      "homepageUrl": "https://gemini.google.com",
+      "docsUrl": "https://ai.google.dev/veo"
+    }
+  ]
+}
+```
+
+### Fields
+
+- `id` (string) - Platform database ID
+- `slug` (string) - Unique platform key (used in ingest)
+- `name` (string) - Display name
+- `provider` (string) - Company/organization
+- `specialties` (array) - Tags like "video", "image", "audio", "music"
+- `supportedOutput` (array) - Asset types: VIDEO, IMAGE, AUDIO, etc.
+- `homepageUrl` (string) - Platform homepage (nullable)
+- `docsUrl` (string) - Platform documentation (nullable)
+
+### Status Codes
+
+- `200` - Success
+- `401` - Unauthorized
+
+---
+
+## POST /api/extension/ingest
+
+Create a new asset version from captured data.
+
+### Request
+
+```http
+POST /api/extension/ingest HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+Content-Type: application/json
+
+{
+  "projectId": "proj_abc123",
+  "sceneId": "001",
+  "platformKey": "openai-sora",
+  "assetType": "VIDEO",
+  "prompt": "A futuristic spaceship bridge with holographic displays",
+  "outputUrl": "https://cdn.sora.com/video123.mp4",
+  "thumbnailUrl": "https://cdn.sora.com/thumb123.jpg",
+  "title": "Take 2 - Brighter lighting",
+  "sourceUrl": "https://sora.com/generate/abc123",
+  "modelName": "Sora Turbo",
+  "negativePrompt": "dark, gloomy",
+  "metadata": {
+    "duration": 5,
+    "aspectRatio": "16:9",
+    "seed": 42
+  },
+  "tags": ["hero", "approved"],
+  "status": "GENERATED",
+  "notes": "Client prefers this version",
+  "shotId": "shot_xyz789"
+}
+```
+
+### Request Body
+
+#### Required Fields
+
+- `projectId` (string) - Project ID (must belong to authenticated user)
+- `sceneId` (string) - Scene ID (e.g., "001")
+- `platformKey` (string) - Platform slug (e.g., "openai-sora")
+- `assetType` (string) - Asset type: IMAGE, VIDEO, AUDIO, MUSIC, VOICE, NARRATION, STORYBOARD, OTHER
+- `prompt` (string) - Generation prompt (min 3 characters)
+- `outputUrl` (string) - Media file URL (must be valid HTTP/HTTPS URL)
+
+#### Optional Fields
+
+- `platformId` (string) - Platform database ID (alternative to platformKey)
+- `title` (string) - Descriptive title
+- `sourceUrl` (string) - Platform page URL where generated
+- `thumbnailUrl` (string) - Thumbnail/preview URL
+- `modelName` (string) - AI model name/version
+- `negativePrompt` (string) - Things to avoid in generation
+- `metadata` (object) - Structured JSON metadata (duration, aspectRatio, seed, etc.)
+- `tags` (array) - Array of string tags
+- `status` (string) - DRAFT, GENERATED, SELECTED (default: DRAFT)
+- `notes` (string) - Free-form notes
+- `shotId` (string) - Shot ID if capturing to specific shot
+- `selected` (boolean) - Mark as selected (overrides status)
+- `externalId` (string) - Platform's job/generation ID
+- `promptPackageId` (string) - Prompt package this was generated from (advanced)
+- `compareGroup` (string) - Compare group identifier (advanced)
+- `rightsState` (string) - Rights state: UNKNOWN, CLEAR, LICENSED, PENDING, RESTRICTED (default: UNKNOWN)
+
+### Response
+
+```json
+{
+  "success": true,
+  "assetVersion": {
+    "id": "asset_xyz789",
+    "sceneId": "scene_001",
+    "assetType": "VIDEO",
+    "versionNumber": 3,
+    "platformKey": "openai-sora",
+    "prompt": "A futuristic spaceship bridge...",
+    "outputUrl": "https://cdn.sora.com/video123.mp4",
+    "status": "GENERATED",
+    "createdAt": "2026-02-14T12:00:00.000Z"
+  }
+}
+```
+
+### Status Codes
+
+- `200` - Success (asset created)
+- `400` - Bad Request (validation error)
+- `401` - Unauthorized
+- `404` - Project, scene, or shot not found
+- `500` - Internal server error
+
+### Validation Rules
+
+- `prompt` must be at least 3 characters
+- `outputUrl` must be a valid HTTP/HTTPS URL
+- `sceneId` is case-insensitive and auto-uppercased
+- `platformKey` is case-insensitive and auto-lowercased
+- `assetType` must match enum values exactly
+- `tags` is converted from comma-separated string if needed
+- `metadata` must be valid JSON
+
+---
+
+## GET /api/extension/profile
+
+Get user profile and extension preferences.
+
+### Request
+
+```http
+GET /api/extension/profile HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+```
+
+### Response
+
+```json
+{
+  "preferences": {
+    "lastActiveProjectId": "proj_abc123",
+    "lastActiveSceneId": "scene_001",
+    "defaultAssetType": "VIDEO",
+    "defaultStatus": "GENERATED",
+    "enabledPlatforms": ["openai-sora", "google-veo", "freepik-ai"],
+    "autoFillEnabled": true
+  }
+}
+```
+
+### Fields
+
+- `lastActiveProjectId` (string) - Last selected project
+- `lastActiveSceneId` (string) - Last selected scene
+- `defaultAssetType` (string) - Default asset type
+- `defaultStatus` (string) - Default status
+- `enabledPlatforms` (array) - Enabled platform keys
+- `autoFillEnabled` (boolean) - Auto-fill on detection
+
+### Status Codes
+
+- `200` - Success
+- `401` - Unauthorized
+
+---
+
+## PUT /api/extension/profile
+
+Update user preferences.
+
+### Request
+
+```http
+PUT /api/extension/profile HTTP/1.1
+Host: laserman.yourdomain.com
+Authorization: Bearer lmt_abc123...
+Content-Type: application/json
+
+{
+  "preferences": {
+    "lastActiveProjectId": "proj_abc123",
+    "lastActiveSceneId": "scene_002",
+    "defaultAssetType": "IMAGE"
+  }
+}
+```
+
+### Request Body
+
+- `preferences` (object) - Partial preferences update (any fields from GET response)
+
+### Response
+
+Same as GET /api/extension/profile (returns updated preferences).
+
+### Status Codes
+
+- `200` - Success
+- `400` - Bad Request (invalid preferences)
+- `401` - Unauthorized
+- `404` - User not found
+
+---
+
+## Error Handling
+
+All endpoints return errors in a consistent format:
+
+```json
+{
+  "error": "Error message",
+  "details": { ... }
+}
+```
+
+### Common Errors
+
+**401 Unauthorized**
+```json
+{
+  "error": "Unauthorized"
+}
+```
+
+**400 Bad Request (validation)**
+```json
+{
+  "error": "Invalid payload",
+  "details": {
+    "fieldErrors": {
+      "prompt": ["Required"],
+      "outputUrl": ["Invalid URL"]
+    }
+  }
+}
+```
+
+**404 Not Found**
+```json
+{
+  "error": "Scene not found"
+}
+```
+
+---
+
+## Next Steps
+
+- [Authentication guide](/docs/api-reference/authentication)
+- [Chrome extension capture workflow](/docs/chrome-extension/capture)
+- [Platform detection reference](/docs/chrome-extension/platform-detection)

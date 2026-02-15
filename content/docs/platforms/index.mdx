@@ -1,0 +1,151 @@
+---
+title: Supported Platforms
+description: AI generation platforms supported by Laserman extension
+---
+
+# Supported Platforms
+
+The Laserman Chrome extension supports capturing prompts, settings, and outputs from the following AI generation platforms. Each platform has a custom detector that extracts data from its specific UI patterns.
+
+## Platform Matrix
+
+| Platform | Specialty | Output Types | Auto-Detection | Rights Notes |
+|----------|-----------|--------------|----------------|--------------|
+| [OpenAI Sora](/docs/platforms/sora) | Video generation | Video, Image | Full | Usage depends on plan |
+| [Google Veo](/docs/platforms/veo) | Multi-modal | Video, Image | Full | SynthID watermarking |
+| [Freepik Pikaso](/docs/platforms/freepik) | Image generation | Image | Full | Free plan non-commercial only |
+| [Midjourney](/docs/platforms/midjourney) | Image generation | Image | Full | Paid plans include commercial |
+| [Runway](/docs/platforms/runway) | Video editing/gen | Video, Image | Full | Watermark on free plan |
+| [ElevenLabs](/docs/platforms/elevenlabs) | Voice/audio | Audio, Voice | Full | Free plan non-commercial |
+| [Suno](/docs/platforms/suno) | Music generation | Music | Full | Free plan Suno owns output |
+
+## Detection Capabilities
+
+### Full Detection
+
+Platforms with "Full" detection support auto-extraction of:
+
+- Prompt text (and negative prompt if applicable)
+- Model name/version
+- Generation settings (aspect ratio, duration, style, etc.)
+- Output media URLs
+- Thumbnails and preview images
+
+### Partial Detection
+
+Some platforms may have partial detection due to:
+
+- Dynamic UI that loads content asynchronously
+- Authentication-gated features
+- Frequent UI changes requiring detector updates
+
+## Rights and Licensing
+
+> Laserman tracks rights state on every captured version, but you are responsible for understanding each platform's terms and ensuring compliance.
+
+### Free vs Paid Plans
+
+Most platforms differentiate licensing between free and paid users:
+
+- **Free plans** - Often non-commercial use only, platform may own outputs
+- **Paid plans** - Typically include commercial license, user owns outputs
+
+### Watermarking
+
+Some platforms apply watermarks to distinguish plan tiers:
+
+- **SynthID** - Google Veo embeds invisible watermarks for provenance
+- **Visible watermarks** - Runway free plan adds visible watermarks
+- **No watermarks** - Most paid plans remove watermarks
+
+### Rights State Tracking
+
+Laserman automatically sets `rightsState` on captured versions:
+
+- **UNKNOWN** - Default when plan status cannot be inferred
+- **CLEAR** - Known to be clear for commercial use
+- **LICENSED** - Licensed under known terms
+- **PENDING** - Awaiting license verification
+- **RESTRICTED** - Known restrictions (e.g., free plan)
+
+You can manually update rights state in the web app.
+
+## Platform-Specific Guides
+
+Click a platform below for detailed capture instructions:
+
+- [OpenAI Sora](/docs/platforms/sora) - Text-to-video with stills
+- [Google Gemini/Veo](/docs/platforms/veo) - Multi-modal chat-based generation
+- [Freepik Pikaso](/docs/platforms/freepik) - Image generation with style presets
+- [Midjourney](/docs/platforms/midjourney) - High-quality image generation
+- [Runway](/docs/platforms/runway) - Video generation and editing
+- [ElevenLabs](/docs/platforms/elevenlabs) - Voice cloning and text-to-speech
+- [Suno](/docs/platforms/suno) - AI music generation
+
+## Capture Tips
+
+### General Best Practices
+
+1. **Wait for generation to complete** - Detection works best after outputs are fully loaded
+2. **Keep prompts clean** - Write reusable prompts without one-off references
+3. **Check rights state** - Manually set if you know your plan status
+4. **Tag strategically** - Use tags like "hero", "approved", "alt" for filtering
+5. **Capture iteratively** - Save multiple variations to compare later
+
+### Multi-Platform Workflows
+
+For cross-platform prompt reuse:
+
+1. Capture initial generation on Platform A
+2. Load prompt from History in extension
+3. Navigate to Platform B
+4. Click "Apply" to inject prompt
+5. Generate and capture on Platform B
+6. Compare results in web app
+
+### URL Expiry
+
+Some platforms use temporary CDN URLs:
+
+- Laserman fetches and stores media immediately
+- Original URLs may expire after 1-24 hours
+- Extension warns if URL has expiry parameters
+- Always verify successful sync in Queue mode
+
+## Adding New Platforms
+
+If you need support for a platform not listed:
+
+1. Check if it's in development (roadmap in GitHub issues)
+2. Request via GitHub issue or support channel
+3. Contribute a detector (see [Platform Detection guide](/docs/chrome-extension/platform-detection))
+
+## Known Limitations
+
+### Platform UI Changes
+
+AI platforms frequently update their interfaces:
+
+- Detectors use multiple fallback selectors for resilience
+- Major redesigns may temporarily break detection
+- Report issues with screenshots and browser console logs
+
+### Authentication-Gated Features
+
+- Detection only works on pages you can access
+- Some features require active subscriptions
+- Cannot detect content behind paywalls
+
+### Network Restrictions
+
+Due to Manifest V3 privacy constraints:
+
+- Cannot intercept network responses
+- Cannot sniff WebSocket messages
+- All detection is DOM-based only
+
+## Next Steps
+
+- [Install the Chrome extension](/docs/chrome-extension/installation)
+- [Understanding platform detection](/docs/chrome-extension/platform-detection)
+- [Capture workflow guide](/docs/chrome-extension/capture)

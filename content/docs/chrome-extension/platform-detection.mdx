@@ -1,0 +1,344 @@
+---
+title: Platform Detection
+description: How detectors extract prompts, settings, and outputs per platform
+---
+
+# Platform Detection
+
+The Laserman extension uses modular platform detectors to extract prompts, generation settings, and output URLs from AI platform pages. Each detector is tailored to the specific DOM structure and UI patterns of one platform.
+
+## Architecture
+
+### Detector Modules
+
+Each supported platform has a detector module in `chrome-extension/detectors/`:
+
+- `sora.js` - OpenAI Sora
+- `gemini-veo.js` - Google Gemini/Veo
+- `freepik.js` - Freepik Pikaso
+- `midjourney.js` - Midjourney
+- `runway.js` - Runway
+- `elevenlabs.js` - ElevenLabs
+- `suno.js` - Suno
+- (additional platforms as added)
+
+### Detector Interface
+
+Each detector exports an object with:
+
+- **platform** - Unique platform key (e.g., "openai-sora")
+- **displayName** - Human-readable name (e.g., "OpenAI Sora")
+- **category** - "image", "video", "audio", "multi"
+- **urlPatterns** - Array of regex patterns to match platform URLs
+- **detect(url)** - Returns true if current URL matches this platform
+- **extractPrompt(document)** - Extracts prompt and negative prompt from DOM
+- **extractSettings(document)** - Extracts model, aspect ratio, duration, etc.
+- **extractOutputs(document)** - Extracts generated media URLs
+
+### Content Script Injection
+
+When you visit a page:
+
+1. Extension's content script runs in page context
+2. Checks URL against all detector patterns
+3. If a match is found, runs that detector's extraction methods
+4. Sends extracted data to side panel via message passing
+5. Side panel displays detection banner and enables "Auto Fill"
+
+## DOM-Based Extraction
+
+Detection is purely DOM-based (not network-based) due to Manifest V3 privacy constraints:
+
+- Reads text content from prompt textareas and contenteditable elements
+- Reads attribute values from select dropdowns and input fields
+- Reads `src` and `currentSrc` from `<img>` and `<video>` elements
+- Reads `href` from download links
+- Reads `data-*` attributes from custom UI components
+
+> Network interception (reading HTTP responses) is not used. All data is extracted from the visible DOM.
+
+## Extraction Methods
+
+### URL Pattern Matching
+
+Each detector defines regex patterns to identify platform pages:
+
+```javascript
+urlPatterns: [
+  /^https?:\/\/(www\.)?sora\.com/i,
+  /^https?:\/\/sora\.chatgpt\.com/i,
+]
+```
+
+The `detect()` method tests the current URL against all patterns.
+
+### Prompt Extraction
+
+The `extractPrompt()` method searches for prompt inputs in priority order:
+
+1. **Primary selectors** - Platform-specific data attributes (e.g., `data-testid="sora-prompt-input"`)
+2. **Placeholder-based** - Textareas with relevant placeholder text (e.g., `placeholder*="Describe"`)
+3. **ARIA labels** - Elements with `aria-label*="prompt"`
+4. **Generic fallbacks** - Any visible textarea or contenteditable element
+5. **Displayed prompts** - Prompt text shown in generation cards (for platforms that hide the input after generation)
+
+Returns:
+```javascript
+{
+  prompt: "A cat wearing sunglasses...",
+  negativePrompt: "blurry, low quality" // or null
+}
+```
+
+### Settings Extraction
+
+The `extractSettings()` method finds generation parameters:
+
+- **Model name** - From model selector buttons, badges, or dropdowns
+- **Aspect ratio** - From aspect ratio buttons (e.g., "16:9", "1:1")
+- **Duration** - From duration sliders or inputs (for video)
+- **Resolution** - From resolution dropdowns
+- **Style** - From style presets (image generators)
+- **Temperature** - From advanced settings (AI Studio, etc.)
+- **Seed** - From reproducibility controls (rarely visible)
+
+Returns:
+```javascript
+{
+  modelName: "Veo-3",
+  aspectRatio: "16:9",
+  duration: "5s",
+  resolution: "1080p"
+}
+```
+
+### Output Extraction
+
+The `extractOutputs()` method finds generated media:
+
+#### For Video Platforms
+
+1. Search for `<video>` elements with `src` attributes
+2. Extract `video.currentSrc` or `video.src`
+3. Extract poster image from `video.poster`
+4. Collect metadata: `duration`, `videoWidth`, `videoHeight`
+5. Check for download links with `.mp4`, `.webm`, `.mov` extensions
+
+#### For Image Platforms
+
+1. Search for `<img>` elements with specific class patterns or data attributes
+2. Exclude small icons, avatars, UI elements (check `naturalWidth` > 100px)
+3. Extract `img.currentSrc` or `img.src`
+4. Collect metadata: `naturalWidth`, `naturalHeight`, `alt` text
+
+#### For Audio Platforms
+
+1. Search for `<audio>` elements with `src` attributes
+2. Extract `audio.currentSrc` or `audio.src`
+3. Collect metadata: `duration`, waveform image URL
+4. Check for download links with `.mp3`, `.wav`, `.ogg` extensions
+
+Returns:
+```javascript
+[
+  {
+    type: "video",
+    url: "https://cdn.platform.com/video123.mp4",
+    thumbnailUrl: "https://cdn.platform.com/thumb123.jpg",
+    metadata: {
+      duration: 5.2,
+      width: 1920,
+      height: 1080
+    }
+  }
+]
+```
+
+## Platform-Specific Notes
+
+### OpenAI Sora
+
+- URL patterns: `sora.com`, `sora.chatgpt.com`
+- Prompts are in a chat-style textarea
+- Model badge often shows "Sora" or version variant
+- Videos use `<video>` tags with `oaiusercontent.com` CDN
+- Supports stills (images) in addition to video
+
+### Google Gemini / Veo
+
+- URL patterns: `gemini.google.com`, `aistudio.google.com`
+- Uses contenteditable divs for prompt input
+- Model selector is a material design dropdown
+- Videos use `googleusercontent.com` or `storage.googleapis.com` CDN
+- Supports Imagen (image) and Veo (video) generation
+
+### Freepik Pikaso
+
+- URL patterns: `freepik.com/pikaso`, `freepik.com/ai/*`
+- Has separate negative prompt field
+- Style selector with preset chips
+- Image outputs use `img.freepik.com` CDN
+- Aspect ratio selector with icon buttons
+
+### Midjourney
+
+- URL patterns: `midjourney.com`
+- Prompts are in Discord-style messages
+- Grid of 4 images per generation
+- Upscale and variation buttons
+- Images use `cdn.midjourney.com`
+
+### Runway
+
+- URL patterns: `runwayml.com`
+- Multiple generation modes (Gen-1, Gen-2, Gen-3)
+- Video and image outputs
+- Duration selector for video
+- Images and videos use `runwayml.com` CDN
+
+### ElevenLabs
+
+- URL patterns: `elevenlabs.io`
+- Text-to-speech and voice cloning
+- Voice selector dropdown
+- Audio outputs with waveform visualization
+- Uses `elevenlabs.io` CDN
+
+### Suno
+
+- URL patterns: `suno.ai`
+- Music generation from text prompts
+- Genre, mood, and duration controls
+- Audio outputs with cover art
+- Uses `cdn.suno.ai`
+
+## Adding New Platforms
+
+To add support for a new platform:
+
+1. Create a new detector file in `chrome-extension/detectors/`
+2. Implement the detector interface (platform, urlPatterns, extract methods)
+3. Add the detector to `chrome-extension/detectors/index.js`
+4. Test on the platform's generation pages
+5. Update documentation with platform-specific notes
+
+### Example Detector
+
+```javascript
+const MyPlatformDetector = {
+  platform: "my-platform",
+  displayName: "My Platform",
+  category: "image",
+  urlPatterns: [
+    /^https?:\/\/(www\.)?myplatform\.com/i,
+  ],
+
+  detect(url) {
+    return this.urlPatterns.some(pattern => pattern.test(url));
+  },
+
+  extractPrompt(document) {
+    const el = document.querySelector('textarea[name="prompt"]');
+    if (el?.value) {
+      return { prompt: el.value.trim(), negativePrompt: null };
+    }
+    return null;
+  },
+
+  extractSettings(document) {
+    // Extract model, settings, etc.
+    return {};
+  },
+
+  extractOutputs(document) {
+    const outputs = [];
+    document.querySelectorAll('.output-image img').forEach(img => {
+      outputs.push({
+        type: "image",
+        url: img.src,
+        thumbnailUrl: img.src,
+        metadata: {}
+      });
+    });
+    return outputs;
+  }
+};
+
+export default MyPlatformDetector;
+```
+
+## Limitations
+
+### DOM Changes
+
+AI platforms frequently update their UI. Detectors use multiple fallback selectors to remain resilient, but major redesigns may break detection until the detector is updated.
+
+### Dynamic Content
+
+Some platforms load content asynchronously:
+
+- Detection runs after `document_idle` (when page is mostly loaded)
+- Click "Refresh Detection" if content loads after initial detection
+- Some platforms lazy-load outputs only when scrolled into view
+
+### Private/Gated Pages
+
+Detection only works on pages you can access:
+
+- Requires active subscription for paid platforms
+- Cannot detect content behind login walls
+- Cannot access direct API responses (MV3 privacy restrictions)
+
+### CDN Expiry
+
+Some platforms use temporary CDN URLs that expire:
+
+- URLs may become invalid 1-24 hours after generation
+- Laserman should fetch and store the media immediately
+- Extension shows warning if URL appears to have expiry parameters
+
+### Network Requests
+
+Detection cannot intercept network requests:
+
+- Cannot read API responses
+- Cannot access WebSocket messages
+- Cannot sniff generation job metadata from XHR
+
+All data must be present in the visible DOM.
+
+## Debugging Detection
+
+To troubleshoot detection issues:
+
+1. Open browser DevTools (F12)
+2. Navigate to the Console tab
+3. Look for detection debug logs (if verbose mode is enabled)
+4. Inspect the page DOM to verify selectors
+5. Test each extraction method manually in console:
+
+```javascript
+// In console:
+const detector = // (load the detector module)
+detector.extractPrompt(document)
+detector.extractSettings(document)
+detector.extractOutputs(document)
+```
+
+6. Report issues with screenshots and console logs
+
+## Future Enhancements
+
+Planned improvements to detection:
+
+- **Confidence scores** - Rate detection quality (high/medium/low)
+- **Partial detection** - Save what was detected even if incomplete
+- **Detection history** - Log all detection attempts for debugging
+- **User corrections** - Learn from manual edits to improve detection
+- **Community detectors** - Allow users to submit updated selectors
+
+## Next Steps
+
+- [View supported platforms](/docs/platforms/)
+- [API reference for ingest endpoint](/docs/api-reference/extension-api)
+- [Extension authentication](/docs/api-reference/authentication)

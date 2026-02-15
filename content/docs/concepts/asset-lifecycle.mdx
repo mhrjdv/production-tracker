@@ -1,0 +1,231 @@
+---
+title: Asset Lifecycle
+description: How assets move through statuses from draft to final approval.
+---
+
+# Asset Lifecycle
+
+Every asset in Laserman moves through a defined lifecycle from initial creation to final approval. Understanding these stages and transitions is essential for managing your production workflow.
+
+## The Nine Statuses
+
+Asset versions can be in one of nine lifecycle states:
+
+1. **Draft:** Initial state. Asset is a placeholder or work-in-progress. Not yet generated.
+2. **Generated:** Asset has been created by an AI platform and captured by the extension. Ready for review.
+3. **Needs Review:** Asset has been flagged for human review (quality check, rights verification, etc.).
+4. **Reviewed:** Asset has been reviewed and is awaiting approval decision.
+5. **Approved:** Asset has been approved for use. This is a key milestone.
+6. **Selected:** Asset is the preferred version among alternatives. May or may not yet be approved.
+7. **Final:** Asset is locked for final delivery. No further changes expected.
+8. **Rejected:** Asset is not suitable for use. Kept for reference but excluded from active workflows.
+9. **Archived:** Asset is no longer relevant to the current production but preserved for historical record.
+
+## State Diagram
+
+```
+Draft
+  └─> Generated
+        ├─> Needs Review
+        │     └─> Reviewed
+        │           ├─> Approved
+        │           │     └─> Final
+        │           └─> Rejected
+        ├─> Selected (can happen at any stage)
+        └─> Archived (can happen from any state)
+```
+
+## Valid Transitions
+
+Not all state changes are allowed. The system enforces logical progressions:
+
+**From Draft:**
+- To Generated (when captured from platform)
+- To Archived (if no longer needed)
+
+**From Generated:**
+- To Needs Review (flag for review)
+- To Selected (mark as preferred)
+- To Approved (fast-track approval)
+- To Rejected (immediate rejection)
+- To Archived (no longer relevant)
+
+**From Needs Review:**
+- To Reviewed (review complete)
+- To Rejected (failed review)
+- To Archived (no longer relevant)
+
+**From Reviewed:**
+- To Approved (passed review)
+- To Rejected (failed review)
+- To Needs Review (requires additional review)
+
+**From Approved:**
+- To Final (lock for delivery)
+- To Needs Review (issue discovered after approval)
+- To Archived (production cancelled)
+
+**From Selected:**
+- Can transition to any status. "Selected" is a flag, not a terminal state.
+
+**From Rejected:**
+- To Archived (cleanup)
+- To Needs Review (reconsider decision)
+
+**From Final:**
+- To Archived (production complete)
+- No other transitions allowed (Final is locked)
+
+**From Archived:**
+- No transitions allowed. Archived is terminal.
+
+## Status vs Selected
+
+There's an important distinction between the `status` field and the `selected` boolean:
+
+**Status** reflects the approval workflow. It answers: "Where is this asset in the production pipeline?"
+
+**Selected** reflects preference among alternatives. It answers: "Is this the version we want to use?"
+
+An asset can be:
+- Selected but still in Needs Review (preferred version, but not yet approved)
+- Approved but not Selected (passed quality check, but a different version is preferred)
+- Selected AND Approved (preferred version, ready to use)
+
+> **Important:** Setting `selected: true` does not change status. Changing status does not automatically select the asset. These are independent dimensions.
+
+## Immutability Principle
+
+Asset versions are immutable. Once created, the core content fields (mediaUrl, prompt, settings) never change.
+
+**What this means:**
+- You never edit an asset version. You create a new version.
+- You never delete an asset version. You mark it as Rejected or Archived.
+- You always have a complete audit trail of what was generated and when.
+
+**Why immutability matters:**
+- **Traceability:** You can always trace back to see what was tried and why it was rejected.
+- **Comparison:** You need the original to compare against new attempts.
+- **Legal compliance:** Some industries require complete records of what content was reviewed.
+- **Undo safety:** You can always "unarchive" or reconsider a rejected asset without data loss.
+
+## Compare Groups
+
+A compare group is a set of asset versions generated from the same prompt package but on different platforms (or with different settings).
+
+**Example workflow:**
+1. Create prompt package P1 for "wide establishing shot of futuristic city."
+2. Generate on Sora, Veo, and Runway.
+3. Extension captures all three outputs with the same `compareGroupId`.
+4. UI shows all three side-by-side.
+5. You select the best one.
+
+Compare groups enable apples-to-apples comparison across platforms. The `compareGroupId` field links related versions.
+
+**Compare group rules:**
+- Versions in a group typically have the same `basePrompt` and `shotId`.
+- Only one version in a group should be marked `selected: true` (though the system doesn't enforce this).
+- Compare groups can span different statuses (e.g., one Approved, two Rejected).
+
+## Status Transitions in Practice
+
+### Typical Workflow
+
+1. **Draft -> Generated:** Extension captures output from Sora. Status automatically set to Generated.
+2. **Generated -> Needs Review:** You flag the asset for director review.
+3. **Needs Review -> Reviewed:** Director reviews and leaves notes.
+4. **Reviewed -> Approved:** Director approves the asset.
+5. **Approved -> Selected:** Among 3 approved versions, this one is selected.
+6. **Selected + Approved -> Final:** Asset is locked for final delivery.
+
+### Fast-Track Workflow
+
+For quick iterations, you can skip intermediate steps:
+
+1. **Generated -> Approved:** Immediately approve a known-good output.
+2. **Approved -> Selected:** Mark as preferred.
+3. **Selected + Approved -> Final:** Lock for delivery.
+
+### Rejection Workflow
+
+1. **Generated -> Rejected:** Asset doesn't meet quality bar.
+2. **Rejected -> Archived:** Cleanup rejected assets after production wraps.
+
+Or:
+
+1. **Reviewed -> Rejected:** Failed director review.
+2. Generate new version (stays separate, doesn't replace rejected version).
+
+### Reconsideration Workflow
+
+If you rejected an asset but want to reconsider:
+
+1. **Rejected -> Needs Review:** Flag for re-review.
+2. **Needs Review -> Reviewed -> Approved:** Go through normal approval flow.
+
+## Status-Based Queries
+
+Common query patterns:
+
+**Get all assets pending review:**
+```typescript
+const pending = await prisma.sceneAssetVersion.findMany({
+  where: { status: 'Needs Review' }
+});
+```
+
+**Get all approved assets for a scene:**
+```typescript
+const approved = await prisma.sceneAssetVersion.findMany({
+  where: {
+    sceneId: 'scene_xyz',
+    status: 'Approved'
+  }
+});
+```
+
+**Get selected and approved assets (ready to ship):**
+```typescript
+const readyToShip = await prisma.sceneAssetVersion.findMany({
+  where: {
+    selected: true,
+    status: 'Approved'
+  }
+});
+```
+
+**Get all versions in a compare group:**
+```typescript
+const group = await prisma.sceneAssetVersion.findMany({
+  where: { compareGroupId: 'cmp_123' },
+  orderBy: { platform: 'asc' }
+});
+```
+
+## UI Indicators
+
+Laserman's UI uses visual indicators for status:
+
+- **Draft:** Gray, dashed border
+- **Generated:** Blue, solid border
+- **Needs Review:** Orange badge
+- **Reviewed:** Yellow checkmark
+- **Approved:** Green checkmark
+- **Selected:** Star icon
+- **Final:** Lock icon, green background
+- **Rejected:** Red X
+- **Archived:** Grayed out, low opacity
+
+These indicators help you quickly scan large asset lists and identify what needs attention.
+
+## Best Practices
+
+1. **Use Needs Review liberally:** Flag anything uncertain for explicit review rather than fast-tracking to Approved.
+2. **Mark Selected early:** Don't wait for final approval. Select preferred versions as soon as you know which one you like.
+3. **Reject clearly:** If an asset is unusable, mark it Rejected immediately to avoid confusion later.
+4. **Archive periodically:** After production wraps, archive old rejected and unused assets to keep the workspace clean.
+5. **Never delete:** Rely on Rejected and Archived states instead of deletion. You'll thank yourself later when you need to reference old attempts.
+
+## Next Steps
+
+Learn about [Prompt Packages](/docs/concepts/prompt-packages) to understand how to create reusable prompts that work across multiple platforms and compare groups.

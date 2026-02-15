@@ -54,7 +54,7 @@ async function SceneDetailContent({
     });
     if (!scene) notFound();
 
-    const [prev, next, assets, platforms, promptPackages] = await Promise.all([
+    const [prev, next, assets, platforms, promptPackages, shots] = await Promise.all([
         prisma.scene.findFirst({
             where: { projectId, sortOrder: { lt: scene.sortOrder } },
             orderBy: { sortOrder: "desc" },
@@ -78,6 +78,11 @@ async function SceneDetailContent({
             },
         }),
         findPromptPackagesBySceneId(scene.id),
+        prisma.shot.findMany({
+            where: { sceneId: scene.id },
+            orderBy: { sortOrder: "asc" },
+            include: { _count: { select: { assets: true } } },
+        }),
     ]);
 
     return (
@@ -91,6 +96,7 @@ async function SceneDetailContent({
             }}
             assets={assets.map((asset) => ({
                 id: asset.id,
+                shotId: asset.shotId,
                 promptPackageId: asset.promptPackageId,
                 parentVersionId: asset.parentVersionId,
                 platformId: asset.platformId,
@@ -118,7 +124,7 @@ async function SceneDetailContent({
                 notes: asset.notes,
                 selected: asset.selected,
                 createdAt: asset.createdAt.toISOString(),
-                createdByName: null,
+                createdByName: asset.createdByName ?? null,
             }))}
             platforms={platforms}
             promptPackages={promptPackages.map((item) => ({
@@ -133,6 +139,17 @@ async function SceneDetailContent({
                 tags: item.tags,
                 metadata: (item.metadata ?? null) as Record<string, unknown> | null,
                 createdAt: item.createdAt.toISOString(),
+            }))}
+            shots={shots.map((shot) => ({
+                id: shot.id,
+                shotCode: shot.shotCode,
+                description: shot.description,
+                angle: shot.angle,
+                framing: shot.framing,
+                movement: shot.movement,
+                lensNotes: shot.lensNotes,
+                sortOrder: shot.sortOrder,
+                _count: shot._count,
             }))}
             prev={prev}
             next={next}

@@ -1,0 +1,247 @@
+---
+title: Google Gemini / Veo
+description: Capturing multi-modal outputs from Google Gemini and Veo
+---
+
+# Google Gemini / Veo
+
+Google Gemini is a multi-modal AI assistant that supports text, image (Imagen), and video (Veo) generation. Veo 3 is Google's latest video generation model, capable of producing high-quality video clips with advanced camera control and consistency.
+
+## Platform Overview
+
+- **Provider:** Google DeepMind
+- **Specialty:** Multi-modal (text, image, video)
+- **Access:** Google account required, some features require subscription
+- **Supported Output Types:** Video, Image
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Gemini/Veo on these domains:
+
+- `https://gemini.google.com`
+- `https://aistudio.google.com`
+- `https://deepmind.google.*` (with "veo" in URL)
+- `https://labs.google.*` (with "video" in URL)
+
+### What Is Auto-Detected
+
+When you generate with Gemini or Veo, Laserman extracts:
+
+- **Prompt** - From contenteditable chat input or textarea
+- **Model** - From model selector dropdown (e.g., "Gemini 2.5 Pro", "Veo 3")
+- **Temperature** - From AI Studio advanced settings
+- **Aspect Ratio** - From ratio selector buttons
+- **Duration** - From duration slider (Veo video)
+- **Output URL** - Video/image `src` from generation results
+- **Thumbnail** - Video `poster` or image preview
+
+### Detection Quality
+
+- **Prompt extraction:** High - Works in chat and AI Studio
+- **Settings extraction:** High - Most settings visible in UI
+- **Output extraction:** High - Reliable media URL detection
+
+## Capture Workflow
+
+### Gemini Chat Interface
+
+1. Open Gemini chat at `gemini.google.com`
+2. Type your prompt (e.g., "Generate an image of a mountain sunset")
+3. Send message
+4. Wait for Gemini to generate image/video
+5. Open Laserman extension side panel
+6. Detection banner shows "Google Gemini / Veo"
+7. Click "Auto Fill"
+8. Review and adjust fields
+9. Click "Save Capture"
+
+### AI Studio Interface
+
+1. Open AI Studio at `aistudio.google.com`
+2. Choose "Imagen" or "Veo" from model selector
+3. Enter prompt in prompt editor
+4. Adjust settings (aspect ratio, duration, temperature)
+5. Click "Run"
+6. Wait for generation to complete
+7. Open Laserman extension
+8. Click "Auto Fill"
+9. Click "Save Capture"
+
+### Multiple Outputs
+
+Gemini sometimes generates multiple variants:
+
+1. Capture first variant as usual
+2. Scroll to next variant
+3. Click "Refresh Detection" in extension
+4. Click "Auto Fill" again
+5. Capture each variant individually
+
+## Capture Tips
+
+### Best Practices
+
+- **Use AI Studio for control** - More settings exposed than chat interface
+- **Note watermarking** - Veo adds SynthID watermark (invisible provenance)
+- **Check model version** - Model selector shows exact version (e.g., "Veo 3")
+- **Wait for load** - Images/videos load asynchronously, wait for completion
+
+### SynthID Watermarking
+
+Google embeds SynthID watermarks in Veo-generated videos:
+
+- Invisible to human eye
+- Machine-detectable provenance marker
+- Cannot be removed without degrading video quality
+- Laserman captures this in metadata as `synthIDPresent: true`
+
+### Common Issues
+
+**Prompt extracted from wrong message:**
+- Gemini chat has many messages
+- Detector uses last user message
+- Verify prompt text in capture form before saving
+
+**Settings not detected in chat:**
+- Chat interface hides advanced settings
+- Use AI Studio for full settings control
+- Manually fill settings fields if needed
+
+**Multiple images in one response:**
+- Gemini may generate 2-4 image variants
+- Capture each separately by refreshing detection
+
+## Rights and Licensing
+
+### Ownership
+
+Per Google's terms:
+
+- **Gemini outputs** - You retain ownership of your outputs
+- **Commercial use** - Allowed for most content types
+- **Attribution** - Not required for most uses
+
+### SynthID and Provenance
+
+- Veo videos include SynthID watermark
+- Helps verify authenticity and origin
+- Supports C2PA provenance standards (future)
+
+### Restrictions
+
+- Subject to Google's Prohibited Use Policy
+- Cannot use for illegal or harmful content
+- Some beta features may have additional restrictions
+
+### Laserman Rights State
+
+The extension sets `rightsState` to:
+
+- **LICENSED** - Default for authenticated Gemini users
+- **UNKNOWN** - If plan status unclear
+
+Manually update in web app if needed.
+
+## Known Limitations
+
+### UI Variations
+
+Gemini has multiple interfaces:
+
+- Chat (gemini.google.com)
+- AI Studio (aistudio.google.com)
+- Integrated into Google Workspace
+
+Detector supports chat and AI Studio primarily.
+
+### Async Loading
+
+Images and videos load asynchronously:
+
+- May take 5-10 seconds after generation completes
+- Click "Refresh Detection" if output not found
+- Extension detects when DOM is updated
+
+### Model Naming
+
+Model selector sometimes shows:
+
+- "Gemini 2.5 Pro" (text model)
+- "Imagen 3" (image model)
+- "Veo 3" (video model)
+
+Detector captures exact model name displayed.
+
+## Metadata Fields
+
+Gemini/Veo-specific metadata:
+
+```json
+{
+  "modelName": "Veo 3",
+  "aspectRatio": "16:9",
+  "duration": 8,
+  "temperature": 0.7,
+  "synthIDPresent": true,
+  "platform": "google-veo"
+}
+```
+
+## Example Capture
+
+A typical Veo capture in Laserman:
+
+- **Platform:** google-veo
+- **Asset Type:** VIDEO
+- **Prompt:** "A drone flyover of a misty forest at dawn, cinematic lighting"
+- **Model:** Veo 3
+- **Output URL:** `https://storage.googleapis.com/video_xyz789.mp4`
+- **Thumbnail:** `https://storage.googleapis.com/thumb_xyz789.jpg`
+- **Metadata:** `{"duration": 8, "aspectRatio": "16:9", "synthIDPresent": true}`
+- **Status:** GENERATED
+- **Rights State:** LICENSED
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're logged into Google account
+- Check that generation has completed
+- Refresh detection after content loads
+- Grant host permissions for `gemini.google.com` and `aistudio.google.com`
+
+### Output URL Expired
+
+- Google uses `googleusercontent.com` and `storage.googleapis.com` CDNs
+- URLs may be temporary
+- Extension syncs immediately
+- Verify sync in Queue mode
+
+### Model Not Detected
+
+- AI Studio shows model clearly
+- Chat interface may not display model badge
+- Manually fill model field if needed
+
+### SynthID Metadata
+
+To verify SynthID presence:
+
+- Use Google's SynthID detector tool (future)
+- Metadata field captures `synthIDPresent: true` when detected
+- Currently inferred, not directly verified
+
+## Related Resources
+
+- [Google Gemini](https://gemini.google.com)
+- [Google AI Studio](https://aistudio.google.com)
+- [Veo Video Generation](https://deepmind.google/technologies/veo/)
+- [SynthID Watermarking](https://deepmind.google/technologies/synthid/)
+
+## Next Steps
+
+- [Compare with OpenAI Sora](/docs/platforms/sora)
+- [Understanding provenance tracking](/docs/platforms/)
+- [Capture workflow guide](/docs/chrome-extension/capture)

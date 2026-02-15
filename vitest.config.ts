@@ -3,20 +3,23 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
-    plugins: [react()],
-    test: {
-        environment: "jsdom",
-        globals: true,
-        setupFiles: ["./src/__tests__/setup.ts"],
-        include: ["src/**/*.test.{ts,tsx}"],
-        coverage: {
-            reporter: ["text", "json", "html"],
-            include: ["src/lib/**", "src/components/**", "src/app/**"],
-        },
+  plugins: [react()],
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/__tests__/setup.ts"],
+    include: [
+      "src/**/*.test.{ts,tsx}",
+      "chrome-extension/__tests__/**/*.test.{js,ts}",
+    ],
+    coverage: {
+      reporter: ["text", "json", "html"],
+      include: ["src/lib/**", "src/components/**", "src/app/**"],
     },
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
-        },
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
+  },
 });

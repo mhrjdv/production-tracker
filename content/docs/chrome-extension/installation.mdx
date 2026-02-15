@@ -1,0 +1,133 @@
+---
+title: Installation
+description: Loading the extension and configuring API access
+---
+
+# Installation
+
+The Laserman Chrome Extension is currently distributed as an unpacked extension for development and testing. Follow these steps to load and configure it.
+
+## Prerequisites
+
+- Chrome, Edge, or Brave browser (Manifest V3 support)
+- Laserman account (sign up at your Laserman instance)
+- API token (generated from your Laserman account)
+
+## Step 1: Obtain the Extension
+
+Clone or download the Laserman project repository:
+
+```bash
+git clone https://github.com/your-org/laserman-v2.git
+cd laserman-v2/chrome-extension
+```
+
+Alternatively, download a release build if available.
+
+## Step 2: Load Unpacked Extension
+
+1. Open Chrome and navigate to `chrome://extensions`
+2. Enable "Developer mode" toggle in the top-right corner
+3. Click "Load unpacked"
+4. Select the `chrome-extension` directory from the Laserman project
+5. The extension should appear in your extensions list
+
+> The extension icon will appear in your browser toolbar. Pin it for easy access.
+
+## Step 3: Generate API Token
+
+Before you can use the extension, you need to create an API token in your Laserman account:
+
+1. Log in to your Laserman web app
+2. Navigate to Settings or Profile
+3. Find the "API Tokens" or "Integrations" section
+4. Click "Create New Token"
+5. Give it a descriptive name (e.g., "Chrome Extension - Laptop")
+6. Copy the generated token (it starts with `lmt_`)
+
+> API tokens expire after 90 days. You can revoke tokens at any time from the web app.
+
+## Step 4: Configure Extension Settings
+
+1. Click the Laserman extension icon in your browser toolbar
+2. The side panel will open
+3. Click the gear icon in the top-right to open Settings
+4. Enter your configuration:
+   - **App URL**: Your Laserman instance URL (e.g., `http://localhost:3000` or `https://laserman.yourdomain.com`)
+   - **API Token**: The token you generated in Step 3
+
+5. Click "Save"
+
+> The extension will validate your token and display a connection status indicator at the bottom of the side panel.
+
+## Step 5: Grant Host Permissions
+
+The extension requires host permissions to detect and capture content from AI platforms. You'll be prompted to grant permissions when you first visit a supported platform.
+
+### Required Permissions
+
+- `storage` - Store settings and sync queue locally
+- `tabs` - Detect current tab URL for platform detection
+- `alarms` - Schedule periodic sync attempts
+- `sidePanel` - Display persistent side panel UI
+- `host_permissions` - Access content on AI platform domains
+
+### Per-Platform Permissions
+
+The extension only requests access to domains you actually use. Supported platforms include:
+
+- `sora.com`, `sora.chatgpt.com` - OpenAI Sora
+- `gemini.google.com`, `aistudio.google.com` - Google Gemini/Veo
+- `freepik.com` - Freepik Pikaso
+- `midjourney.com` - Midjourney
+- `runwayml.com` - Runway
+- `elevenlabs.io` - ElevenLabs
+- `suno.ai` - Suno
+
+## Verification
+
+To verify your installation:
+
+1. Open the side panel by clicking the extension icon
+2. Check the status indicator at the bottom:
+   - Green dot + "Connected" = successful authentication
+   - Red dot + "Disconnected" = configuration issue
+
+3. Navigate to the Capture tab
+4. Select a project and scene from the dropdowns
+5. Visit any supported AI platform and verify platform detection appears
+
+## Troubleshooting
+
+### "Unauthorized" Error
+
+- Verify your API token is correct and not expired
+- Check that the App URL matches your Laserman instance exactly (including http/https and port)
+- Regenerate your API token if needed
+
+### No Platform Detection
+
+- Ensure you've granted host permissions for the platform domain
+- Check that you're on a supported page (generation or results page, not homepage)
+- Click the refresh icon in the detection banner to retry
+
+### Connection Issues
+
+- Verify your Laserman instance is running and accessible
+- Check browser console for CORS errors (extension should handle CORS automatically)
+- Ensure your API token has not been revoked
+
+## Updates
+
+When the extension is updated:
+
+1. Pull the latest code or download the new release
+2. Go to `chrome://extensions`
+3. Click the refresh icon on the Laserman extension card
+4. Your settings and queue will be preserved
+
+## Next Steps
+
+- [Understanding the Side Panel](/docs/chrome-extension/side-panel)
+- [Capturing Your First Asset](/docs/chrome-extension/capture)
+- [Platform Detection Reference](/docs/chrome-extension/platform-detection)

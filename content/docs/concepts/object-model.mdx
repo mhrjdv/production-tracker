@@ -1,0 +1,196 @@
+---
+title: Object Model
+description: The hierarchical data model that organizes your production.
+---
+
+# Object Model
+
+Laserman's data model is hierarchical, mirroring the structure of film production from high-level project organization down to individual asset versions. Understanding this model is essential to using Laserman effectively.
+
+## The Hierarchy
+
+```
+Project
+  └─ Script (1:1)
+       └─ Scene (1:many)
+            └─ Shot (1:many)
+                 └─ Asset Version (1:many)
+                      └─ Prompt Package (optional, 1:1 or many:1)
+```
+
+Each level serves a specific purpose in organizing and tracking your production work.
+
+## Project
+
+The top-level container for a complete production. A project represents a single film, short, commercial, or creative work.
+
+**Key fields:**
+- Name, description
+- Status (Draft, Active, Completed, Archived)
+- Creator and team members
+- Created/updated timestamps
+
+**Purpose:** Isolate work across different productions. All scripts, scenes, shots, and assets belong to exactly one project.
+
+## Script
+
+A project has exactly one script. The script contains the narrative text and structural breakdown.
+
+**Key fields:**
+- Title
+- Content (full script text)
+- Scene count (derived)
+- Status
+
+**Purpose:** Store the source narrative and serve as the canonical reference for scene extraction. Scripts can be uploaded as PDF/Final Draft or written directly in Laserman. AI-powered parsing automatically extracts scenes.
+
+## Scene
+
+A scene is a narrative unit from the script, typically representing a single location and continuous time period.
+
+**Key fields:**
+- Scene number (e.g., "1", "2A", "10")
+- Heading (e.g., "INT. COFFEE SHOP - DAY")
+- Description (text from script)
+- Duration estimate
+- Order/sequence number
+- Attached prompt package (optional)
+
+**Purpose:** Organize work by narrative structure. Scenes group related shots and provide context for creative decisions. In traditional filmmaking, scenes are the planning unit. In Laserman, scenes remain the narrative container, but shots are the production unit.
+
+> **Important:** Scenes are narrative containers. They represent the script structure. But for production and asset capture, you work at the shot level.
+
+## Shot
+
+A shot is the fundamental unit of capture in Laserman. It represents a specific camera angle, duration, or visual moment within a scene.
+
+**Key fields:**
+- Shot number (e.g., "1A", "1B", "2")
+- Description (what the camera sees)
+- Duration
+- Order within scene
+- Attached prompt package (optional, inherits from scene if not set)
+- Camera notes, lighting notes, VFX notes
+
+**Purpose:** Shots are where production happens. When you generate an asset on Sora or Midjourney, you're generating a shot. When the Chrome extension captures output, it saves it to a shot. Shots are the real unit of work, comparison, and approval.
+
+### Why Shots Exist
+
+In early versions of Laserman, assets were attached directly to scenes. This created problems:
+
+- **Ambiguity:** A scene might need 5-10 different visual angles. Without shots, all versions were lumped together.
+- **Comparison:** Comparing "Scene 3, wide angle" vs "Scene 3, close-up" required manual naming conventions.
+- **Reuse:** You couldn't easily reuse a specific angle from one scene in another context.
+
+Shots solve this by making each discrete visual moment a first-class object. Now you can:
+
+- Generate 3 versions of "Shot 1A: wide establishing" on different platforms and compare them directly.
+- Track exactly which shot is in review, approved, or needs rework.
+- Reuse Shot 1A in multiple projects or scenes if needed.
+
+## Asset Version (SceneAssetVersion)
+
+An asset version is a single piece of generated media: an image, video, audio file, or other content.
+
+> **Note:** The database table is named `SceneAssetVersion` for historical reasons. It actually stores shot-level assets. This will be refactored to `ShotAssetVersion` in a future schema migration.
+
+**Key fields:**
+
+### What (Content)
+- **mediaUrl:** Cloudflare R2 URL to the file
+- **thumbnailUrl:** Preview thumbnail
+- **assetType:** Script, Image, Video, Audio, Music, Voice, Narration, Storyboard, Other
+- **title:** Human-readable name
+
+### Where (Context)
+- **projectId, sceneId, shotId:** Foreign keys placing this asset in the hierarchy
+- **uploadSource:** Manual, Extension, AI, Upload
+
+### How (Generation)
+- **platform:** Sora, Midjourney, Veo, Runway, ElevenLabs, Freepik, Suno, Unknown
+- **model:** e.g., "sora-v1", "midjourney-v6", "veo-2"
+- **basePrompt:** The prompt text used to generate this asset
+- **negativePrompt:** Terms to avoid
+- **settings:** JSON blob with model-specific parameters (seed, steps, guidance, etc.)
+
+### When (Timestamps)
+- **generatedAt:** When the platform generated this asset
+- **capturedAt:** When the extension captured it
+- **createdAt, updatedAt:** Database record timestamps
+
+### Lineage (Relationships)
+- **parentVersionId:** If this is a refinement or remix of another version
+- **compareGroupId:** Groups versions generated from the same prompt for side-by-side comparison
+- **selected:** Boolean flag marking preferred versions
+
+### Governance (Rights & Provenance)
+- **rightsState:** Unknown, Non-Commercial, Commercial Allowed, Restricted
+- **provenance:** JSON blob with SynthID watermarks, Content Credentials, platform metadata
+
+**Purpose:** Preserve complete traceability for every piece of content. Asset versions are immutable. You never edit or delete a version. You create new versions and mark preferred ones as "selected."
+
+## Prompt Package
+
+A prompt package is a reusable bundle of creative intent. It defines what you want to generate in a platform-agnostic way.
+
+**Key fields:**
+- **version:** P1, P2, P3, etc. (prompt versioning)
+- **basePrompt:** Core description
+- **negativePrompt:** What to avoid
+- **styleBlock:** Artistic style guidance
+- **cameraBlock:** Camera angle, movement, lens details
+- **constraints:** Technical requirements (aspect ratio, duration, resolution)
+- **sceneId, shotId:** Can attach to scene (applies to all shots) or specific shot
+
+**Purpose:** Define intent once, generate across multiple platforms. A single prompt package can spawn run cards for Sora, Veo, and Midjourney, each adapted to platform-specific syntax.
+
+Prompt packages enable fan-out workflows: generate the same creative concept on 3 platforms, capture all outputs, compare, and select the best result.
+
+## Relationships and Integrity
+
+The object model enforces referential integrity:
+
+- Deleting a project cascades to scripts, scenes, shots, and assets (with safeguards).
+- Orphaned assets are prevented by foreign key constraints.
+- Shots always belong to exactly one scene.
+- Assets always belong to exactly one shot (and indirectly to a scene and project).
+
+> **Design principle:** The model supports both narrative structure (project -> script -> scene) and production workflow (shot -> asset version -> approval). Scenes provide story context. Shots provide production granularity.
+
+## Querying the Model
+
+Common query patterns:
+
+**Get all assets for a scene:**
+```typescript
+const assets = await prisma.sceneAssetVersion.findMany({
+  where: { sceneId: 'scene_xyz' },
+  orderBy: { createdAt: 'desc' }
+});
+```
+
+**Get all assets for a specific shot:**
+```typescript
+const assets = await prisma.sceneAssetVersion.findMany({
+  where: { shotId: 'shot_abc' },
+  orderBy: { createdAt: 'desc' }
+});
+```
+
+**Get selected assets only:**
+```typescript
+const selected = await prisma.sceneAssetVersion.findMany({
+  where: { shotId: 'shot_abc', selected: true }
+});
+```
+
+**Get assets by compare group:**
+```typescript
+const group = await prisma.sceneAssetVersion.findMany({
+  where: { compareGroupId: 'cmp_123' }
+});
+```
+
+## Next Steps
+
+Now that you understand the object model, learn about the [Asset Lifecycle](/docs/concepts/asset-lifecycle) to see how assets move through production stages.

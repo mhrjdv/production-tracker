@@ -1,0 +1,241 @@
+/* ==========================================================
+   Render – DOM rendering for shot cards, reuse list, previews
+   ========================================================== */
+
+import { dom, setStatus, setActiveMode } from "./dom.js";
+import state from "./state.js";
+import { updateAsset } from "./api.js";
+import { formatRelativeTime, placeholderThumb } from "./utils.js";
+
+export function renderShotCard() {
+  const sceneId = dom.ctxSceneSelect.value;
+  const scene = state.scenes.find((s) => s.sceneId === sceneId);
+
+  if (!scene) {
+    dom.ctxShotCard.innerHTML =
+      '<div class="sp-empty">Select a scene above to see details.</div>';
+    return;
+  }
+
+  const versionCount = state.sceneAssets.length;
+  const selectedCount = state.sceneAssets.filter((a) => a.selected).length;
+  const types =
+    [...new Set(state.sceneAssets.map((a) => a.assetType))].join(", ") ||
+    "none";
+
+  dom.ctxShotCard.innerHTML = `
+    <div class="sp-context-info">
+      <div class="sp-ctx-scene-id">${scene.sceneId}</div>
+      <div class="sp-ctx-beat">${scene.storyBeat || "No story beat"}</div>
+      <div class="sp-ctx-versions">${versionCount} version(s), ${selectedCount} selected -- Types: ${types}</div>
+    </div>
+  `;
+}
+
+export function updateContextBar() {
+  const projectId = dom.ctxProjectSelect.value;
+  const sceneId = dom.ctxSceneSelect.value;
+  const project = state.projects.find((p) => p.id === projectId);
+  const scene = state.scenes.find((s) => s.sceneId === sceneId);
+
+  if (project && scene) {
+    dom.capContextLabel.textContent = `${project.name} / ${scene.sceneId}`;
+  } else if (project) {
+    dom.capContextLabel.textContent = `${project.name} / --`;
+  } else {
+    dom.capContextLabel.textContent = "No context set";
+  }
+}
+
+export function renderReuseList() {
+  const container = dom.reuseAssetList;
+  container.innerHTML = "";
+
+  // Apply filters
+  const typeFilter = state.reuseFilterType || "ALL";
+  const searchQuery = (state.reuseSearchQuery || "").toLowerCase().trim();
+
+  const filtered = state.sceneAssets.filter((asset) => {
+    if (typeFilter !== "ALL" && asset.assetType !== typeFilter) return false;
+    if (
+      searchQuery &&
+      !(asset.prompt || "").toLowerCase().includes(searchQuery) &&
+      !(asset.title || "").toLowerCase().includes(searchQuery) &&
+      !(asset.platformLabel || "").toLowerCase().includes(searchQuery)
+    )
+      return false;
+    return true;
+  });
+
+  if (state.sceneAssets.length === 0) {
+    container.innerHTML =
+      '<div class="sp-empty">No versions yet. Capture something first.</div>';
+    return;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="sp-empty">No matching versions.</div>';
+    return;
+  }
+
+  filtered.forEach((asset) => {
+    const row = document.createElement("div");
+    row.className = `sp-reuse-item${asset.selected ? " selected-asset" : ""}`;
+
+    // Compare checkbox
+    const checkbox = document.createElement("button");
+    checkbox.type = "button";
+    checkbox.className = `sp-compare-check${state.compareIds.includes(asset.id) ? " checked" : ""}`;
+    checkbox.title = "Add to compare";
+    checkbox.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const { toggleCompareSelect } = await import("./compare.js");
+      toggleCompareSelect(asset.id);
+    });
+
+    const thumb = document.createElement("img");
+    thumb.className = "sp-reuse-thumb";
+    thumb.alt = `${asset.platformLabel} preview`;
+    thumb.src = asset.thumbnailUrl || placeholderThumb();
+
+    const meta = document.createElement("div");
+    meta.className = "sp-reuse-meta";
+
+    const title = document.createElement("div");
+    title.className = "sp-reuse-title";
+    title.textContent = `${asset.platformLabel} -- ${asset.assetType} v${asset.versionNumber}`;
+
+    const sub = document.createElement("div");
+    sub.className = "sp-reuse-sub";
+    const timestamp = formatRelativeTime(asset.createdAt);
+    const promptPreview = (asset.prompt || "").substring(0, 60);
+    sub.textContent = `${asset.status}${timestamp ? " -- " + timestamp : ""}${promptPreview ? " -- " + promptPreview + "..." : ""}`;
+
+    meta.appendChild(title);
+    meta.appendChild(sub);
+
+    const actions = document.createElement("div");
+    actions.className = "sp-reuse-actions";
+
+    // Star / winner button
+    const starBtn = document.createElement("button");
+    starBtn.type = "button";
+    starBtn.className = `sp-star-btn${asset.selected ? " active" : ""}`;
+    starBtn.title = asset.selected ? "Remove winner" : "Mark as winner";
+    starBtn.innerHTML = asset.selected
+      ? '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="#eab308" stroke="#eab308" stroke-width="1"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
+    starBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const newSelected = !asset.selected;
+      try {
+        starBtn.disabled = true;
+        // Optimistic update
+        if (newSelected) {
+          state.sceneAssets.forEach((a) => {
+            if (a.assetType === asset.assetType && a.id !== asset.id) {
+              a.selected = false;
+              a.status = "GENERATED";
+            }
+          });
+        }
+        asset.selected = newSelected;
+        asset.status = newSelected ? "SELECTED" : "GENERATED";
+        renderReuseList();
+        await updateAsset(asset.id, { selected: newSelected });
+        setStatus(
+          newSelected
+            ? `Winner: ${asset.platformLabel} v${asset.versionNumber}`
+            : "Winner removed.",
+        );
+      } catch (err) {
+        // Revert on failure
+        asset.selected = !newSelected;
+        asset.status = !newSelected ? "SELECTED" : "GENERATED";
+        renderReuseList();
+        setStatus(err.message, true);
+      }
+    });
+
+    const loadBtn = document.createElement("button");
+    loadBtn.type = "button";
+    loadBtn.className = "sp-btn sp-btn-ghost";
+    loadBtn.textContent = "Load";
+    loadBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const { applySceneAssetToCapture } = await import("./capture.js");
+      applySceneAssetToCapture(asset.id);
+      setActiveMode("capture");
+      setStatus(
+        `Loaded prompt from ${asset.platformLabel} v${asset.versionNumber}.`,
+      );
+    });
+
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.className = "sp-btn sp-btn-ghost";
+    applyBtn.textContent = "Apply";
+    applyBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      try {
+        applyBtn.disabled = true;
+        const { applyPromptToPage } = await import("./detect.js");
+        await applyPromptToPage(asset.prompt || "");
+        setStatus("Prompt applied to page.");
+      } catch (err) {
+        setStatus(err.message, true);
+      } finally {
+        applyBtn.disabled = false;
+      }
+    });
+
+    actions.appendChild(starBtn);
+    actions.appendChild(loadBtn);
+    actions.appendChild(applyBtn);
+
+    row.appendChild(checkbox);
+    row.appendChild(thumb);
+    row.appendChild(meta);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+export function renderPreviewList() {
+  const container = dom.queuePreviewList;
+  container.innerHTML = "";
+
+  const items = state.sceneAssets.slice(0, 6);
+  if (items.length === 0) {
+    container.innerHTML = '<div class="sp-empty">No synced versions yet.</div>';
+    return;
+  }
+
+  items.forEach((asset) => {
+    const row = document.createElement("div");
+    row.className = "sp-preview-item";
+
+    const thumb = document.createElement("img");
+    thumb.className = "sp-preview-thumb";
+    thumb.alt = `${asset.platformLabel} preview`;
+    thumb.src = asset.thumbnailUrl || placeholderThumb();
+
+    const meta = document.createElement("div");
+    meta.className = "sp-preview-meta";
+
+    const title = document.createElement("div");
+    title.className = "sp-preview-title";
+    title.textContent = `${asset.platformLabel} -- ${asset.assetType} v${asset.versionNumber}`;
+
+    const sub = document.createElement("div");
+    sub.className = "sp-preview-sub";
+    const timestamp = formatRelativeTime(asset.createdAt);
+    sub.textContent = `${asset.status}${asset.selected ? " -- selected" : ""}${timestamp ? " -- " + timestamp : ""}`;
+
+    meta.appendChild(title);
+    meta.appendChild(sub);
+    row.appendChild(thumb);
+    row.appendChild(meta);
+    container.appendChild(row);
+  });
+}

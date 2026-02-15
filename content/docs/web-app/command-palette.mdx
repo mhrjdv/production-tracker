@@ -1,0 +1,388 @@
+---
+title: "Command Palette"
+description: "Quick navigation and search with keyboard shortcuts using the Cmd+K command palette"
+---
+
+# Command Palette
+
+The Command Palette is a powerful quick-access interface for navigating Laserman. It provides instant search and navigation across all projects, scenes, shots, and features using keyboard shortcuts.
+
+## Opening the Command Palette
+
+Access the Command Palette from anywhere in Laserman:
+
+- **macOS:** Cmd+K or Cmd+P
+- **Windows/Linux:** Ctrl+K or Ctrl+P
+- **Alternative:** Click the search icon in the top navigation bar
+
+The Command Palette opens as a centered overlay with a search input and results list.
+
+## Search Interface
+
+The Command Palette interface consists of:
+
+- **Search Input** - Type your query here
+- **Results List** - Matching items displayed below
+- **Category Labels** - Results grouped by type (Projects, Scenes, Shots)
+- **Keyboard Hints** - Navigation shortcuts displayed on the right
+- **Quick Actions** - Common actions available at the top
+
+## Searching
+
+### Universal Search
+
+Type any text to search across all content:
+
+- **Project Names** - Find projects by title
+- **Scene Headings** - Search scene locations and descriptions
+- **Shot Codes** - Jump to specific shots (e.g., SH001)
+- **Character Names** - Find scenes featuring characters
+- **Asset Metadata** - Search by platform, status, or prompt text
+- **Tags** - Find items with specific tags
+
+Results update in real-time as you type.
+
+### Search Operators
+
+Use special operators to refine searches:
+
+**Project Search**
+- Type `project:` or `proj:` to search only projects
+- Example: `project: sci-fi` finds projects with "sci-fi" in the title
+
+**Scene Search**
+- Type `scene:` to search only scenes
+- Example: `scene: warehouse` finds scenes at warehouse locations
+
+**Shot Search**
+- Type `shot:` or `#` to search only shots
+- Example: `#SH001` or `shot: SH001` jumps to that shot
+
+**Character Search**
+- Type `char:` or `@` to search characters
+- Example: `@Jane` or `char: Jane` finds scenes with Jane
+
+**Status Search**
+- Type `status:` to filter by workflow status
+- Example: `status: approved` finds approved assets
+
+### Recent Items
+
+When you open the Command Palette with an empty search, it shows:
+
+- **Recent Projects** - Last 5 projects you accessed
+- **Recent Scenes** - Last 5 scenes you viewed
+- **Recent Shots** - Last 5 shots you worked on
+- **Recent Searches** - Your previous search queries
+
+Click any recent item to navigate directly to it.
+
+## Navigation
+
+### Keyboard Navigation
+
+Navigate search results using your keyboard:
+
+- **Arrow Up/Down** - Move selection between results
+- **Enter** - Open selected item
+- **Tab** - Cycle between result categories
+- **Esc** - Close the Command Palette
+- **Backspace** - Clear search or go back to previous view
+
+### Mouse Navigation
+
+Click any result to navigate directly to it. Hover over results to preview additional information.
+
+### Result Types
+
+Different result types navigate to different views:
+
+- **Projects** - Opens project detail view
+- **Scenes** - Opens scene detail with Script tab
+- **Shots** - Opens scene detail with Shots tab and scrolls to shot
+- **Assets** - Opens scene detail with Assets tab and highlights asset
+- **Characters** - Opens character profile
+
+## Quick Actions
+
+The Command Palette provides quick access to common actions:
+
+### Create Actions
+
+Press the corresponding key to trigger create actions:
+
+- **N** - Create new project
+- **S** - Create new scene
+- **H** - Create new shot
+- **C** - Create new character
+
+Create actions appear at the top of the Command Palette when relevant.
+
+### Navigation Actions
+
+Jump to major sections:
+
+- **Dashboard** - Type `home` or `dashboard`
+- **Projects List** - Type `projects` or `all projects`
+- **Settings** - Type `settings` or `preferences`
+- **Help** - Type `help` or `docs`
+
+### Asset Actions
+
+Quick access to asset workflows:
+
+- Type `upload` to start asset upload
+- Type `capture` to open Chrome extension
+- Type `compare` to open Compare view
+- Type `timeline` to open Timeline view
+
+## Command Palette Modes
+
+The Command Palette has different modes for different contexts:
+
+### Global Mode (Default)
+
+Search across all projects and content. Available from any page.
+
+### Project Mode
+
+When inside a project, the Command Palette prioritizes:
+
+- Scenes from the current project
+- Shots from the current project
+- Assets from the current project
+- Characters from the current project
+
+Results from other projects still appear but are ranked lower.
+
+### Scene Mode
+
+When viewing a scene, the Command Palette prioritizes:
+
+- Shots from the current scene
+- Assets from the current scene
+- Other scenes from the same project
+
+## Filtering Results
+
+### By Category
+
+Click category headers to filter to that type:
+
+- **Projects** - Show only project results
+- **Scenes** - Show only scene results
+- **Shots** - Show only shot results
+- **Characters** - Show only character results
+- **Assets** - Show only asset results
+
+Click "All" to show all categories again.
+
+### By Status
+
+Filter results by workflow status:
+
+1. Type your search query
+2. Click "Filter by Status" dropdown
+3. Select one or more statuses
+4. Results update to match filter
+
+### By Date
+
+Filter results by recency:
+
+- **Today** - Items created or modified today
+- **This Week** - Items from the last 7 days
+- **This Month** - Items from the last 30 days
+- **All Time** - No date restriction (default)
+
+## Search Tips
+
+### Fuzzy Matching
+
+The Command Palette uses fuzzy matching, so you don't need exact text:
+
+- `whs` matches "warehouse"
+- `intcf` matches "INT. COFFEE SHOP"
+- `sh1` matches "SH001"
+
+### Multiple Terms
+
+Search with multiple terms to narrow results:
+
+- `warehouse night` finds scenes in warehouse at night
+- `Jane approved` finds approved assets featuring Jane
+- `sora video selected` finds selected video assets from Sora
+
+### Shortcuts for Power Users
+
+Experienced users can combine operators for precise searches:
+
+- `proj: demo status: active` - Active projects with "demo"
+- `scene: day char: Jane` - Daytime scenes featuring Jane
+- `shot: close-up status: generated` - Generated close-up shots
+
+## Customization
+
+### Search Settings
+
+Configure Command Palette behavior in Settings:
+
+- **Search History** - Enable/disable recent search tracking
+- **Result Limit** - Number of results to display (default: 20)
+- **Fuzzy Threshold** - How closely results must match (strict to loose)
+- **Category Order** - Reorder result categories by priority
+
+### Keyboard Shortcuts
+
+Customize keyboard shortcuts in Settings:
+
+- Change primary shortcut (default: Cmd+K)
+- Add secondary shortcut (default: Cmd+P)
+- Customize quick action shortcuts
+- Disable shortcuts if conflicts exist
+
+## Integration with Workflows
+
+### Capture Workflow
+
+From the Command Palette, quickly navigate to capture targets:
+
+1. Generate asset on external platform
+2. Press Cmd+K to open Command Palette
+3. Search for target scene or shot
+4. Press Enter to navigate
+5. Use Chrome extension to capture to that location
+
+### Review Workflow
+
+Review assets across multiple scenes efficiently:
+
+1. Open Command Palette
+2. Search `status: needs review`
+3. Navigate through results with arrow keys
+4. Press Enter to open each item
+5. Review and approve
+6. Press Cmd+K to return to search and continue
+
+### Comparison Workflow
+
+Build comparison groups across scenes:
+
+1. Open Command Palette
+2. Search for first shot
+3. Add to comparison group
+4. Return to Command Palette (Cmd+K)
+5. Search for next shot
+6. Add to same comparison group
+7. Repeat for all shots to compare
+
+## Command Palette Best Practices
+
+### Learn Operators
+
+Invest time learning search operators. They dramatically speed up navigation once memorized.
+
+### Use Recent Items
+
+Recent items provide instant access to your working context without typing.
+
+### Leverage Fuzzy Search
+
+Don't worry about exact spelling. Type quickly and let fuzzy matching find the right result.
+
+### Create Consistent Naming
+
+Use consistent naming conventions in projects, scenes, and shots. This makes searching more predictable and reliable.
+
+### Keyboard Over Mouse
+
+Train yourself to use keyboard navigation. It's significantly faster than reaching for the mouse.
+
+> Power users often complete entire workflows without leaving the keyboard by chaining Command Palette navigation with keyboard shortcuts.
+
+## Accessibility
+
+The Command Palette is designed for accessibility:
+
+- **Screen Reader Support** - All results announced clearly
+- **High Contrast Mode** - Readable in all color schemes
+- **Keyboard Only** - Fully navigable without a mouse
+- **Focus Management** - Returns focus to previous location on close
+- **ARIA Labels** - Semantic markup for assistive technology
+
+## Mobile Experience
+
+On mobile devices, the Command Palette adapts:
+
+- Touch-friendly result cards
+- On-screen keyboard support
+- Swipe gestures for navigation
+- Simplified interface for smaller screens
+
+Access on mobile by tapping the search icon in the navigation bar.
+
+## Troubleshooting
+
+### Results Not Appearing
+
+If expected results don't appear:
+
+- Check spelling (or rely on fuzzy matching)
+- Verify you have access to the content
+- Try broader search terms
+- Clear search history and try again
+
+### Slow Search Performance
+
+If search is slow:
+
+- Reduce result limit in settings
+- Clear search history
+- Check network connection
+- Contact support if persistent
+
+### Keyboard Shortcuts Not Working
+
+If Cmd+K doesn't open the palette:
+
+- Check for conflicting browser extensions
+- Verify keyboard shortcut in settings
+- Try the alternative shortcut (Cmd+P)
+- Use the search icon as a fallback
+
+## Advanced Features
+
+### Search Syntax
+
+For advanced users, Laserman supports search syntax:
+
+- **AND**: `warehouse AND night` (both terms required)
+- **OR**: `warehouse OR factory` (either term)
+- **NOT**: `scene NOT interior` (exclude term)
+- **Quotes**: `"wide shot"` (exact phrase)
+- **Wildcards**: `SH00*` (matches SH001, SH002, etc.)
+
+### Saved Searches
+
+Save frequently used searches:
+
+1. Perform a search
+2. Click "Save Search" icon
+3. Name the saved search
+4. Access from "Saved Searches" menu in Command Palette
+
+### Search Macros
+
+Create macros for complex searches:
+
+1. Open settings
+2. Navigate to Search Macros
+3. Create new macro with name and search syntax
+4. Assign keyboard shortcut
+5. Trigger macro instantly
+
+**Example Macro:** "Review Queue" = `status: needs review @me`
+
+## Next Steps
+
+Master the Command Palette to navigate Laserman efficiently. Combine it with the [Timeline](/docs/web-app/timeline), [Compare View](/docs/web-app/compare), and [Asset Management](/docs/web-app/assets) for a streamlined production workflow.

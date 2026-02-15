@@ -1,0 +1,1306 @@
+/* =========================================================
+   Laserman Side Panel – Clean, minimal, easy to use
+   ========================================================= */
+
+:root {
+  color-scheme: dark;
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --bg: #171717;
+  --surface: #1c1c1c;
+  --card: #262626;
+  --text: #fafafa;
+  --text-secondary: #a3a3a3;
+  --border: rgba(255,255,255,0.10);
+  --border-hover: rgba(255,255,255,0.18);
+  --accent: #e5e5e5;
+  --accent-bg: rgba(255,255,255,0.06);
+  --accent-border: rgba(255,255,255,0.15);
+  --accent-text: #fafafa;
+  --danger: #ef4444;
+  --danger-bg: rgba(239,68,68,0.08);
+  --success: #22c55e;
+  --success-bg: rgba(34,197,94,0.08);
+  --warning: #eab308;
+  --warning-bg: rgba(234,179,8,0.08);
+  --radius: 10px;
+  --radius-sm: 7px;
+  --transition: 0.15s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hidden { display: none !important; }
+
+/* ─── App shell ──────────────────────────────────────── */
+
+.sp-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────── */
+
+.sp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.sp-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.sp-header-right { display: flex; gap: 4px; }
+
+.sp-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sp-icon-btn:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: var(--card);
+}
+
+/* ─── Settings overlay ───────────────────────────────── */
+
+.sp-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: var(--bg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.sp-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sp-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-settings-field > span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.sp-settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ─── Auth gate ──────────────────────────────────────── */
+
+.sp-auth-gate {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.sp-auth-msg {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sp-auth-hint {
+  font-size: 13px;
+  color: var(--text-secondary);
+  max-width: 240px;
+  line-height: 1.5;
+}
+
+/* ─── Tab navigation ─────────────────────────────────── */
+
+.sp-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.sp-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 4px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition);
+  text-align: center;
+}
+
+.sp-tab:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+.sp-tab.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+/* ─── Main panel ─────────────────────────────────────── */
+
+.sp-main {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px;
+  padding-bottom: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-gutter: stable;
+}
+
+/* ─── Context selectors ──────────────────────────────── */
+
+.sp-context {
+  display: flex;
+  gap: 8px;
+}
+
+.sp-ctx-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-ctx-field > label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sp-ctx-field > select {
+  font-size: 13px;
+  padding: 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color var(--transition);
+}
+
+.sp-ctx-search {
+  font-size: 12px !important;
+  padding: 5px 8px !important;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.sp-ctx-search::placeholder {
+  color: #525252;
+  font-size: 11px;
+}
+
+.sp-ctx-field > select:hover { border-color: var(--border-hover); }
+.sp-ctx-field > select:focus { border-color: var(--accent); outline: none; }
+
+/* ─── Detection banner ───────────────────────────────── */
+
+.sp-detect {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all var(--transition);
+  flex-wrap: wrap;
+}
+
+.sp-detect.detected {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.sp-detect-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.sp-detect-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+.sp-detect.detected .sp-detect-dot {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+}
+
+.sp-detect-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-detect-type {
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.06);
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.sp-detect-type:empty { display: none; }
+
+.sp-detect-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sp-detect-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.sp-detect-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--accent);
+}
+
+.sp-detect-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sp-detect-refresh:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.04);
+}
+
+/* ─── Form fields ────────────────────────────────────── */
+
+.sp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sp-field-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sp-field-top > label,
+.sp-field > label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sp-field-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Clear button (×) */
+.sp-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0.6;
+}
+
+.sp-clear:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  opacity: 1;
+}
+
+/* Mini action buttons (Apply, Refine) */
+.sp-mini-action {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.sp-mini-action:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.04);
+}
+
+/* Inputs */
+input, textarea, select {
+  font-family: var(--font);
+  font-size: 13px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color var(--transition);
+  width: 100%;
+}
+
+input:hover, textarea:hover, select:hover {
+  border-color: var(--border-hover);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.06);
+}
+
+input::placeholder, textarea::placeholder {
+  color: #525252;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 48px;
+  line-height: 1.5;
+}
+
+/* Prompt gets special treatment - larger */
+#capPrompt {
+  font-size: 14px;
+  min-height: 100px;
+}
+
+/* Compact row (Type + Status) */
+.sp-compact-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sp-compact-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sp-compact-field > label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sp-compact-field > select {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+/* ─── More fields (details/summary) ──────────────────── */
+
+.sp-more {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.sp-more > summary {
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition);
+}
+
+.sp-more > summary:hover { color: var(--text); }
+
+.sp-more > summary::before {
+  content: "▸";
+  font-size: 10px;
+  transition: transform var(--transition);
+}
+
+.sp-more[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.sp-more-grid {
+  padding: 4px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sp-field-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sp-field-row > .sp-field { flex: 1; }
+
+/* ─── Action buttons ─────────────────────────────────── */
+
+.sp-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.sp-btn {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.sp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sp-btn-primary {
+  background: var(--accent);
+  color: #171717;
+  border: 1px solid var(--accent);
+}
+
+.sp-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.sp-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.sp-btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.03);
+}
+
+.sp-btn-save {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+/* ─── History (reuse) panel ──────────────────────────── */
+
+.sp-section-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.sp-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.sp-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.sp-reuse-item {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.sp-reuse-item:hover { border-color: var(--border-hover); }
+
+.sp-reuse-item.selected-asset {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.sp-reuse-thumb {
+  width: 48px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.sp-reuse-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-reuse-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-reuse-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-reuse-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.sp-reuse-actions .sp-btn { padding: 5px 10px; font-size: 12px; }
+
+.sp-draft-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ─── Queue panel ────────────────────────────────────── */
+
+.sp-queue-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-queue-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sp-queue-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+
+.sp-queue-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.sp-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.sp-queue-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sp-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.sp-queue-item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sp-queue-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-queue-item-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Badges */
+.sp-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sp-badge.queued {
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid rgba(251, 191, 36, 0.20);
+}
+
+.sp-badge.synced {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid rgba(52, 211, 153, 0.20);
+}
+
+.sp-badge.failed {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.20);
+}
+
+/* ─── Preview list ───────────────────────────────────── */
+
+.sp-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-preview-item {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 10px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+}
+
+.sp-preview-thumb {
+  width: 48px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.sp-preview-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-preview-title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sp-preview-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── Empty states ───────────────────────────────────── */
+
+.sp-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+/* ─── Divider ────────────────────────────────────────── */
+
+.sp-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* ─── Status bar ─────────────────────────────────────── */
+
+.sp-status {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  z-index: 40;
+}
+
+.sp-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.sp-status-dot.connected { background: var(--success); }
+.sp-status-dot.error { background: var(--danger); }
+
+#statusText {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+#statusText.error { color: var(--danger); }
+
+/* ─── Scrollbar ──────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+/* ─── Animations ─────────────────────────────────────── */
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.sp-btn-save:disabled {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Filter bar + chips ─────────────────────────────── */
+
+.sp-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sp-filter-search {
+  font-size: 12px !important;
+  padding: 7px 10px !important;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  width: 100%;
+}
+
+.sp-filter-search::placeholder {
+  color: #525252;
+}
+
+.sp-filter-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sp-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.sp-chip:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.04);
+}
+
+.sp-chip.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border-color: var(--accent-border);
+}
+
+/* ─── Confidence dots on detection banner ─────────────── */
+
+.sp-detect-dot.conf-high { background: #22c55e; }
+.sp-detect-dot.conf-medium { background: #eab308; }
+.sp-detect-dot.conf-low { background: #ef4444; }
+
+/* ─── Detection banner secondary buttons ─────────────── */
+
+.sp-detect-btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sp-detect-btn-secondary:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: var(--card);
+}
+
+/* ─── Candidate picker overlay ───────────────────────── */
+
+.sp-candidate-picker {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sp-candidate-picker.hidden {
+  display: none;
+}
+
+.sp-candidate-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.sp-candidate-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px;
+}
+
+/* Individual candidate card */
+
+.sp-candidate-item {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  align-items: flex-start;
+}
+
+.sp-candidate-item:hover {
+  background: var(--card);
+}
+
+.sp-candidate-item + .sp-candidate-item {
+  border-top: 1px solid var(--border);
+}
+
+.sp-candidate-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  object-fit: cover;
+  background: var(--card);
+  flex-shrink: 0;
+}
+
+.sp-candidate-thumb-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  background: var(--card);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.sp-candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sp-candidate-prompt {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sp-candidate-meta {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Confidence badges */
+
+.sp-confidence {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sp-confidence-high {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.sp-confidence-medium {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.sp-confidence-low {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.sp-candidate-empty {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* ─── Star / winner button ──────────────────────────── */
+
+.sp-star-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.sp-star-btn:hover {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.08);
+}
+
+.sp-star-btn.active {
+  border-color: #eab308;
+  background: rgba(234, 179, 8, 0.12);
+}
+
+/* ─── Compare checkbox ──────────────────────────────── */
+
+.sp-compare-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.sp-compare-check:hover {
+  border-color: var(--accent);
+}
+
+.sp-compare-check.checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.sp-compare-check.checked::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #171717;
+}
+
+/* Adjust reuse item grid for checkbox column */
+.sp-reuse-item {
+  grid-template-columns: 20px 48px 1fr auto;
+}
+
+/* ─── Compare bar ───────────────────────────────────── */
+
+.sp-compare-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sp-compare-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* ─── Compare overlay ───────────────────────────────── */
+
+.sp-compare-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sp-compare-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sp-compare-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sp-compare-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+/* ─── Compare card ──────────────────────────────────── */
+
+.sp-compare-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  transition: all var(--transition);
+}
+
+.sp-compare-card.winner {
+  border-color: #eab308;
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.15);
+}
+
+.sp-compare-thumb {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.sp-compare-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sp-compare-platform {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sp-compare-version {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.sp-compare-prompt {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}

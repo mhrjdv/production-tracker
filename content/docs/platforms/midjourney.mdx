@@ -1,0 +1,245 @@
+---
+title: Midjourney
+description: Capturing AI-generated images from Midjourney
+---
+
+# Midjourney
+
+Midjourney is a leading AI image generation platform known for artistic, high-quality outputs. It operates primarily through Discord and a web interface, using a command-based workflow.
+
+## Platform Overview
+
+- **Provider:** Midjourney Inc.
+- **Specialty:** High-quality artistic image generation
+- **Access:** Subscription required (no free tier)
+- **Supported Output Types:** Image
+
+## Laserman Detection
+
+### URL Patterns
+
+The extension detects Midjourney on:
+
+- `https://www.midjourney.com`
+- `https://midjourney.com/app`
+- Discord integration (limited support)
+
+### What Is Auto-Detected
+
+When you generate with Midjourney, Laserman extracts:
+
+- **Prompt** - From Discord message or web UI prompt display
+- **Model** - From `--v` parameter (e.g., "v6.1", "v7")
+- **Aspect Ratio** - From `--ar` parameter (e.g., "16:9", "1:1")
+- **Stylize** - From `--s` parameter
+- **Chaos** - From `--c` parameter
+- **Output URL** - Image `src` from generation grid or upscaled result
+- **Thumbnail** - Same as output URL
+
+### Detection Quality
+
+- **Prompt extraction:** Medium - Works on web UI, limited on Discord
+- **Settings extraction:** High - Parameters in prompt are parsed
+- **Output extraction:** High - Reliable image URL detection
+
+## Capture Workflow
+
+### Web Interface Workflow
+
+1. Open Midjourney web app
+2. Enter prompt with parameters (e.g., `/imagine a cat --v 6.1 --ar 16:9`)
+3. Wait for initial grid (4 variations)
+4. Click upscale button (U1, U2, U3, or U4)
+5. Wait for full-resolution image
+6. Open Laserman extension
+7. Detection banner shows "Midjourney"
+8. Click "Auto Fill"
+9. Review fields
+10. Click "Save Capture"
+
+### Discord Workflow (Limited)
+
+Detection on Discord is limited due to platform constraints:
+
+1. Use `/imagine` command in Discord
+2. Wait for grid generation
+3. Upscale chosen variant
+4. Right-click image and "Open Image in New Tab"
+5. Tab shows `cdn.midjourney.com` URL
+6. Open Laserman extension
+7. Manually fill form (prompt, URL)
+8. Click "Save Capture"
+
+### Parameter Parsing
+
+Midjourney parameters are extracted automatically:
+
+- `--v 6.1` → Model: "v6.1"
+- `--ar 16:9` → Aspect Ratio: "16:9"
+- `--s 500` → Stylize: 500
+- `--c 20` → Chaos: 20
+- `--seed 123` → Seed: 123
+
+All captured in metadata JSON.
+
+## Capture Tips
+
+### Best Practices
+
+- **Capture upscaled images** - Initial grid is low-res
+- **Include parameters** - Always use `--v`, `--ar` for consistency
+- **Note variations** - U1-U4 indicate grid position
+- **Use seed for consistency** - `--seed` enables reproducibility
+
+### Common Issues
+
+**Grid vs Upscaled:**
+- Midjourney generates 4-image grid first
+- Upscaling produces full-res single image
+- Capture upscaled version for production use
+
+**Discord detection limited:**
+- Discord's UI is complex and changes frequently
+- Manual capture recommended on Discord
+- Web interface has better detection support
+
+**Prompt with parameters:**
+- Full prompt includes parameters (e.g., `--v 6.1`)
+- Detector parses parameters into metadata
+- Original prompt is preserved without parameters
+
+## Rights and Licensing
+
+### Ownership by Plan
+
+Midjourney licensing depends on your subscription tier:
+
+#### Basic, Standard, Pro Plans
+
+- **Non-subscribers:** Cannot use Midjourney
+- **Basic/Standard:** Commercial license included if earning < $1M/year
+- **Pro/Mega:** Full commercial license, no revenue cap
+
+### Commercial Use
+
+- All paid plans include commercial use rights
+- You own the outputs you generate
+- Attribution not required but encouraged
+- Subject to Midjourney Terms of Service
+
+### Restrictions
+
+- Cannot use for illegal or harmful content
+- Cannot use to train competing AI models
+- Subject to content moderation and community guidelines
+
+### Laserman Rights State
+
+The extension sets `rightsState` to:
+
+- **LICENSED** - Default for authenticated Midjourney users (paid plans)
+- **UNKNOWN** - If plan tier unclear
+
+> Manually verify your plan's commercial license terms on Midjourney's website.
+
+## Known Limitations
+
+### Discord Integration
+
+- Discord's structure makes detection challenging
+- Manual capture recommended for Discord workflow
+- Web UI provides better auto-detection
+
+### Real-Time UI Changes
+
+Midjourney frequently updates the web interface:
+
+- Detector uses multiple fallback selectors
+- Report detection failures with screenshots
+
+### Upscale Variants
+
+Midjourney supports:
+
+- U1-U4 (upscale specific grid position)
+- Variations (V1-V4)
+- Zoom out, pan, vary (region), etc.
+
+Detector captures final output, not intermediate states.
+
+## Metadata Fields
+
+Midjourney-specific metadata:
+
+```json
+{
+  "modelVersion": "v6.1",
+  "aspectRatio": "16:9",
+  "stylize": 500,
+  "chaos": 20,
+  "seed": 123456,
+  "gridPosition": "U3",
+  "platform": "midjourney"
+}
+```
+
+## Example Capture
+
+A typical Midjourney capture in Laserman:
+
+- **Platform:** midjourney
+- **Asset Type:** IMAGE
+- **Prompt:** "A cyberpunk cityscape at night, neon lights reflecting on wet streets"
+- **Model:** v6.1
+- **Output URL:** `https://cdn.midjourney.com/abc123/grid_0.png`
+- **Thumbnail:** (same)
+- **Metadata:** `{"modelVersion": "v6.1", "aspectRatio": "16:9", "stylize": 500}`
+- **Status:** GENERATED
+- **Rights State:** LICENSED
+
+## Troubleshooting
+
+### Detection Not Working
+
+- Verify you're on the web UI (not Discord)
+- Wait for upscaled image to fully load
+- Click "Refresh Detection"
+- Grant host permissions for `midjourney.com`
+
+### Prompt Extraction Failed
+
+- Discord prompts may not be detected
+- Manually copy prompt from Discord message
+- Include all parameters in prompt field
+
+### Output URL Wrong
+
+- Ensure you're capturing upscaled image, not grid
+- Right-click image and "Copy image address"
+- Manually paste URL if auto-detection fails
+
+### Parameters Not Parsed
+
+- Verify parameters are in prompt (e.g., `--v 6.1`)
+- Detector parses common parameters automatically
+- Manually add to metadata if missed
+
+### Commercial License Unclear
+
+- Review Midjourney subscription page
+- Basic/Standard plans: < $1M/year revenue
+- Pro/Mega plans: unlimited commercial use
+- Consult Midjourney support if unsure
+
+## Related Resources
+
+- [Midjourney Homepage](https://www.midjourney.com)
+- [Midjourney Documentation](https://docs.midjourney.com)
+- [Midjourney Subscription Plans](https://www.midjourney.com/account)
+- [Discord Server](https://discord.gg/midjourney)
+
+## Next Steps
+
+- [Compare with Freepik](/docs/platforms/freepik)
+- [Understanding rights tracking](/docs/platforms/)
+- [Capture workflow guide](/docs/chrome-extension/capture)

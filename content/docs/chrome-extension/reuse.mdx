@@ -1,0 +1,242 @@
+---
+title: Reuse Mode
+description: Loading and reusing previously captured prompts and assets
+---
+
+# Reuse Mode (History)
+
+Reuse Mode displays previously captured asset versions for your active scene. It enables you to review what you've already generated, load prompts back into the capture form for iteration, and manage draft saves.
+
+## Overview
+
+When you switch to the History tab, the extension:
+
+1. Loads all asset versions captured for the active scene
+2. Displays them as cards with thumbnails and metadata
+3. Allows one-click loading of any version into the capture form
+4. Provides draft management for in-progress captures
+
+## Interface
+
+### Asset Cards
+
+Each captured version appears as a card showing:
+
+- **Thumbnail** - Preview image (video poster for video assets)
+- **Platform Badge** - Which AI platform generated it
+- **Asset Type** - Image, video, audio, etc.
+- **Prompt Preview** - First 100 characters of the prompt
+- **Status** - Draft, Generated, Selected
+- **Timestamp** - When it was captured
+
+### Actions Per Card
+
+Click any card to load its data into the Capture form. This populates:
+
+- Prompt (and negative prompt if present)
+- Platform
+- Model name
+- All metadata fields
+- Tags and notes
+
+The Output URL is not loaded (since that points to the original asset), allowing you to generate a new variation and save it as a related version.
+
+### Empty State
+
+If the active scene has no captured versions:
+
+```
+No versions yet. Capture something first.
+```
+
+Switch to Capture mode and save your first asset.
+
+## Use Cases
+
+### Iterate on a Winning Prompt
+
+1. Navigate to History mode
+2. Find a version with a prompt you want to iterate on
+3. Click the card to load it into Capture form
+4. Switch to Capture mode
+5. Tweak the prompt slightly
+6. Generate on the platform
+7. Capture the new variation
+
+### Compare Prompts
+
+1. Load a version from History
+2. Note the prompt and settings
+3. Generate on a different platform
+4. Capture the new output
+5. Compare results in the web app's scene detail view
+
+### Recover Accidentally Cleared Form
+
+1. If you accidentally click "Clear All" in Capture mode
+2. Switch to History mode
+3. Click the most recent version
+4. Switch back to Capture mode
+5. Data is restored
+
+## Draft Management
+
+At the bottom of History mode, you'll find draft controls:
+
+### Restore Draft
+
+If you close the side panel or browser while mid-capture, your in-progress form data is automatically saved as a draft. Click "Restore Draft" to recover:
+
+- All filled form fields
+- Selected project and scene
+- Pending output URLs
+
+### Clear Draft
+
+If you want to start fresh and discard the saved draft:
+
+1. Click "Clear Draft"
+2. Confirm the action
+3. Draft is deleted from local storage
+
+> Drafts persist across browser sessions but are stored locally (not synced to Laserman).
+
+## Prompt Package Picker (Future)
+
+In future versions, History mode will include a prompt package picker:
+
+- Browse reusable prompt packages saved in your project
+- Load a prompt package into Capture form
+- Apply prompt package to the current platform page
+- Copy prompt to clipboard as fallback
+
+For now, manually copy prompts from History cards.
+
+## Applying Prompts to Platform Pages
+
+When you load a version from History into the Capture form:
+
+1. Click "Apply" button next to the Prompt field in Capture mode
+2. The extension will attempt to inject the prompt into the platform's prompt input
+3. This works on most platforms via DOM manipulation
+
+### Apply Prompt Workflow
+
+1. Load a prompt from History
+2. Navigate to the target AI platform generation page
+3. Click "Apply" in Capture mode
+4. Verify the prompt appears in the platform's input field
+5. Adjust generation settings as desired
+6. Generate
+7. Capture the new output
+
+### Fallback: Copy to Clipboard
+
+If "Apply" fails (due to platform UI changes or unsupported platform):
+
+1. The prompt is still in the Capture form
+2. Select all the text in the Prompt field
+3. Copy (Cmd/Ctrl + C)
+4. Paste into the platform's prompt input manually
+
+## Filtering and Search (Future)
+
+Future versions will support:
+
+- Filter by asset type (show only images, only video, etc.)
+- Filter by platform (show only Sora outputs, etc.)
+- Filter by status (show only selected winners)
+- Search prompts by keyword
+- Sort by date, status, or platform
+
+## Integration with Web App
+
+Assets in History mode are synced from the web app. If you:
+
+- Delete a version in the web app
+- Change its status to "Selected"
+- Update its tags or notes
+
+These changes will reflect in History mode after refreshing:
+
+1. Click the refresh icon in the detection banner (in Capture mode)
+2. Switch back to History mode
+3. Data is re-fetched
+
+> History mode pulls data from the Laserman API in real-time when the scene context changes.
+
+## Recent Prompts (Future)
+
+A future version will add a "Recent Prompts" section showing:
+
+- The last 10 prompts you used across all scenes and projects
+- Platform and timestamp
+- One-click load into Capture form
+- Copy to clipboard action
+
+This enables cross-scene prompt reuse without navigating away from the current context.
+
+## Best Practices
+
+### Naming and Tagging
+
+When capturing variations, use:
+
+- **Title field** - Short descriptive name ("take-2", "director-notes")
+- **Tags** - Searchable keywords ("hero", "approved", "alt-ending")
+- **Notes** - Context for future you ("client requested brighter lighting")
+
+This makes History mode much more useful when reviewing 50+ versions.
+
+### Prompt Refinement
+
+Before reusing a prompt:
+
+1. Load it from History
+2. Click "Refine" in Capture mode (if AI config is set up)
+3. AI will clean up formatting and improve clarity
+4. Review and apply to platform
+
+### Organize by Status
+
+Use the Status field strategically:
+
+- **Draft** - Experimental, not ready for review
+- **Generated** - Completed but not yet reviewed
+- **Selected** - Approved for use in timeline
+
+Filter by status (future feature) to focus on relevant versions.
+
+## Troubleshooting
+
+### History Not Loading
+
+- Verify project and scene are selected in Capture mode
+- Check connection status in status bar
+- Verify your API token is valid
+- Check browser console for API errors
+
+### Card Shows Broken Thumbnail
+
+- Thumbnail URL may have expired (common on platforms with temporary CDN links)
+- The full output URL is still accessible in the web app
+- Future captures should include durable thumbnail URLs
+
+### Loaded Prompt Is Truncated
+
+- Laserman stores full prompts (no truncation)
+- History card preview shows first 100 characters only
+- Load the card to see the full prompt in Capture form
+
+### Draft Not Saving
+
+- Drafts are saved to local storage automatically
+- If local storage is full, draft saving may fail
+- Clear browser data or free up storage
+- Ensure third-party cookies/storage is not blocked
+
+## Next Steps
+
+- [Understanding the sync queue](/docs/chrome-extension/queue)
+- [Platform detection reference](/docs/chrome-extension/platform-detection)
+- [API reference for extension endpoints](/docs/api-reference/extension-api)

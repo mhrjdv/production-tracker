@@ -1,0 +1,438 @@
+---
+title: Chrome Extension Setup
+description: Install and connect the Laserman Chrome extension for capturing AI-generated assets.
+---
+
+# Chrome Extension Setup
+
+The Laserman Chrome extension enables you to capture AI-generated images and videos directly from platforms like Sora, Veo, and Freepik. This guide walks you through installation, authentication, and your first capture.
+
+## Why Use the Chrome Extension?
+
+Laserman's architecture separates generation from orchestration. You generate assets on external platforms (where the best models live), and the extension captures results back to Laserman for version control, comparison, and rights tracking.
+
+**Key Benefits**:
+
+- **Platform Agnostic**: Capture from any AI generation platform
+- **One-Click Save**: Ruthless defaults reduce manual input
+- **Automatic Metadata**: Extracts prompts, parameters, and model info
+- **Offline Queue**: Captures sync when connection returns
+- **Side Panel Workflow**: Persistent interface alongside generation platforms
+
+## Prerequisites
+
+Before installing the extension, ensure:
+
+- You have completed [Installation](/docs/getting-started/installation) and the Laserman web app is running
+- Google Chrome or Chromium-based browser (Edge, Brave, Arc) version 116+
+- A Laserman user account with API access
+
+## Step 1: Locate the Extension Files
+
+The Chrome extension source code is located in the `chrome-extension/` directory of the Laserman repository:
+
+```
+laserman_v2/
+  chrome-extension/
+    manifest.json
+    background.js
+    sidepanel.html
+    sidepanel.js
+    sidepanel.css
+    detectors/
+      sora-detector.js
+      veo-detector.js
+      freepik-detector.js
+```
+
+> **Note:** The extension is not yet published to the Chrome Web Store. You'll install it as an unpacked extension in developer mode.
+
+## Step 2: Enable Developer Mode in Chrome
+
+Open Chrome and navigate to the Extensions page:
+
+```
+chrome://extensions
+```
+
+In the top-right corner, toggle **Developer mode** to ON. This reveals additional options for loading unpacked extensions.
+
+## Step 3: Load the Unpacked Extension
+
+1. Click **Load unpacked** button (top-left of the Extensions page)
+2. Navigate to the `chrome-extension/` directory in your Laserman repository
+3. Select the folder and click **Open**
+
+The Laserman extension should now appear in your extensions list:
+
+```
+Laserman Capture
+Version 1.0.0
+ID: [auto-generated-extension-id]
+```
+
+Pin the extension to your toolbar by clicking the puzzle piece icon and pinning Laserman.
+
+## Step 4: Generate an API Token
+
+The extension requires an API token to authenticate with your Laserman instance.
+
+Navigate to the **Integrations** page in the Laserman web app:
+
+```
+http://localhost:3000/integrations
+```
+
+Or access it from the dashboard:
+
+1. Click your profile icon (top-right)
+2. Select **Settings**
+3. Navigate to **Integrations** tab
+
+### Create a New API Token
+
+1. Click **Generate New Token**
+2. Enter a descriptive name: `Chrome Extension - Local Dev`
+3. Set expiration (optional): Choose 30 days, 90 days, or No Expiration
+4. Click **Create Token**
+
+The token will be displayed once:
+
+```
+ls_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
+```
+
+> **Important**: Copy this token immediately. It will not be shown again. If you lose it, you must generate a new token.
+
+### Token Permissions
+
+API tokens grant the following permissions:
+
+- Create and update asset versions
+- Associate assets with shots
+- Read project and scene metadata
+- Write to the offline queue
+
+Tokens **cannot**:
+
+- Delete projects or scenes
+- Modify user accounts
+- Access other users' projects
+
+## Step 5: Configure the Extension
+
+Click the Laserman extension icon in your Chrome toolbar (or open the side panel if auto-opened).
+
+You'll see the **Connection Setup** screen with two fields:
+
+### Laserman URL
+
+Enter the URL of your Laserman instance:
+
+```
+http://localhost:3000
+```
+
+For production deployments, use your production domain:
+
+```
+https://laserman.yourdomain.com
+```
+
+> **Note:** The URL must include the protocol (`http://` or `https://`) and should not have a trailing slash.
+
+### API Token
+
+Paste the API token you generated in Step 4:
+
+```
+ls_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
+```
+
+Click **Connect**.
+
+## Step 6: Test the Connection
+
+After entering your credentials, the extension will attempt to connect to Laserman. You should see:
+
+```
+✓ Connected to Laserman
+  User: your-email@example.com
+  Projects: 1 available
+```
+
+If the connection fails, verify:
+
+- Laserman web app is running at the specified URL
+- API token is correct and not expired
+- No firewall blocking localhost connections
+
+### Connection Diagnostics
+
+Click **Test Connection** to run diagnostics:
+
+- **Network**: Checks if Laserman is reachable
+- **Authentication**: Validates the API token
+- **Permissions**: Verifies token has required scopes
+
+## Understanding the Side Panel
+
+Laserman uses Chrome's Side Panel API (not a popup) for a persistent workflow alongside generation platforms. The side panel remains open while you browse, providing continuous access to capture controls.
+
+### Four Extension Modes
+
+The extension operates in four distinct modes, accessible via tabs in the side panel:
+
+#### 1. Context Mode
+
+Displays the current capture context:
+
+- **Active Project**: The project receiving captures
+- **Active Scene**: The scene within that project
+- **Last Shot**: The most recently used shot ID
+
+**Purpose**: Quickly confirm where your next capture will be saved without manual selection.
+
+> **Note**: The extension remembers your last-active context across browser sessions. Change context by clicking **Switch Project** or **Switch Scene**.
+
+#### 2. Capture Mode
+
+The primary capture interface:
+
+- **Platform Detection**: Automatically detects Sora, Veo, Freepik, or custom platforms
+- **Asset Preview**: Shows thumbnail of detected asset
+- **One-Click Save**: Captures asset with default metadata from current context
+- **Manual Override**: Edit shot ID, prompt, or model parameters before saving
+
+**Workflow**:
+
+1. Generate an asset on an external platform
+2. Platform detector identifies the asset automatically
+3. Review the detected metadata
+4. Click **Capture** to save to Laserman
+
+#### 3. Reuse Mode
+
+Access previously captured assets for prompt reuse:
+
+- **Recent Captures**: Last 20 assets captured from any platform
+- **Prompt Copy**: One-click copy of any previous prompt
+- **Parameter Export**: Export generation settings as JSON
+
+**Purpose**: Quickly reuse successful prompts or iterate on previous generations without manually retyping parameters.
+
+#### 4. Queue Mode
+
+Offline capture queue management:
+
+- **Pending Uploads**: Assets captured while offline
+- **Retry Failed**: Manually retry failed uploads
+- **Clear Queue**: Remove completed or unwanted items
+
+**Purpose**: Manage captures that couldn't sync immediately due to network issues or API errors.
+
+## Step 7: Perform Your First Capture
+
+Let's test the extension by capturing a sample asset.
+
+1. Open a new tab and navigate to an AI image generation platform (e.g., [Freepik AI](https://www.freepik.com/ai))
+2. Generate an image using a simple prompt: `coffee shop interior, morning light`
+3. Wait for the image to finish generating
+4. Open the Laserman side panel (click the extension icon or press `Ctrl+Shift+Y`)
+
+### Automatic Detection
+
+The extension should automatically detect the generated asset. The **Capture Mode** tab will display:
+
+```
+Platform Detected: Freepik
+Asset Type: Image
+Format: PNG (1024x1024)
+Model: Freepik AI v2.0
+
+Detected Prompt:
+"coffee shop interior, morning light"
+
+Suggested Shot: S001-001
+```
+
+### Review Metadata
+
+Before capturing, verify:
+
+- **Shot ID**: Matches your intended shot (default is the last-active shot from Context Mode)
+- **Prompt**: Correctly extracted from the platform
+- **Model Parameters**: Includes aspect ratio, steps, guidance scale
+
+### Capture the Asset
+
+Click **Capture Asset**. The extension will:
+
+1. Download the asset file to local storage
+2. Upload to Cloudflare R2 via Laserman API
+3. Create an `AssetVersion` record in the database
+4. Associate the version with the specified shot
+5. Display a success notification
+
+You should see:
+
+```
+✓ Asset Captured
+  Shot: S001-001
+  Version: 1
+  File: [R2 URL]
+```
+
+### Verify in Laserman
+
+Navigate to your project's scene detail page in the web app:
+
+```
+http://localhost:3000/projects/{projectId}/scenes/{sceneId}
+```
+
+You should see the captured asset listed under the corresponding shot, with:
+
+- Thumbnail preview
+- Platform badge (Freepik)
+- Prompt snippet
+- Capture timestamp
+
+## Extension Settings
+
+Access extension settings by clicking the gear icon in the side panel.
+
+### Default Behavior
+
+- **Auto-Detect Assets**: Enable/disable automatic platform detection
+- **Auto-Assign Shot**: Automatically use last-active shot for captures
+- **Show Notifications**: Display success/error notifications
+- **Offline Queue**: Enable offline capture queuing
+
+### Platform Detectors
+
+Enable or disable specific platform detectors:
+
+- Sora (OpenAI)
+- Veo (Google)
+- Freepik
+- Midjourney
+- Stable Diffusion
+- Custom (for unsupported platforms)
+
+> **Note**: Disabling a detector improves performance but prevents automatic capture from that platform. You can still capture manually using the **Custom** detector.
+
+### Keyboard Shortcuts
+
+Configure keyboard shortcuts for quick actions:
+
+- **Open Side Panel**: Default `Ctrl+Shift+Y` (Windows) or `Cmd+Shift+Y` (Mac)
+- **Quick Capture**: Default `Ctrl+Shift+C` (saves with defaults, no confirmation)
+- **Copy Last Prompt**: Default `Ctrl+Shift+P`
+
+## Platform-Specific Notes
+
+### Sora (OpenAI)
+
+- Detects video assets only
+- Extracts full prompt and model parameters
+- Supports multi-shot detection (if platform generates multiple variations)
+
+### Veo (Google)
+
+- Detects video assets only
+- Extracts prompt from Gemini interface
+- May require manual model selection if not auto-detected
+
+### Freepik
+
+- Detects image assets only
+- Extracts prompt and style parameters
+- Supports batch capture (multiple images from one generation)
+
+## Troubleshooting
+
+### Extension Not Detecting Assets
+
+If the extension doesn't detect generated assets:
+
+1. Ensure the platform detector is enabled in settings
+2. Refresh the platform page after the asset finishes generating
+3. Try manually selecting the asset image and right-clicking **Capture to Laserman**
+4. Check the browser console for detector errors
+
+### Upload Failures
+
+If captures fail to upload:
+
+1. Verify Laserman web app is running
+2. Check API token is valid and not expired
+3. Ensure R2 credentials in `.env` are correct
+4. Review network requests in Chrome DevTools (Network tab)
+
+### Side Panel Not Opening
+
+If the side panel doesn't open when clicking the extension icon:
+
+1. Check Chrome version is 116+ (Side Panel API requirement)
+2. Disable conflicting extensions that override side panel behavior
+3. Reinstall the extension as unpacked
+
+### Context Not Persisting
+
+If the extension forgets your project/scene context:
+
+1. Check Chrome's local storage permissions
+2. Ensure the extension has `storage` permission in `manifest.json`
+3. Try reconnecting with the API token
+
+## Security Considerations
+
+### API Token Storage
+
+The extension stores your API token in Chrome's local storage, which is encrypted at rest. However:
+
+- Never share your API token with others
+- Rotate tokens periodically (every 90 days recommended)
+- Revoke tokens immediately if compromised
+
+### Asset Privacy
+
+Assets are temporarily stored in Chrome's local storage before upload. If working with sensitive content:
+
+- Enable Chrome's "Clear on exit" for browsing data
+- Revoke API tokens when not actively capturing
+- Use Incognito mode for extra-sensitive generation workflows (note: requires enabling extension in Incognito)
+
+## Next Steps
+
+Now that the extension is installed and connected, you're ready to:
+
+1. Generate assets on external platforms (Sora, Veo, Freepik, etc.)
+2. Capture versions using the side panel
+3. Compare versions in the Laserman web app
+4. Select finals for each shot
+5. Track rights and licensing status
+6. Export production-ready deliverables
+
+For advanced capture workflows, see the [Extension Advanced Usage](/docs/extension/advanced-usage) guide.
+
+## Updating the Extension
+
+When new versions of Laserman are released, update the extension:
+
+1. Pull the latest code from the repository: `git pull origin main`
+2. Navigate to `chrome://extensions`
+3. Click the **Reload** icon on the Laserman extension card
+
+No need to uninstall and reinstall—Chrome will reload the updated files automatically.
+
+## Feedback and Support
+
+If you encounter issues with the extension:
+
+- Check the [Troubleshooting Guide](/docs/troubleshooting)
+- Review browser console logs (F12 → Console)
+- Report bugs on [GitHub Issues](https://github.com/yourusername/laserman/issues)
+
+For feature requests or workflow suggestions, join the discussion on [GitHub Discussions](https://github.com/yourusername/laserman/discussions).

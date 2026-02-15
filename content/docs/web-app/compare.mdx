@@ -1,0 +1,318 @@
+---
+title: "Compare View"
+description: "Side-by-side asset comparison, auto-grouping, metadata overlay, and winner selection"
+---
+
+# Compare View
+
+The Compare view enables side-by-side evaluation of multiple asset versions, making it easier to identify the best option for each shot. Compare view is essential for informed decision-making in the production workflow.
+
+## Overview
+
+Access Compare view from the Compare tab in scene detail view. This specialized interface displays multiple assets simultaneously for direct comparison.
+
+## Comparison Groups
+
+Assets are organized into comparison groups based on common attributes.
+
+### Auto-Grouping
+
+Laserman automatically groups assets by:
+
+- **Shot** - All versions of the same shot
+- **Platform** - Assets from different platforms for the same shot
+- **Timestamp** - Assets generated around the same time
+- **Prompt Similarity** - Assets with similar generation prompts
+
+Auto-grouping happens in real-time as you capture new assets.
+
+### Manual Grouping
+
+Create custom comparison groups:
+
+1. Select multiple assets from the Assets tab
+2. Click "Add to Comparison"
+3. Name the comparison group
+4. Assets appear together in Compare view
+
+Manual groups persist across sessions and can be edited at any time.
+
+### Group Management
+
+From the Compare view:
+
+- **Add Assets** - Include additional versions in the group
+- **Remove Assets** - Remove versions from the group
+- **Rename Group** - Change the group name
+- **Delete Group** - Remove the group (assets remain in project)
+
+## Comparison Layout
+
+### Grid Layout
+
+Display assets in a responsive grid:
+
+- 2-up: Two assets side-by-side
+- 3-up: Three assets in a row
+- 4-up: Four assets in a grid
+- Auto: Automatically adjusts based on window size
+
+Switch between layouts using the layout selector in the toolbar.
+
+### Full-Screen Layout
+
+Expand a single asset to full-screen while keeping others visible as thumbnails along the bottom. Click any thumbnail to swap it into the main view.
+
+### Synchronized Playback
+
+For video assets, enable synchronized playback:
+
+1. Toggle "Sync Playback" in the toolbar
+2. All videos play simultaneously
+3. Scrubbing one video scrubs all others
+4. Compare timing and pacing across versions
+
+> Synchronized playback is essential for evaluating video variations with different pacing or timing.
+
+## Metadata Overlay
+
+Display key metadata directly on each asset for quick reference.
+
+### Default Overlay
+
+The default overlay shows:
+
+- **Platform** - Generation platform badge
+- **Status** - Current workflow status
+- **Version Number** - Version identifier
+- **Duration** - Length for video/audio
+- **Selection Indicator** - Gold star for winners
+
+### Custom Overlay
+
+Customize the overlay to show specific metadata:
+
+1. Click "Customize Overlay" in the toolbar
+2. Select fields to display:
+   - Model version
+   - Prompt text
+   - Generation cost
+   - Seed value
+   - Technical specs
+3. Save custom overlay preference
+
+Custom overlays persist for your user account.
+
+### Toggle Overlay
+
+Show or hide the overlay using the keyboard shortcut: **M** (for Metadata)
+
+## Comparison Tools
+
+### Zoom and Pan
+
+Zoom into images or video frames for detailed inspection:
+
+1. Hover over an asset
+2. Scroll to zoom in/out
+3. Click and drag to pan
+4. Zoom level syncs across all assets in the group
+
+Examine fine details like facial expressions, text legibility, or artifact presence.
+
+### Frame-by-Frame Comparison
+
+For video assets, step through frames one at a time:
+
+1. Pause playback on all videos
+2. Use Left/Right arrow keys to step
+3. All videos advance frame-by-frame together
+4. Identify differences at specific moments
+
+### A/B Toggle
+
+Quickly toggle between two assets:
+
+1. Select two assets in the comparison group
+2. Press **T** to toggle between them
+3. Assets swap positions instantly
+4. Useful for subtle difference detection
+
+## Selecting Winners from Compare View
+
+Make selection decisions directly in the Compare view:
+
+### Selection Actions
+
+1. Review all versions in the comparison group
+2. Hover over the chosen version
+3. Click "Select as Winner"
+4. Gold star appears on the selected version
+5. Other versions in the group revert to "Approved" status
+
+### Bulk Selection
+
+Select winners for multiple shots at once:
+
+1. Create comparison groups for each shot
+2. Review each group in sequence
+3. Select winner for each group
+4. Click "Apply All Selections"
+5. All selections are saved simultaneously
+
+> Bulk selection streamlines the decision-making process when reviewing many shots in a single session.
+
+## Comparison Filters
+
+Narrow the comparison view to specific asset types or attributes:
+
+### Filter Options
+
+- **Type** - Show only images, only videos, or specific types
+- **Platform** - Compare assets from specific platforms
+- **Status** - Show only approved assets or specific statuses
+- **Date Range** - Assets created within a time range
+
+Filters apply to all comparison groups in the current view.
+
+## Comparison Notes
+
+Add notes and feedback during comparison:
+
+### Per-Asset Notes
+
+1. Click an asset in the comparison group
+2. Click "Add Note"
+3. Type your feedback or observation
+4. Notes appear below the asset
+5. Tag team members for attention
+
+### Comparison Summary
+
+Add a summary note for the entire comparison group:
+
+1. Click "Group Notes" in the toolbar
+2. Summarize your decision rationale
+3. Note strengths and weaknesses of each version
+4. Reference creative direction or technical requirements
+
+Comparison notes help document decision-making for future reference and team communication.
+
+## Rating Assets
+
+Assign numeric ratings or stars to assets during comparison:
+
+### Rating Scale
+
+- **1-5 Stars** - Subjective quality rating
+- **Numeric Score** - Custom scoring system (1-10, 1-100)
+- **Thumbs Up/Down** - Binary approval indicator
+
+Ratings display on asset cards and can be used for filtering and sorting.
+
+### Rating Criteria
+
+Establish rating criteria before comparing:
+
+- Technical quality (resolution, clarity, artifacts)
+- Creative alignment (matches vision and direction)
+- Emotional impact (conveys intended feeling)
+- Continuity (fits with surrounding shots)
+
+Consistent criteria lead to better decision outcomes.
+
+## Comparison Export
+
+Export comparison groups for review or presentation:
+
+### Export Options
+
+- **PDF Report** - Side-by-side images with metadata
+- **Video Reel** - Assembled video of all versions
+- **Spreadsheet** - Tabular comparison of metadata
+- **Web Link** - Shareable URL for remote review
+
+### Presentation Mode
+
+Use presentation mode for client reviews or team meetings:
+
+1. Click "Present" in the toolbar
+2. Comparison view goes full-screen
+3. Hide UI elements for clean display
+4. Navigate with keyboard shortcuts
+5. Press **Esc** to exit
+
+> Presentation mode is ideal for client approvals or executive reviews where UI clutter should be minimized.
+
+## Advanced Comparison Features
+
+### Difference Highlighting
+
+For similar images, enable difference highlighting:
+
+1. Select two similar assets
+2. Click "Highlight Differences"
+3. Areas of difference are visually marked
+4. Adjust sensitivity threshold
+5. Useful for detecting subtle variations
+
+### Metadata Comparison
+
+Compare generation parameters across versions:
+
+1. Select multiple assets
+2. Click "Compare Metadata"
+3. View side-by-side parameter comparison
+4. Identify which parameters led to better results
+5. Inform future generation decisions
+
+### Prompt Analysis
+
+Analyze prompt differences and their impact:
+
+1. Select versions with different prompts
+2. Click "Prompt Analysis"
+3. Laserman highlights prompt variations
+4. Correlate prompt changes with result differences
+5. Learn which prompt elements drive desired outcomes
+
+## Keyboard Shortcuts
+
+Navigate Compare view efficiently:
+
+- **Arrow Keys** - Navigate between assets
+- **Space** - Play/pause video
+- **T** - Toggle between two selected assets
+- **M** - Show/hide metadata overlay
+- **S** - Select current asset as winner
+- **N** - Next comparison group
+- **P** - Previous comparison group
+- **Esc** - Exit full-screen or close preview
+
+## Comparison Best Practices
+
+### Compare Immediately
+
+Review and compare assets soon after generation while creative intent is fresh.
+
+### Compare in Context
+
+When comparing shots, view surrounding shots to ensure continuity and flow.
+
+### Limit Comparison Groups
+
+Compare 2-4 versions at a time for clearer decision-making. Too many options can lead to decision paralysis.
+
+### Document Decisions
+
+Always add notes explaining why a particular version was selected. This helps future you and your team understand the reasoning.
+
+### Iterate Based on Comparison
+
+Use comparison insights to refine prompts and generation parameters for better results in future iterations.
+
+> The goal of comparison is not perfection, but informed decision-making. Select the version that best serves the story and move forward.
+
+## Next Steps
+
+After selecting winners in Compare view, proceed to the [Timeline](/docs/web-app/timeline) to assemble your final edit, or return to [Asset Management](/docs/web-app/assets) to continue refining individual versions.
