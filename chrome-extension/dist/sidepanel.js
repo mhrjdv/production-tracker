@@ -83,6 +83,7 @@
         scenes: [],
         platforms: [],
         sceneAssets: [],
+        characters: [],
         currentTab: null,
         activeMode: "capture",
         configCache: null,
@@ -193,6 +194,12 @@
       body: { assetId, ...data }
     });
   }
+  async function fetchCharacters(projectId) {
+    const data = await fetchApi(
+      `/api/extension/characters?projectId=${encodeURIComponent(projectId)}`
+    );
+    return data.characters || [];
+  }
   async function syncProfile(preferences) {
     const config = state_default.configCache || await getConfig();
     if (!(config.token || "").trim()) return;
@@ -279,6 +286,12 @@
         modeNav: $("modeNav"),
         // Auth gate
         authGate: $("authGate"),
+        authBaseUrl: $("authBaseUrl"),
+        authToken: $("authToken"),
+        authOpenAiBaseUrl: $("authOpenAiBaseUrl"),
+        authOpenAiModel: $("authOpenAiModel"),
+        authOpenAiApiKey: $("authOpenAiApiKey"),
+        authConnect: $("authConnect"),
         // Context (now inside capture panel)
         panelContext: $("panelContext"),
         ctxProjectSelect: $("ctxProjectSelect"),
@@ -293,6 +306,7 @@
         ctxIntentActions: $("ctxIntentActions"),
         ctxDetectionBanner: $("ctxDetectionBanner"),
         ctxDetectDot: $("ctxDetectDot"),
+        ctxCharactersList: $("ctxCharactersList"),
         // Candidate picker
         candidatePicker: $("candidatePicker"),
         candidateList: $("candidateList"),
@@ -4270,6 +4284,66 @@
       container.appendChild(row);
     });
   }
+  function renderCharacterCards() {
+    const container = dom.ctxCharactersList;
+    if (!container) return;
+    container.innerHTML = "";
+    if (state_default.characters.length === 0) {
+      container.innerHTML = '<div class="sp-empty">No characters in this project.</div>';
+      return;
+    }
+    state_default.characters.forEach((char) => {
+      const card = document.createElement("div");
+      card.className = "sp-char-card";
+      const portrait = document.createElement("div");
+      portrait.className = "sp-char-portrait";
+      if (char.portraitUrl) {
+        const img = document.createElement("img");
+        img.src = char.portraitUrl;
+        img.alt = char.name;
+        portrait.appendChild(img);
+      } else {
+        portrait.textContent = (char.name || "?")[0].toUpperCase();
+      }
+      const info = document.createElement("div");
+      info.className = "sp-char-info";
+      const name = document.createElement("div");
+      name.className = "sp-char-name";
+      name.textContent = char.name;
+      const role = document.createElement("div");
+      role.className = "sp-char-role";
+      role.textContent = char.role;
+      info.appendChild(name);
+      info.appendChild(role);
+      const copyBtn = document.createElement("button");
+      copyBtn.type = "button";
+      copyBtn.className = "sp-char-copy-btn";
+      copyBtn.title = "Copy character prompt";
+      copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+      copyBtn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const visual = (char.visualCues || []).join("; ");
+        const text = [
+          `Character: ${char.name} (${char.role})`,
+          char.coreIdentity ? `Identity: ${char.coreIdentity}` : "",
+          visual ? `Visual: ${visual}` : ""
+        ].filter(Boolean).join("\n");
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+          setTimeout(() => {
+            copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+          }, 1500);
+        } catch {
+          setStatus("Failed to copy.", true);
+        }
+      });
+      card.appendChild(portrait);
+      card.appendChild(info);
+      card.appendChild(copyBtn);
+      container.appendChild(card);
+    });
+  }
   function renderPreviewList() {
     const container = dom.queuePreviewList;
     container.innerHTML = "";
@@ -5357,9 +5431,14 @@
     if (state_default.currentTab?.url) dom.capSourceUrl.value = state_default.currentTab.url;
     await loadQueueFromStorage();
     if (!(config.token || "").trim()) {
+      dom.authBaseUrl.value = config.baseUrl || "http://localhost:3000";
+      dom.authToken.value = config.token || "";
+      dom.authOpenAiBaseUrl.value = config.openAiBaseUrl || "";
+      dom.authOpenAiModel.value = config.openAiModel || "";
+      dom.authOpenAiApiKey.value = config.openAiApiKey || "";
       dom.authGate.classList.remove("hidden");
       document.querySelectorAll(".sp-main").forEach((p) => p.classList.add("hidden"));
-      setStatus("Set API URL and token in Settings.");
+      setStatus("Enter your credentials to connect.");
       return;
     }
     dom.authGate.classList.add("hidden");
@@ -5381,6 +5460,10 @@
         dom.ctxSceneSelect.value = defaultScene;
       }
       await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
+      state_default.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
+        () => []
+      );
+      renderCharacterCards();
       updateContextBar();
       resetCaptureForm({ preserveSourceUrl: true });
       await restoreSceneDraft();
@@ -5446,6 +5529,31 @@
     toggleSettings(false);
     await initialize();
   });
+  dom.authConnect.addEventListener("click", async () => {
+    const token = dom.authToken.value.trim();
+    if (!token) {
+      setStatus("API Token is required.", true);
+      return;
+    }
+    dom.authConnect.disabled = true;
+    dom.authConnect.textContent = "Connecting...";
+    const nextConfig = {
+      baseUrl: dom.authBaseUrl.value.trim() || "http://localhost:3000",
+      token,
+      openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
+      openAiModel: dom.authOpenAiModel.value.trim(),
+      openAiApiKey: dom.authOpenAiApiKey.value.trim()
+    };
+    await saveConfig(nextConfig);
+    dom.cfgBaseUrl.value = nextConfig.baseUrl;
+    dom.cfgToken.value = nextConfig.token;
+    dom.cfgOpenAiBaseUrl.value = nextConfig.openAiBaseUrl;
+    dom.cfgOpenAiModel.value = nextConfig.openAiModel;
+    dom.cfgOpenAiApiKey.value = nextConfig.openAiApiKey;
+    dom.authConnect.disabled = false;
+    dom.authConnect.textContent = "Connect";
+    await initialize();
+  });
   dom.cfgReload.addEventListener("click", async () => {
     toggleSettings(false);
     setStatus("Reloading...");
@@ -5456,6 +5564,10 @@
       await saveSceneDraft();
       await loadScenes(dom.ctxProjectSelect.value);
       await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
+      state_default.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
+        () => []
+      );
+      renderCharacterCards();
       updateContextBar();
       resetCaptureForm({ preserveSourceUrl: true });
       await restoreSceneDraft();

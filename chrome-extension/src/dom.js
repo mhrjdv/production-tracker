@@ -24,6 +24,12 @@ export const dom = {
 
   // Auth gate
   authGate: $("authGate"),
+  authBaseUrl: $("authBaseUrl"),
+  authToken: $("authToken"),
+  authOpenAiBaseUrl: $("authOpenAiBaseUrl"),
+  authOpenAiModel: $("authOpenAiModel"),
+  authOpenAiApiKey: $("authOpenAiApiKey"),
+  authConnect: $("authConnect"),
 
   // Context (now inside capture panel)
   panelContext: $("panelContext"),
@@ -39,6 +45,7 @@ export const dom = {
   ctxIntentActions: $("ctxIntentActions"),
   ctxDetectionBanner: $("ctxDetectionBanner"),
   ctxDetectDot: $("ctxDetectDot"),
+  ctxCharactersList: $("ctxCharactersList"),
 
   // Candidate picker
   candidatePicker: $("candidatePicker"),

@@ -9,6 +9,7 @@ const state = {
   scenes: [],
   platforms: [],
   sceneAssets: [],
+  characters: [],
   currentTab: null,
   activeMode: "capture",
   configCache: null,

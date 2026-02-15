@@ -201,6 +201,82 @@ export function renderReuseList() {
   });
 }
 
+export function renderCharacterCards() {
+  const container = dom.ctxCharactersList;
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (state.characters.length === 0) {
+    container.innerHTML =
+      '<div class="sp-empty">No characters in this project.</div>';
+    return;
+  }
+
+  state.characters.forEach((char) => {
+    const card = document.createElement("div");
+    card.className = "sp-char-card";
+
+    const portrait = document.createElement("div");
+    portrait.className = "sp-char-portrait";
+    if (char.portraitUrl) {
+      const img = document.createElement("img");
+      img.src = char.portraitUrl;
+      img.alt = char.name;
+      portrait.appendChild(img);
+    } else {
+      portrait.textContent = (char.name || "?")[0].toUpperCase();
+    }
+
+    const info = document.createElement("div");
+    info.className = "sp-char-info";
+
+    const name = document.createElement("div");
+    name.className = "sp-char-name";
+    name.textContent = char.name;
+
+    const role = document.createElement("div");
+    role.className = "sp-char-role";
+    role.textContent = char.role;
+
+    info.appendChild(name);
+    info.appendChild(role);
+
+    const copyBtn = document.createElement("button");
+    copyBtn.type = "button";
+    copyBtn.className = "sp-char-copy-btn";
+    copyBtn.title = "Copy character prompt";
+    copyBtn.innerHTML =
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    copyBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const visual = (char.visualCues || []).join("; ");
+      const text = [
+        `Character: ${char.name} (${char.role})`,
+        char.coreIdentity ? `Identity: ${char.coreIdentity}` : "",
+        visual ? `Visual: ${visual}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerHTML =
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+        setTimeout(() => {
+          copyBtn.innerHTML =
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+        }, 1500);
+      } catch {
+        setStatus("Failed to copy.", true);
+      }
+    });
+
+    card.appendChild(portrait);
+    card.appendChild(info);
+    card.appendChild(copyBtn);
+    container.appendChild(card);
+  });
+}
+
 export function renderPreviewList() {
   const container = dom.queuePreviewList;
   container.innerHTML = "";

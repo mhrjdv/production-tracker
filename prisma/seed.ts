@@ -960,6 +960,105 @@ async function main() {
     "      Platforms covered: Midjourney, FLUX, Sora, Veo, Runway, Freepik, Ideogram, Suno, ElevenLabs, Stable Diffusion",
   );
 
+  // ─── Seed SceneCharacter junction records ──────────────────────
+  console.log("🔗 Seeding scene-character assignments...");
+
+  // Build character name -> DB id lookup
+  const seededCharacters = await prisma.character.findMany({
+    where: { projectId: project.id },
+    select: { id: true, name: true },
+  });
+  const charNameMap = new Map(seededCharacters.map((c) => [c.name, c.id]));
+
+  // Query all scenes with their charactersPresent arrays
+  const allScenes = await prisma.scene.findMany({
+    where: { projectId: project.id },
+    select: { id: true, sceneId: true, charactersPresent: true },
+  });
+
+  let sceneCharCount = 0;
+  for (const scene of allScenes) {
+    for (const charName of scene.charactersPresent) {
+      const characterId = charNameMap.get(charName);
+      if (characterId) {
+        await prisma.sceneCharacter.create({
+          data: { sceneId: scene.id, characterId },
+        });
+        sceneCharCount++;
+      }
+    }
+  }
+  console.log(`   ✅ ${sceneCharCount} scene-character assignments seeded`);
+
+  // ─── Seed ShotCharacter junction records ──────────────────────
+  console.log("🔗 Seeding shot-character assignments...");
+
+  const shotCharSeeds: {
+    shotSceneCode: string;
+    shotCode: string;
+    charName: string;
+    role?: string;
+  }[] = [
+    // S001: Laserman is in all shots
+    {
+      shotSceneCode: "S001",
+      shotCode: "SH001",
+      charName: "Laserman",
+      role: "background",
+    },
+    {
+      shotSceneCode: "S001",
+      shotCode: "SH002",
+      charName: "Laserman",
+      role: "featured",
+    },
+    {
+      shotSceneCode: "S001",
+      shotCode: "SH003",
+      charName: "Laserman",
+      role: "featured",
+    },
+    // S002: Laserman examining the map
+    {
+      shotSceneCode: "S002",
+      shotCode: "SH001",
+      charName: "Laserman",
+      role: "featured",
+    },
+    {
+      shotSceneCode: "S002",
+      shotCode: "SH002",
+      charName: "Laserman",
+      role: "featured",
+    },
+    // S003: Laserman in the pullback + insert
+    {
+      shotSceneCode: "S003",
+      shotCode: "SH001",
+      charName: "Laserman",
+      role: "background",
+    },
+    {
+      shotSceneCode: "S003",
+      shotCode: "SH002",
+      charName: "Laserman",
+      role: "featured",
+    },
+  ];
+
+  let shotCharCount = 0;
+  for (const sc of shotCharSeeds) {
+    const sId = shotId(sc.shotSceneCode, sc.shotCode);
+    const cId = charNameMap.get(sc.charName);
+    if (sId && cId) {
+      await prisma.shotCharacter.create({
+        data: { shotId: sId, characterId: cId, role: sc.role ?? null },
+      });
+      shotCharCount++;
+    }
+  }
+  console.log(`   ✅ ${shotCharCount} shot-character assignments seeded`);
+
   console.log("\n🎉 Database seeding complete!");
   console.log("   Login: demo@tracker.dev / demo1234");
 }

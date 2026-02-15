@@ -1,40 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Eye, Film, MapPin, Users } from "lucide-react";
+import { Camera, Check, Eye, Film, MapPin, Users } from "lucide-react";
 import { updateScene } from "@/lib/actions";
+import { updateSceneCharacters } from "@/lib/actions/scene-character-actions";
 import { EditableCard } from "./editable-card";
 import { KeyValueEditor } from "./key-value-editor";
 import { StringListEditor } from "./string-list-editor";
-import type { SceneDetailData } from "./types";
+import type { SceneDetailData, CharacterItem } from "./types";
 
 interface ScriptTabProps {
   scene: SceneDetailData;
+  projectCharacters: CharacterItem[];
+  sceneCharacterIds: string[];
 }
 
-export function ScriptTab({ scene }: ScriptTabProps) {
+export function ScriptTab({
+  scene,
+  projectCharacters,
+  sceneCharacterIds,
+}: ScriptTabProps) {
   return (
     <div className="space-y-6">
+      {/* Script Text: always expanded by default */}
       <ScriptTextCard scene={scene} />
-      <NarrativePurposeCard scene={scene} />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <SettingCard scene={scene} />
-        <CameraCard scene={scene} />
-      </div>
+      {/* Remaining cards in collapsible sections */}
+      <details>
+        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground select-none py-1">
+          Narrative Purpose
+        </summary>
+        <div className="mt-2">
+          <NarrativePurposeCard scene={scene} />
+        </div>
+      </details>
 
-      <ActionsCard scene={scene} />
+      <details>
+        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground select-none py-1">
+          Setting & Camera
+        </summary>
+        <div className="mt-2 grid gap-4 md:grid-cols-2">
+          <SettingCard scene={scene} />
+          <CameraCard scene={scene} />
+        </div>
+      </details>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <VisualMotifsCard scene={scene} />
-        <ConstraintsCard scene={scene} />
-      </div>
+      <details>
+        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground select-none py-1">
+          Actions
+        </summary>
+        <div className="mt-2">
+          <ActionsCard scene={scene} />
+        </div>
+      </details>
 
-      <CharactersPresentCard scene={scene} />
-      <KeyframeCard scene={scene} />
+      <details>
+        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground select-none py-1">
+          Visual Motifs & Constraints
+        </summary>
+        <div className="mt-2 grid gap-4 md:grid-cols-2">
+          <VisualMotifsCard scene={scene} />
+          <ConstraintsCard scene={scene} />
+        </div>
+      </details>
+
+      <details>
+        <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground select-none py-1">
+          Characters & Keyframe
+        </summary>
+        <div className="mt-2 space-y-4">
+          <CharactersPresentCard
+            scene={scene}
+            projectCharacters={projectCharacters}
+            sceneCharacterIds={sceneCharacterIds}
+          />
+          <KeyframeCard scene={scene} />
+        </div>
+      </details>
     </div>
   );
 }
@@ -290,36 +335,123 @@ function ConstraintsCard({ scene }: { scene: SceneDetailData }) {
 
 // ─── Characters Present ───────────────────────────────────────
 
-function CharactersPresentCard({ scene }: { scene: SceneDetailData }) {
-  const [characters, setCharacters] = useState<string[]>(
-    scene.charactersPresent,
+function CharactersPresentCard({
+  scene,
+  projectCharacters,
+  sceneCharacterIds,
+}: {
+  scene: SceneDetailData;
+  projectCharacters: CharacterItem[];
+  sceneCharacterIds: string[];
+}) {
+  const [selectedIds, setSelectedIds] = useState<string[]>(sceneCharacterIds);
+  const [isPending, startTransition] = useTransition();
+
+  const toggleCharacter = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
+  };
+
+  const assignedCharacters = projectCharacters.filter((c) =>
+    sceneCharacterIds.includes(c.id),
   );
 
   return (
     <EditableCard
       title="Characters Present"
       icon={<Users className="h-4 w-4" />}
-      isEmpty={scene.charactersPresent.length === 0}
+      isEmpty={sceneCharacterIds.length === 0 && projectCharacters.length === 0}
       onSave={async () => {
-        await updateScene(scene.id, {
-          charactersPresent: characters.filter((c) => c.trim()),
+        startTransition(async () => {
+          await updateSceneCharacters(scene.id, selectedIds);
         });
       }}
       editContent={() => (
-        <StringListEditor
-          value={characters}
-          onChange={setCharacters}
-          placeholder="Add character..."
-        />
+        <div className="space-y-2">
+          {projectCharacters.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No characters in this project yet. Add characters in the
+              Characters tab.
+            </p>
+          ) : (
+            projectCharacters.map((char) => {
+              const isSelected = selectedIds.includes(char.id);
+              return (
+                <button
+                  key={char.id}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => toggleCharacter(char.id)}
+                  className={`flex items-center gap-3 w-full rounded-lg border p-2.5 text-left transition-colors ${
+                    isSelected
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:bg-muted/50"
+                  }`}
+                >
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {char.portraitUrl ? (
+                      <img
+                        src={char.portraitUrl}
+                        alt={char.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs font-medium text-primary">
+                        {char.name[0]?.toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{char.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {char.role}
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <Check className="h-4 w-4 text-primary shrink-0" />
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
       )}
     >
-      <div className="flex flex-wrap gap-2">
-        {scene.charactersPresent.map((char, i) => (
-          <Badge key={i} variant="outline" className="text-sm">
-            {char}
-          </Badge>
-        ))}
-      </div>
+      {assignedCharacters.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {assignedCharacters.map((char) => (
+            <Badge
+              key={char.id}
+              variant="outline"
+              className="text-sm gap-1.5 py-1"
+            >
+              <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
+                {char.portraitUrl ? (
+                  <img
+                    src={char.portraitUrl}
+                    alt={char.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-[8px] font-medium text-primary">
+                    {char.name[0]?.toUpperCase()}
+                  </span>
+                )}
+              </div>
+              {char.name}
+            </Badge>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {scene.charactersPresent.map((name, i) => (
+            <Badge key={i} variant="secondary" className="text-sm">
+              {name}
+            </Badge>
+          ))}
+        </div>
+      )}
     </EditableCard>
   );
 }

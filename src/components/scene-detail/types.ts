@@ -107,6 +107,13 @@ export interface PromptPackageItem {
   createdAt: string;
 }
 
+export interface CharacterItem {
+  id: string;
+  name: string;
+  role: string;
+  portraitUrl: string | null;
+}
+
 export interface SceneNavItem {
   sceneId: string;
   storyBeat: string;

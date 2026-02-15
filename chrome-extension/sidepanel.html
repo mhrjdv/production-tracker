@@ -74,8 +74,38 @@
         <path d="M14 18v-4a6 6 0 0 1 12 0v4" stroke="#5a6578" stroke-width="1.5" stroke-linecap="round"/>
         <circle cx="20" cy="26" r="2" fill="#5a6578"/>
       </svg>
-      <p class="sp-auth-msg">Connect to your Laserman app</p>
-      <p class="sp-auth-hint">Tap the gear icon to set your App URL and API token.</p>
+      <p class="sp-auth-msg">Connect to Laserman</p>
+
+      <div class="sp-auth-form">
+        <label class="sp-auth-field">
+          <span>App URL</span>
+          <input id="authBaseUrl" type="url" placeholder="http://localhost:3000" />
+        </label>
+        <label class="sp-auth-field">
+          <span>API Token</span>
+          <input id="authToken" type="password" placeholder="lmt_..." />
+        </label>
+
+        <details class="sp-auth-more">
+          <summary>AI Settings (optional)</summary>
+          <div class="sp-auth-more-grid">
+            <label class="sp-auth-field">
+              <span>AI Base URL</span>
+              <input id="authOpenAiBaseUrl" type="url" placeholder="https://openrouter.ai/api/v1" />
+            </label>
+            <label class="sp-auth-field">
+              <span>AI Model</span>
+              <input id="authOpenAiModel" type="text" placeholder="gpt-4.1-mini" />
+            </label>
+            <label class="sp-auth-field">
+              <span>BYOK API Key</span>
+              <input id="authOpenAiApiKey" type="password" placeholder="sk-..." />
+            </label>
+          </div>
+        </details>
+
+        <button type="button" class="sp-btn sp-btn-primary sp-auth-connect" id="authConnect">Connect</button>
+      </div>
     </div>
 
     <!-- ─── Tab navigation ────────────────────────────── -->
@@ -138,6 +168,9 @@
       <div id="ctxIntentBox" class="hidden"><p id="ctxIntentText"></p><div id="ctxIntentActions"></div></div>
       <span id="capContextLabel" class="hidden"></span>
       <div id="capContextBar" class="hidden"></div>
+
+      <!-- Characters grid -->
+      <div id="ctxCharactersList" class="sp-characters-grid"></div>
 
       <!-- ─── Capture form ────────────────────────────── -->
 

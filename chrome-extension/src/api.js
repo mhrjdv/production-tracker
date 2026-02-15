@@ -37,6 +37,13 @@ export async function updateAsset(assetId, data) {
   });
 }
 
+export async function fetchCharacters(projectId) {
+  const data = await fetchApi(
+    `/api/extension/characters?projectId=${encodeURIComponent(projectId)}`,
+  );
+  return data.characters || [];
+}
+
 export async function syncProfile(preferences) {
   const config = state.configCache || (await getConfig());
   if (!(config.token || "").trim()) return;

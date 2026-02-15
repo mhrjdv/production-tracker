@@ -114,6 +114,7 @@ model Scene {
   keyframeUrl       String?  @map("keyframe_url")
   sortOrder         Int      @default(0) @map("sort_order")
   shots             Shot[]
+  characters        SceneCharacter[]
   promptPackages    PromptPackage[]
   assets            SceneAssetVersion[]
   createdAt         DateTime @default(now()) @map("created_at")
@@ -135,6 +136,8 @@ model Character {
   bodyLanguage     String[] @map("body_language")
   coreIdentity     String?  @map("core_identity")
   portraitUrl      String?  @map("portrait_url")
+  scenes           SceneCharacter[]
+  shots            ShotCharacter[]
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -170,6 +173,7 @@ model Shot {
   sortOrder   Int      @default(0) @map("sort_order")
   assets      SceneAssetVersion[]
   promptPackages PromptPackage[]
+  characters  ShotCharacter[]
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -327,4 +331,35 @@ model ExtensionApiToken {
   @@index([userId])
   @@index([revokedAt])
   @@map("extension_api_tokens")
+}
+
+// ─── Character Junction Tables ──────────────────────────────
+
+model SceneCharacter {
+  id          String    @id @default(cuid())
+  sceneId     String    @map("scene_id")
+  scene       Scene     @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  characterId String    @map("character_id")
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([sceneId, characterId])
+  @@index([sceneId])
+  @@index([characterId])
+  @@map("scene_characters")
+}
+
+model ShotCharacter {
+  id          String    @id @default(cuid())
+  shotId      String    @map("shot_id")
+  shot        Shot      @relation(fields: [shotId], references: [id], onDelete: Cascade)
+  characterId String    @map("character_id")
+  character   Character @relation(fields: [characterId], references: [id], onDelete: Cascade)
+  role        String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([shotId, characterId])
+  @@index([shotId])
+  @@index([characterId])
+  @@map("shot_characters")
 }

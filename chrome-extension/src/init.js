@@ -3,7 +3,7 @@
    ========================================================== */
 
 import { getConfig, normalizeBaseUrl, saveConfig } from "./config.js";
-import { fetchApi, syncProfile } from "./api.js";
+import { fetchApi, fetchCharacters, syncProfile } from "./api.js";
 import { dom, setStatus, setActiveMode, toggleSettings } from "./dom.js";
 import state from "./state.js";
 import {
@@ -36,7 +36,11 @@ import {
   openCandidatePicker,
   closeCandidatePicker,
 } from "./candidate-picker.js";
-import { updateContextBar, renderReuseList } from "./render.js";
+import {
+  updateContextBar,
+  renderReuseList,
+  renderCharacterCards,
+} from "./render.js";
 import {
   openCompare,
   closeCompare,
@@ -89,11 +93,18 @@ async function initialize() {
 
   // Check auth
   if (!(config.token || "").trim()) {
+    // Populate auth gate fields from stored config
+    dom.authBaseUrl.value = config.baseUrl || "http://localhost:3000";
+    dom.authToken.value = config.token || "";
+    dom.authOpenAiBaseUrl.value = config.openAiBaseUrl || "";
+    dom.authOpenAiModel.value = config.openAiModel || "";
+    dom.authOpenAiApiKey.value = config.openAiApiKey || "";
+
     dom.authGate.classList.remove("hidden");
     document
       .querySelectorAll(".sp-main")
       .forEach((p) => p.classList.add("hidden"));
-    setStatus("Set API URL and token in Settings.");
+    setStatus("Enter your credentials to connect.");
     return;
   }
 
@@ -139,6 +150,10 @@ async function initialize() {
     }
 
     await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
+    state.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
+      () => [],
+    );
+    renderCharacterCards();
     updateContextBar();
 
     // Restore capture form state
@@ -240,6 +255,38 @@ dom.cfgSave.addEventListener("click", async () => {
   await initialize();
 });
 
+// Auth gate: connect
+dom.authConnect.addEventListener("click", async () => {
+  const token = dom.authToken.value.trim();
+  if (!token) {
+    setStatus("API Token is required.", true);
+    return;
+  }
+
+  dom.authConnect.disabled = true;
+  dom.authConnect.textContent = "Connecting...";
+
+  const nextConfig = {
+    baseUrl: dom.authBaseUrl.value.trim() || "http://localhost:3000",
+    token,
+    openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
+    openAiModel: dom.authOpenAiModel.value.trim(),
+    openAiApiKey: dom.authOpenAiApiKey.value.trim(),
+  };
+  await saveConfig(nextConfig);
+
+  // Sync settings panel fields to match
+  dom.cfgBaseUrl.value = nextConfig.baseUrl;
+  dom.cfgToken.value = nextConfig.token;
+  dom.cfgOpenAiBaseUrl.value = nextConfig.openAiBaseUrl;
+  dom.cfgOpenAiModel.value = nextConfig.openAiModel;
+  dom.cfgOpenAiApiKey.value = nextConfig.openAiApiKey;
+
+  dom.authConnect.disabled = false;
+  dom.authConnect.textContent = "Connect";
+  await initialize();
+});
+
 // Reload
 dom.cfgReload.addEventListener("click", async () => {
   toggleSettings(false);
@@ -253,6 +300,10 @@ dom.ctxProjectSelect.addEventListener("change", async () => {
     await saveSceneDraft();
     await loadScenes(dom.ctxProjectSelect.value);
     await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
+    state.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
+      () => [],
+    );
+    renderCharacterCards();
     updateContextBar();
     resetCaptureForm({ preserveSourceUrl: true });
     await restoreSceneDraft();

@@ -96,10 +96,17 @@ function NavLinks({
   );
 }
 
+const HIDDEN_PREFIXES = ["/login", "/register", "/docs"];
+
 export function Navigation() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Hide sidebar on auth and docs routes (they have their own layouts)
+  if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+    return null;
+  }
 
   // Auto-detect projectId from URL: /projects/[projectId]/*
   const projectMatch = pathname.match(/^\/projects\/([^/]+)/);
@@ -218,13 +225,13 @@ export function Navigation() {
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r bg-card">
+      {/* Desktop Sidebar — !important modifiers prevent fumadocs CSS override on cross-layout navigation */}
+      <aside className="hidden md:!flex md:!w-64 md:!flex-col md:!fixed md:!inset-y-0 border-r bg-card">
         {sidebarContent}
       </aside>
 
       {/* Mobile Header */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center gap-2 border-b bg-background/80 backdrop-blur-sm px-4 h-14">
+      <header className="md:!hidden sticky top-0 z-40 flex items-center gap-2 border-b bg-background/80 backdrop-blur-sm px-4 h-14">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon">

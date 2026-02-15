@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Navigation } from "@/components/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -42,6 +44,9 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider>
+              <Suspense>
+                <Navigation />
+              </Suspense>
               {children}
               <Toaster richColors position="bottom-right" />
             </TooltipProvider>
