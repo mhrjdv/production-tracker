@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +31,11 @@ const LANE_CONFIG: {
 }[] = [
   { lane: "IMAGE", label: "Images", types: ["IMAGE", "STORYBOARD"] },
   { lane: "VIDEO", label: "Videos", types: ["VIDEO"] },
-  { lane: "AUDIO", label: "Audio", types: ["AUDIO", "MUSIC", "VOICE", "NARRATION"] },
+  {
+    lane: "AUDIO",
+    label: "Audio",
+    types: ["AUDIO", "MUSIC", "VOICE", "NARRATION"],
+  },
 ];
 
 // ─── Props ─────────────────────────────────────────────────
@@ -46,7 +51,11 @@ interface ShotProductionCardProps {
   compareAssetIds: Set<string>;
   onCompareToggle: (assetId: string) => void;
   onAssetClick: (assetId: string) => void;
-  onCreateAsset: (shotId: string, assetType: AssetItem["assetType"], defaultPrompt: string) => void;
+  onCreateAsset: (
+    shotId: string,
+    assetType: AssetItem["assetType"],
+    defaultPrompt: string,
+  ) => void;
   onCompareOpen: (assetIds: string[]) => void;
   onEditShot: (shotId: string) => void;
   onDeleteShot: (shotId: string) => void;
@@ -92,9 +101,7 @@ export function ShotProductionCard({
   // Filtered lanes based on type filter
   const visibleLanes = useMemo(() => {
     if (typeFilter === "ALL") return LANE_CONFIG;
-    return LANE_CONFIG.filter((c) =>
-      c.types.some((t) => t === typeFilter),
-    );
+    return LANE_CONFIG.filter((c) => c.types.some((t) => t === typeFilter));
   }, [typeFilter]);
 
   // Count assets per lane for collapsed badge
@@ -107,7 +114,7 @@ export function ShotProductionCard({
   );
 
   return (
-    <div className="rounded-lg border bg-card transition-colors">
+    <div className="group rounded-lg border bg-card transition-colors">
       {/* ── Header ── */}
       <button
         type="button"
@@ -155,10 +162,14 @@ export function ShotProductionCard({
                     <TooltipTrigger asChild>
                       <div className="h-5 w-5 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center overflow-hidden">
                         {char.portraitUrl ? (
-                          <img
+                          <Image
                             src={char.portraitUrl}
                             alt={char.name}
+                            width={20}
+                            height={20}
                             className="h-full w-full object-cover"
+                            sizes="20px"
+                            quality={50}
                           />
                         ) : (
                           <span className="text-[7px] font-medium text-primary">
@@ -185,7 +196,8 @@ export function ShotProductionCard({
         </div>
 
         {/* Edit/delete buttons */}
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+        <div
+          className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
           onClick={(e) => e.stopPropagation()}
         >
           <Button
@@ -269,12 +281,18 @@ function LaneRow({
   laneCompareCount: number;
   onCompareToggle: (id: string) => void;
   onAssetClick: (id: string) => void;
-  onCreateAsset: (shotId: string, type: AssetItem["assetType"], prompt: string) => void;
+  onCreateAsset: (
+    shotId: string,
+    type: AssetItem["assetType"],
+    prompt: string,
+  ) => void;
   onCompareOpen: () => void;
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground w-14 shrink-0">{label}:</span>
+      <span className="text-xs text-muted-foreground w-14 shrink-0">
+        {label}:
+      </span>
 
       {assets.length === 0 ? (
         <span className="text-xs text-muted-foreground/50">&mdash;</span>

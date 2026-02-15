@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -179,10 +180,14 @@ function ShotForm({
                   >
                     <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
                       {char.portraitUrl ? (
-                        <img
+                        <Image
                           src={char.portraitUrl}
                           alt={char.name}
+                          width={16}
+                          height={16}
                           className="h-full w-full object-cover"
+                          sizes="16px"
+                          quality={50}
                         />
                       ) : (
                         <span className="text-[7px] font-medium">
@@ -548,10 +553,14 @@ export function ShotListPanel({
                                 <TooltipTrigger asChild>
                                   <div className="h-5 w-5 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center overflow-hidden">
                                     {char!.portraitUrl ? (
-                                      <img
+                                      <Image
                                         src={char!.portraitUrl}
                                         alt={char!.name}
+                                        width={20}
+                                        height={20}
                                         className="h-full w-full object-cover"
+                                        sizes="20px"
+                                        quality={50}
                                       />
                                     ) : (
                                       <span className="text-[7px] font-medium text-primary">

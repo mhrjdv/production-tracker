@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Columns2, Columns3, Columns4, Star, X } from "lucide-react";
@@ -41,7 +42,8 @@ export function CompareOverlay({ assets, open, onClose }: CompareOverlayProps) {
             Comparing {assets.length} versions
           </h2>
           <Badge variant="secondary" className="text-xs">
-            {metrics.platformCount} platform{metrics.platformCount !== 1 ? "s" : ""}
+            {metrics.platformCount} platform
+            {metrics.platformCount !== 1 ? "s" : ""}
           </Badge>
           {metrics.avgCostUsd !== null && (
             <Badge variant="outline" className="text-xs">
@@ -80,7 +82,12 @@ export function CompareOverlay({ assets, open, onClose }: CompareOverlayProps) {
           >
             <Columns4 className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 ml-2" onClick={onClose}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 ml-2"
+            onClick={onClose}
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -119,7 +126,7 @@ function CompareCard({
   isPending: boolean;
   onPickWinner: (id: string) => void;
 }) {
-  const imgSrc = asset.outputUrl ?? asset.thumbnailUrl;
+  const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
 
   return (
     <div
@@ -133,12 +140,19 @@ function CompareCard({
       <div className="aspect-video bg-muted/20 relative">
         {imgSrc ? (
           asset.assetType === "VIDEO" ? (
-            <video src={imgSrc} controls className="h-full w-full object-contain" />
+            <video
+              src={imgSrc}
+              controls
+              className="h-full w-full object-contain"
+            />
           ) : (
-            <img
+            <Image
               src={imgSrc}
               alt={`${asset.platformLabel} v${asset.versionNumber}`}
-              className="h-full w-full object-contain"
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 33vw"
+              quality={75}
             />
           )
         ) : (

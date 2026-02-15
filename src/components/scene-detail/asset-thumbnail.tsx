@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Star, CheckSquare, Square } from "lucide-react";
 import type { AssetItem } from "./types";
@@ -28,7 +29,10 @@ function platformAbbrev(key: string): string {
 
 // ─── Status color ──────────────────────────────────────────
 
-function statusDotColor(status: AssetItem["status"], selected: boolean): string {
+function statusDotColor(
+  status: AssetItem["status"],
+  selected: boolean,
+): string {
   if (selected) return "bg-emerald-500";
   switch (status) {
     case "GENERATED":
@@ -61,7 +65,8 @@ export function AssetThumbnail({
   onCompareToggle,
   onClick,
 }: AssetThumbnailProps) {
-  const imgSrc = asset.outputUrl ?? asset.thumbnailUrl;
+  // Prefer thumbnail (small WebP) over full-res output for compact display
+  const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
 
   return (
     <button
@@ -73,14 +78,22 @@ export function AssetThumbnail({
     >
       {/* Image or placeholder */}
       {imgSrc ? (
-        <img
+        <Image
           src={imgSrc}
           alt={`${asset.platformLabel} v${asset.versionNumber}`}
+          width={96}
+          height={72}
           className="h-full w-full object-cover"
+          sizes="96px"
+          quality={60}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-muted/40 text-xs text-muted-foreground">
-          {asset.assetType === "VIDEO" ? "VID" : asset.assetType === "AUDIO" || asset.assetType === "MUSIC" ? "AUD" : "IMG"}
+          {asset.assetType === "VIDEO"
+            ? "VID"
+            : asset.assetType === "AUDIO" || asset.assetType === "MUSIC"
+              ? "AUD"
+              : "IMG"}
         </div>
       )}
 
@@ -108,7 +121,9 @@ export function AssetThumbnail({
       <button
         type="button"
         className={`absolute top-0.5 right-0.5 transition-opacity ${
-          isCompareChecked || asset.selected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          isCompareChecked || asset.selected
+            ? "opacity-100"
+            : "opacity-0 group-hover:opacity-100"
         } ${asset.selected ? "top-4" : ""}`}
         onClick={(e) => {
           e.stopPropagation();

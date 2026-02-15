@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import {
   Sheet,
   SheetContent,
@@ -21,13 +22,18 @@ import {
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
-import { updateSceneAssetVersion, deleteSceneAssetVersion } from "@/lib/actions";
+import {
+  updateSceneAssetVersion,
+  deleteSceneAssetVersion,
+} from "@/lib/actions";
 import { RightsDrawer } from "@/components/rights-drawer";
 import type { AssetItem } from "./types";
 
 // ─── Helpers ───────────────────────────────────────────────
 
-function statusBadgeVariant(status: string): "default" | "secondary" | "outline" | "destructive" {
+function statusBadgeVariant(
+  status: string,
+): "default" | "secondary" | "outline" | "destructive" {
   switch (status) {
     case "SELECTED":
     case "FINAL":
@@ -78,7 +84,9 @@ export function AssetDetailSheet({
 
   if (!asset) return null;
 
-  const imgSrc = asset.outputUrl ?? asset.thumbnailUrl;
+  // Prefer thumbnail (800px WebP) for next/image — full-res originals (5-33MB)
+  // cause TimeoutError in the image optimization proxy
+  const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
   const isVideo = asset.assetType === "VIDEO";
 
   const handleToggleSelected = () => {
@@ -98,7 +106,8 @@ export function AssetDetailSheet({
   };
 
   const handleDelete = () => {
-    if (!window.confirm("Delete this asset version? This cannot be undone.")) return;
+    if (!window.confirm("Delete this asset version? This cannot be undone."))
+      return;
     startTransition(async () => {
       await deleteSceneAssetVersion(asset.id);
       onDeleted?.();
@@ -115,7 +124,10 @@ export function AssetDetailSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto sm:max-w-lg"
+        >
           <SheetHeader>
             <SheetTitle className="flex items-center gap-2">
               {asset.title ?? `${asset.platformLabel} v${asset.versionNumber}`}
@@ -124,7 +136,8 @@ export function AssetDetailSheet({
               )}
             </SheetTitle>
             <SheetDescription>
-              {asset.assetType} &middot; {asset.platformLabel} &middot; v{asset.versionNumber}
+              {asset.assetType} &middot; {asset.platformLabel} &middot; v
+              {asset.versionNumber}
             </SheetDescription>
           </SheetHeader>
 
@@ -133,8 +146,13 @@ export function AssetDetailSheet({
             <div className="flex flex-wrap gap-1.5">
               <Badge variant="outline">{asset.platformLabel}</Badge>
               <Badge>{asset.assetType}</Badge>
-              <Badge variant={statusBadgeVariant(asset.status)}>{asset.status}</Badge>
-              <Badge variant="outline" className={rightsBadgeColor(asset.rightsState)}>
+              <Badge variant={statusBadgeVariant(asset.status)}>
+                {asset.status}
+              </Badge>
+              <Badge
+                variant="outline"
+                className={rightsBadgeColor(asset.rightsState)}
+              >
                 {asset.rightsState}
               </Badge>
             </div>
@@ -149,10 +167,14 @@ export function AssetDetailSheet({
                     className="w-full max-h-80 object-contain"
                   />
                 ) : (
-                  <img
+                  <Image
                     src={imgSrc}
                     alt={`${asset.platformLabel} v${asset.versionNumber}`}
+                    width={512}
+                    height={320}
                     className="w-full max-h-80 object-contain"
+                    sizes="(max-width: 512px) 100vw, 512px"
+                    quality={80}
                   />
                 )}
               </div>
@@ -161,7 +183,9 @@ export function AssetDetailSheet({
             {/* Prompt */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-muted-foreground">Prompt</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Prompt
+                </p>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -180,7 +204,9 @@ export function AssetDetailSheet({
             {/* Negative prompt */}
             {asset.negativePrompt && (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">Negative Prompt</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Negative Prompt
+                </p>
                 <p className="text-sm whitespace-pre-wrap rounded-md border bg-muted/30 p-3">
                   {asset.negativePrompt}
                 </p>
@@ -191,33 +217,41 @@ export function AssetDetailSheet({
             <div className="grid gap-2 text-sm">
               {asset.modelName && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground min-w-[60px]">Model</span>
+                  <span className="text-xs text-muted-foreground min-w-[60px]">
+                    Model
+                  </span>
                   <span>{asset.modelName}</span>
                 </div>
               )}
               {asset.sourceUrl && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground min-w-[60px]">Source</span>
+                  <span className="text-xs text-muted-foreground min-w-[60px]">
+                    Source
+                  </span>
                   <a
                     href={asset.sourceUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:underline truncate"
                   >
-                    {asset.sourceUrl} <ExternalLink className="h-3 w-3 shrink-0" />
+                    {asset.sourceUrl}{" "}
+                    <ExternalLink className="h-3 w-3 shrink-0" />
                   </a>
                 </div>
               )}
               {asset.outputUrl && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground min-w-[60px]">Output</span>
+                  <span className="text-xs text-muted-foreground min-w-[60px]">
+                    Output
+                  </span>
                   <a
                     href={asset.outputUrl}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:underline truncate"
                   >
-                    {asset.outputUrl} <ExternalLink className="h-3 w-3 shrink-0" />
+                    {asset.outputUrl}{" "}
+                    <ExternalLink className="h-3 w-3 shrink-0" />
                   </a>
                 </div>
               )}
@@ -260,13 +294,16 @@ export function AssetDetailSheet({
             {/* Notes */}
             {asset.notes && (
               <div className="space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground">Notes</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Notes
+                </p>
                 <p className="text-sm whitespace-pre-wrap">{asset.notes}</p>
               </div>
             )}
 
             {/* Cost & timing */}
-            {(asset.costEstimateUsd !== null || asset.generationSeconds !== null) && (
+            {(asset.costEstimateUsd !== null ||
+              asset.generationSeconds !== null) && (
               <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                 {asset.costEstimateUsd !== null && (
                   <span>Cost: ${asset.costEstimateUsd.toFixed(3)}</span>
@@ -291,7 +328,9 @@ export function AssetDetailSheet({
                 onClick={handleToggleSelected}
                 disabled={isPending}
               >
-                <Star className={`h-3.5 w-3.5 ${asset.selected ? "fill-amber-400 text-amber-400" : ""}`} />
+                <Star
+                  className={`h-3.5 w-3.5 ${asset.selected ? "fill-amber-400 text-amber-400" : ""}`}
+                />
                 {asset.selected ? "Deselect" : "Select as Winner"}
               </Button>
               <Button

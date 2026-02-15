@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -391,10 +392,14 @@ function CharactersPresentCard({
                 >
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
                     {char.portraitUrl ? (
-                      <img
+                      <Image
                         src={char.portraitUrl}
                         alt={char.name}
+                        width={32}
+                        height={32}
                         className="h-full w-full object-cover"
+                        sizes="32px"
+                        quality={60}
                       />
                     ) : (
                       <span className="text-xs font-medium text-primary">
@@ -428,10 +433,14 @@ function CharactersPresentCard({
             >
               <div className="h-4 w-4 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0">
                 {char.portraitUrl ? (
-                  <img
+                  <Image
                     src={char.portraitUrl}
                     alt={char.name}
+                    width={16}
+                    height={16}
                     className="h-full w-full object-cover"
+                    sizes="16px"
+                    quality={50}
                   />
                 ) : (
                   <span className="text-[8px] font-medium text-primary">
@@ -480,11 +489,14 @@ function KeyframeCard({ scene }: { scene: SceneDetailData }) {
         />
       )}
     >
-      <div className="rounded-lg overflow-hidden border">
-        <img
+      <div className="rounded-lg overflow-hidden border relative aspect-video">
+        <Image
           src={scene.keyframeUrl!}
           alt={`Keyframe for ${scene.sceneId}`}
-          className="w-full h-auto"
+          fill
+          className="object-contain"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          quality={80}
         />
       </div>
     </EditableCard>
