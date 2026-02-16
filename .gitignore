@@ -1,3 +1,6 @@
+# Secrets / MCP config
+.mcp.json
+
 # Dependencies
 node_modules/
 /.pnp
