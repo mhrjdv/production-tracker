@@ -1217,6 +1217,13 @@ textarea {
   color: var(--text-secondary);
 }
 
+.sp-queue-item-error {
+  font-size: 10px;
+  color: var(--error, #f87171);
+  margin-top: 2px;
+  word-break: break-word;
+}
+
 /* Badges */
 .sp-badge {
   display: inline-flex;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Columns2, Columns3, Columns4, Star, X } from "lucide-react";
 import { updateSceneAssetVersion } from "@/lib/actions";
 import { computeCompareMetrics } from "@/lib/compare-utils";
+import { shouldSkipOptimization } from "@/lib/image-utils";
 import type { AssetItem } from "./types";
 
 // ─── Props ─────────────────────────────────────────────────
@@ -154,7 +155,8 @@ function CompareCard({
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 33vw"
               quality={75}
-              unoptimized
+              priority
+              unoptimized={shouldSkipOptimization(imgSrc, !!asset.thumbnailUrl)}
             />
           )
         ) : (

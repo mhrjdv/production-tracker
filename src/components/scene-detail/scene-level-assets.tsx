@@ -13,9 +13,18 @@ const SCENE_LANES: {
   types: AssetItem["assetType"][];
   primaryType: AssetItem["assetType"];
 }[] = [
+  {
+    label: "Keyframes",
+    types: ["IMAGE", "VIDEO", "STORYBOARD"],
+    primaryType: "IMAGE",
+  },
   { label: "Music", types: ["MUSIC"], primaryType: "MUSIC" },
-  { label: "Narration", types: ["NARRATION", "VOICE"], primaryType: "NARRATION" },
-  { label: "Other", types: ["AUDIO", "OTHER", "SCRIPT", "STORYBOARD"], primaryType: "OTHER" },
+  {
+    label: "Narration",
+    types: ["NARRATION", "VOICE"],
+    primaryType: "NARRATION",
+  },
+  { label: "Other", types: ["AUDIO", "OTHER", "SCRIPT"], primaryType: "OTHER" },
 ];
 
 // ─── Props ─────────────────────────────────────────────────
@@ -26,7 +35,11 @@ interface SceneLevelAssetsProps {
   compareAssetIds: Set<string>;
   onCompareToggle: (assetId: string) => void;
   onAssetClick: (assetId: string) => void;
-  onCreateAsset: (shotId: string | null, assetType: AssetItem["assetType"], defaultPrompt: string) => void;
+  onCreateAsset: (
+    shotId: string | null,
+    assetType: AssetItem["assetType"],
+    defaultPrompt: string,
+  ) => void;
 }
 
 // ─── Component ─────────────────────────────────────────────
@@ -57,7 +70,8 @@ export function SceneLevelAssets({
   // Only show if there are scene-level assets or always show music/narration lanes
   const hasAny = assets.length > 0;
   const visibleLanes = SCENE_LANES.filter(
-    (lane) => (laneAssets[lane.label]?.length ?? 0) > 0 || lane.label !== "Other",
+    (lane) =>
+      (laneAssets[lane.label]?.length ?? 0) > 0 || lane.label !== "Other",
   );
 
   if (visibleLanes.length === 0) return null;

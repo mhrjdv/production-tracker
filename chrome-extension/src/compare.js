@@ -10,6 +10,22 @@ import { renderReuseList } from "./render.js";
 
 const MAX_COMPARE = 6;
 
+function persistCompareIds() {
+  chrome.storage.local.set({ compareIds: state.compareIds }).catch(() => {});
+}
+
+export function restoreCompareIds() {
+  chrome.storage.local
+    .get("compareIds")
+    .then((data) => {
+      if (Array.isArray(data.compareIds)) {
+        state.compareIds = data.compareIds;
+        updateCompareBar();
+      }
+    })
+    .catch(() => {});
+}
+
 export function toggleCompareSelect(assetId) {
   const idx = state.compareIds.indexOf(assetId);
   if (idx >= 0) {
@@ -24,6 +40,7 @@ export function toggleCompareSelect(assetId) {
     }
     state.compareIds = [...state.compareIds, assetId];
   }
+  persistCompareIds();
   updateCompareBar();
   renderReuseList();
 }
@@ -56,6 +73,7 @@ export function closeCompare() {
 export function clearCompareSelections() {
   state.compareIds = [];
   state.compareOpen = false;
+  persistCompareIds();
   dom.compareOverlay.classList.add("hidden");
   updateCompareBar();
   renderReuseList();
@@ -96,7 +114,9 @@ function renderCompareGrid() {
 
     const prompt = document.createElement("p");
     prompt.className = "sp-compare-prompt";
-    prompt.textContent = (asset.prompt || "").substring(0, 50) + (asset.prompt?.length > 50 ? "..." : "");
+    prompt.textContent =
+      (asset.prompt || "").substring(0, 50) +
+      (asset.prompt?.length > 50 ? "..." : "");
 
     info.appendChild(platform);
     info.appendChild(version);

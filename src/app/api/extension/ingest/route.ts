@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AssetStatus, Prisma, RightsState } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import {
   authenticateExtensionRequest,
   getExtensionCorsHeaders,
@@ -125,13 +126,13 @@ export async function POST(request: NextRequest) {
     shotId = shot.id;
   }
 
-  // Scope version numbers by shot when available
+  // Version numbers are scoped to (scene, platformKey, assetType) to match
+  // the unique constraint — do NOT filter by shotId here.
   const versionAgg = await prisma.sceneAssetVersion.aggregate({
     where: {
       sceneId: scene.id,
       platformKey,
       assetType: payload.assetType,
-      ...(shotId ? { shotId } : {}),
     },
     _max: { versionNumber: true },
   });
@@ -259,6 +260,12 @@ export async function POST(request: NextRequest) {
         },
       });
     });
+
+    // Bust Next.js cache so dashboard pages show the new asset
+    revalidatePath(`/projects/${project.id}/scenes/${scene.sceneId}`);
+    revalidatePath(`/projects/${project.id}/gallery`);
+    revalidatePath(`/projects/${project.id}/production`);
+    revalidatePath(`/projects/${project.id}/timeline`);
 
     return NextResponse.json(
       {

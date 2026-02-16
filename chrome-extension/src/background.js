@@ -6,6 +6,7 @@ const QUEUE_KEY = "syncQueue";
 const CONFIG_KEY = "extensionConfig";
 const SYNC_ALARM = "production-tracker-sync";
 const MAX_RETRY = 10;
+const MAX_QUEUE_SIZE = 200;
 
 async function getStorageValue(key, defaultValue) {
   const result = await chrome.storage.local.get(key);
@@ -48,8 +49,23 @@ async function getConfig() {
 
 async function enqueue(item) {
   const queue = await getQueue();
+  // Enforce max queue size — drop oldest permanently failed items first
+  let trimmed = queue;
+  if (trimmed.length >= MAX_QUEUE_SIZE) {
+    const failed = trimmed.filter((i) => i.failedPermanently);
+    if (failed.length > 0) {
+      const failedIds = new Set(
+        failed.slice(0, trimmed.length - MAX_QUEUE_SIZE + 1).map((i) => i.id),
+      );
+      trimmed = trimmed.filter((i) => !failedIds.has(i.id));
+    }
+    // If still over limit, drop oldest items
+    if (trimmed.length >= MAX_QUEUE_SIZE) {
+      trimmed = trimmed.slice(trimmed.length - MAX_QUEUE_SIZE + 1);
+    }
+  }
   const nextQueue = [
-    ...queue,
+    ...trimmed,
     {
       id: crypto.randomUUID(),
       retryCount: 0,
@@ -223,8 +239,31 @@ async function syncQueue() {
 
   const nextQueue = [];
   let processed = 0;
+  let authExpired = false;
+  const now = Date.now();
 
   for (const item of queue) {
+    // Skip permanently failed items
+    if (item.failedPermanently) {
+      nextQueue.push(item);
+      continue;
+    }
+
+    // Skip remaining items if auth expired
+    if (authExpired) {
+      nextQueue.push({ ...item, lastError: "Authentication expired" });
+      continue;
+    }
+
+    // Respect exponential backoff window
+    if (item.nextRetryAfter && new Date(item.nextRetryAfter).getTime() > now) {
+      nextQueue.push(item);
+      continue;
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
     try {
       const response = await fetch(`${baseUrl}/api/extension/ingest`, {
         method: "POST",
@@ -233,24 +272,63 @@ async function syncQueue() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(item.payload),
+        signal: controller.signal,
       });
+
+      if (response.status === 401) {
+        authExpired = true;
+        // Broadcast auth expiry to all side panel instances
+        chrome.runtime.sendMessage({ type: "auth-expired" }).catch(() => {});
+        nextQueue.push({
+          ...item,
+          retryCount: MAX_RETRY + 1,
+          lastError: "Authentication expired — reconnect in settings",
+          failedPermanently: true,
+        });
+        continue;
+      }
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${response.status}`);
+        throw new Error(
+          body.error ||
+            `HTTP ${response.status}: ${item.payload?.prompt?.substring(0, 30) || "unknown"}`,
+        );
       }
 
       processed += 1;
     } catch (error) {
+      if (error.name === "AbortError") {
+        const retryCount = (item.retryCount || 0) + 1;
+        if (retryCount <= MAX_RETRY) {
+          nextQueue.push({
+            ...item,
+            retryCount,
+            lastError: "Request timed out",
+          });
+        }
+        continue;
+      }
+
       const errorMsg = error instanceof Error ? error.message : String(error);
       // Don't retry client errors (auth, validation, not found)
       const isClientError = /HTTP (40[0-9]|4[1-9]\d)/.test(errorMsg);
       const retryCount = (item.retryCount || 0) + 1;
+
+      // Exponential backoff: skip retry if not enough time has passed
+      const backoffMs = Math.min(1000 * Math.pow(2, retryCount - 1), 600_000);
+      const lastAttempt = item.lastAttemptAt
+        ? new Date(item.lastAttemptAt).getTime()
+        : 0;
+      const now = Date.now();
+
       if (!isClientError && retryCount <= MAX_RETRY) {
         nextQueue.push({
           ...item,
           retryCount,
           lastError: errorMsg,
+          lastAttemptAt: new Date().toISOString(),
+          nextRetryAfter: new Date(now + backoffMs).toISOString(),
         });
       } else if (isClientError) {
         // Keep in queue as permanently failed so user can see the error
@@ -261,6 +339,8 @@ async function syncQueue() {
           failedPermanently: true,
         });
       }
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

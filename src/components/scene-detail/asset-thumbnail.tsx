@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Star, CheckSquare, Square } from "lucide-react";
+import { shouldSkipOptimization } from "@/lib/image-utils";
 import type { AssetItem } from "./types";
 
 // ─── Platform abbreviation map ─────────────────────────────
@@ -86,7 +87,7 @@ export function AssetThumbnail({
           className="h-full w-full object-cover"
           sizes="96px"
           quality={60}
-          unoptimized
+          unoptimized={shouldSkipOptimization(imgSrc, !!asset.thumbnailUrl)}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-muted/40 text-xs text-muted-foreground">

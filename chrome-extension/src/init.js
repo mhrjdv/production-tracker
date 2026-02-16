@@ -52,6 +52,7 @@ import {
   openCompare,
   closeCompare,
   clearCompareSelections,
+  restoreCompareIds,
 } from "./compare.js";
 import {
   loadProjectsAndPlatforms,
@@ -181,7 +182,8 @@ async function initialize() {
     renderCharacterCards();
     updateContextBar();
 
-    // Restore capture form state
+    // Restore compare selections and capture form state
+    restoreCompareIds();
     resetCaptureForm({ preserveSourceUrl: true });
     await restoreSceneDraft();
 
@@ -276,8 +278,20 @@ dom.settingsClose.addEventListener("click", () => toggleSettings(false));
 
 // Save settings
 dom.cfgSave.addEventListener("click", async () => {
+  const baseUrl = dom.cfgBaseUrl.value.trim();
+  if (baseUrl) {
+    try {
+      new URL(baseUrl);
+    } catch {
+      setStatus(
+        "Invalid Base URL format. Must be a valid URL (e.g. https://example.com).",
+        true,
+      );
+      return;
+    }
+  }
   const nextConfig = {
-    baseUrl: dom.cfgBaseUrl.value.trim(),
+    baseUrl,
     token: dom.cfgToken.value.trim(),
     openAiBaseUrl: normalizeBaseUrl(dom.cfgOpenAiBaseUrl.value),
     openAiModel: dom.cfgOpenAiModel.value.trim(),
@@ -303,12 +317,21 @@ dom.authConnect.addEventListener("click", async () => {
     setStatus("API Token is required.", true);
     return;
   }
+  const authBaseUrlVal = dom.authBaseUrl.value.trim();
+  if (authBaseUrlVal) {
+    try {
+      new URL(authBaseUrlVal);
+    } catch {
+      setStatus("Invalid Base URL format.", true);
+      return;
+    }
+  }
 
   dom.authConnect.disabled = true;
   dom.authConnect.textContent = "Connecting...";
 
   const nextConfig = {
-    baseUrl: dom.authBaseUrl.value.trim(),
+    baseUrl: authBaseUrlVal,
     token,
     openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
     openAiModel: dom.authOpenAiModel.value.trim(),
@@ -709,6 +732,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
     renderQueueList();
     updateQueueDot((changes.syncQueue.newValue || []).length);
   }
+});
+
+// Listen for auth expiry from background worker or fetchApi
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.type === "auth-expired") {
+    setStatus("Token expired. Please reconnect in Settings.", true);
+    toggleSettings(true);
+  }
+});
+addEventListener("lm-auth-expired", () => {
+  setStatus("Token expired. Please reconnect in Settings.", true);
+  toggleSettings(true);
 });
 
 // ── Boot ────────────────────────────────────────────────

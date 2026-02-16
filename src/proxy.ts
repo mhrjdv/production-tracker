@@ -20,7 +20,7 @@ function isAuthOnlyRoute(pathname: string): boolean {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip extension API routes (they use token-based auth)

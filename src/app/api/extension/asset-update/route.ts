@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AssetStatus } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 import {
   authenticateExtensionRequest,
   getExtensionCorsHeaders,
@@ -49,6 +50,7 @@ export async function PATCH(request: NextRequest) {
       assetType: true,
       status: true,
       shotId: true,
+      scene: { select: { projectId: true, sceneId: true } },
     },
   });
 
@@ -89,10 +91,23 @@ export async function PATCH(request: NextRequest) {
           compareGroup: true,
           assetType: true,
           versionNumber: true,
+          platformKey: true,
           platformLabel: true,
+          rightsState: true,
+          title: true,
+          prompt: true,
+          thumbnailUrl: true,
+          outputUrl: true,
         },
       });
     });
+
+    // Bust Next.js cache so dashboard pages reflect the update
+    const { projectId, sceneId } = existing.scene;
+    revalidatePath(`/projects/${projectId}/scenes/${sceneId}`);
+    revalidatePath(`/projects/${projectId}/gallery`);
+    revalidatePath(`/projects/${projectId}/production`);
+    revalidatePath(`/projects/${projectId}/timeline`);
 
     return NextResponse.json(
       { asset: updated, ok: true },
@@ -100,8 +115,9 @@ export async function PATCH(request: NextRequest) {
     );
   } catch (error) {
     console.error("[asset-update]", error);
+    const message = error instanceof Error ? error.message : "Update failed";
     return NextResponse.json(
-      { error: "Update failed" },
+      { error: message },
       { status: 500, headers: getExtensionCorsHeaders() },
     );
   }

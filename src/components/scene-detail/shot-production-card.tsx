@@ -177,7 +177,6 @@ export function ShotProductionCard({
                             className="h-full w-full object-cover"
                             sizes="20px"
                             quality={50}
-                            unoptimized
                           />
                         ) : (
                           <span className="text-[7px] font-medium text-primary">

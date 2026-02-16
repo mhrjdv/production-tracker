@@ -25,6 +25,7 @@ export function collectCaptureFormState() {
   return {
     projectId: dom.ctxProjectSelect.value,
     sceneId: dom.ctxSceneSelect.value,
+    shotId: dom.ctxShotSelect?.value || "",
     platformKey: dom.capPlatformSelect.value,
     platformLabel:
       state.platforms.find((p) => p.slug === dom.capPlatformSelect.value)

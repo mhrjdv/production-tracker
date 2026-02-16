@@ -53,18 +53,28 @@ export function renderQueueList() {
     const sub = document.createElement("div");
     sub.className = "sp-queue-item-sub";
     const retries = item.retryCount || 0;
-    sub.textContent = `${item.payload?.assetType || "?"} -- ${item.payload?.platformKey || "?"} -- queued ${formatRelativeTime(item.queuedAt)}${retries > 0 ? ` -- retry ${retries}` : ""}`;
+    sub.textContent = `${item.payload?.assetType || "?"} · ${item.payload?.platformKey || "?"} · queued ${formatRelativeTime(item.queuedAt)}${retries > 0 ? ` · retry ${retries}` : ""}`;
 
     info.appendChild(title);
     info.appendChild(sub);
 
+    // Show error detail for failed items
+    if (item.lastError && (retries >= 5 || item.failedPermanently)) {
+      const errEl = document.createElement("div");
+      errEl.className = "sp-queue-item-error";
+      errEl.textContent = item.lastError;
+      info.appendChild(errEl);
+    }
+
     const badge = document.createElement("span");
-    if (retries >= 5) {
+    if (item.failedPermanently || retries >= 5) {
       badge.className = "sp-badge failed";
       badge.textContent = "Failed";
+      badge.title = item.lastError || "Permanently failed";
     } else if (retries > 0) {
       badge.className = "sp-badge queued";
       badge.textContent = `Retry ${retries}`;
+      if (item.lastError) badge.title = item.lastError;
     } else {
       badge.className = "sp-badge queued";
       badge.textContent = "Queued";
@@ -124,7 +134,9 @@ export async function syncNow() {
 export async function clearFailedItems() {
   const data = await chrome.storage.local.get("syncQueue");
   const queue = data.syncQueue || [];
-  const filtered = queue.filter((item) => (item.retryCount || 0) < 5);
+  const filtered = queue.filter(
+    (item) => !item.failedPermanently && (item.retryCount || 0) < 5,
+  );
   await chrome.storage.local.set({ syncQueue: filtered });
   state.localQueueMirror = filtered;
   renderQueueList();

@@ -2,8 +2,10 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { shouldSkipOptimization } from "@/lib/image-utils";
 import {
   Select,
   SelectContent,
@@ -34,6 +36,8 @@ import {
   search as oramaSearch,
   type AnyOrama,
 } from "@orama/orama";
+import { AssetDetailSheet } from "@/components/scene-detail/asset-detail-sheet";
+import type { AssetItem } from "@/components/scene-detail/types";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -44,6 +48,10 @@ interface GalleryAsset {
   storyBeat: string;
   act: number;
   macroScene: string;
+  shotId: string | null;
+  promptPackageId: string | null;
+  parentVersionId: string | null;
+  platformId: string | null;
   assetType: string;
   status: string;
   platformKey: string;
@@ -51,12 +59,24 @@ interface GalleryAsset {
   versionNumber: number;
   title: string | null;
   prompt: string;
+  negativePrompt: string | null;
+  modelName: string | null;
+  sourceUrl: string | null;
+  externalAssetId: string | null;
   outputUrl: string | null;
   thumbnailUrl: string | null;
+  costEstimateUsd: number | null;
+  generationSeconds: number | null;
+  queueWaitSeconds: number | null;
+  compareGroup: string | null;
+  metadata: Record<string, unknown> | null;
+  provenance: Record<string, unknown> | null;
+  rightsState: string;
   selected: boolean;
   tags: string[];
   notes: string | null;
   createdAt: string;
+  createdByName: string | null;
 }
 
 type TypeFilter = "all" | "IMAGE" | "VIDEO" | "AUDIO";
@@ -139,6 +159,43 @@ function platformAbbrev(key: string): string {
   return PLATFORM_ABBREV[key] ?? key.slice(0, 4).toUpperCase();
 }
 
+// ─── Gallery → AssetItem converter ──────────────────────────
+
+function toAssetItem(a: GalleryAsset): AssetItem {
+  return {
+    id: a.id,
+    shotId: a.shotId,
+    promptPackageId: a.promptPackageId,
+    parentVersionId: a.parentVersionId,
+    platformId: a.platformId,
+    platformKey: a.platformKey,
+    platformLabel: a.platformLabel,
+    assetType: a.assetType as AssetItem["assetType"],
+    status: a.status as AssetItem["status"],
+    rightsState: a.rightsState as AssetItem["rightsState"],
+    versionNumber: a.versionNumber,
+    title: a.title,
+    prompt: a.prompt,
+    negativePrompt: a.negativePrompt,
+    modelName: a.modelName,
+    sourceUrl: a.sourceUrl,
+    externalAssetId: a.externalAssetId,
+    outputUrl: a.outputUrl,
+    thumbnailUrl: a.thumbnailUrl,
+    costEstimateUsd: a.costEstimateUsd,
+    generationSeconds: a.generationSeconds,
+    queueWaitSeconds: a.queueWaitSeconds,
+    compareGroup: a.compareGroup,
+    metadata: a.metadata,
+    provenance: a.provenance,
+    tags: a.tags,
+    notes: a.notes,
+    selected: a.selected,
+    createdAt: a.createdAt,
+    createdByName: a.createdByName,
+  };
+}
+
 // ─── Component ──────────────────────────────────────────────
 
 export function GalleryClient({
@@ -155,7 +212,14 @@ export function GalleryClient({
   const [platformFilter, setPlatformFilter] = useState("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [matchIds, setMatchIds] = useState<Set<string> | null>(null);
+  const [sheetAssetId, setSheetAssetId] = useState<string | null>(null);
   const searchOrama = useOramaSearch(assets);
+
+  const sheetAsset = useMemo(() => {
+    if (!sheetAssetId) return null;
+    const found = assets.find((a) => a.id === sheetAssetId);
+    return found ? toAssetItem(found) : null;
+  }, [sheetAssetId, assets]);
 
   // Debounced search
   useEffect(() => {
@@ -341,7 +405,12 @@ export function GalleryClient({
       ) : viewMode === "grid" ? (
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((asset) => (
-            <GalleryCard key={asset.id} asset={asset} projectId={projectId} />
+            <GalleryCard
+              key={asset.id}
+              asset={asset}
+              projectId={projectId}
+              onAssetClick={setSheetAssetId}
+            />
           ))}
         </div>
       ) : (
@@ -351,10 +420,21 @@ export function GalleryClient({
               key={asset.id}
               asset={asset}
               projectId={projectId}
+              onAssetClick={setSheetAssetId}
             />
           ))}
         </div>
       )}
+
+      {/* Asset Detail Sheet */}
+      <AssetDetailSheet
+        asset={sheetAsset}
+        open={sheetAsset !== null}
+        onOpenChange={(open) => {
+          if (!open) setSheetAssetId(null);
+        }}
+        onDeleted={() => setSheetAssetId(null)}
+      />
     </div>
   );
 }
@@ -364,9 +444,11 @@ export function GalleryClient({
 function GalleryCard({
   asset,
   projectId,
+  onAssetClick,
 }: {
   asset: GalleryAsset;
   projectId: string;
+  onAssetClick: (id: string) => void;
 }) {
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
   const isVisual = ["IMAGE", "STORYBOARD", "VIDEO"].includes(asset.assetType);
@@ -375,20 +457,28 @@ function GalleryCard({
     <TooltipProvider>
       <Tooltip delayDuration={400}>
         <TooltipTrigger asChild>
-          <Link
-            href={`/projects/${projectId}/scenes/${asset.sceneId}`}
-            className={`group relative rounded-lg border border-border/40 overflow-hidden hover:border-border/80 hover:shadow-md transition-all ${
+          <button
+            type="button"
+            onClick={() => onAssetClick(asset.id)}
+            className={`group relative rounded-lg border border-border/40 overflow-hidden hover:border-border/80 hover:shadow-md transition-all text-left cursor-pointer ${
               asset.selected ? "ring-2 ring-emerald-500/40" : ""
             }`}
           >
             {/* Image / Placeholder */}
             <div className="aspect-video bg-muted/30 flex items-center justify-center">
               {imgSrc && isVisual ? (
-                <img
+                <Image
                   src={imgSrc}
                   alt=""
+                  width={320}
+                  height={180}
                   className="h-full w-full object-cover"
-                  loading="lazy"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                  quality={60}
+                  unoptimized={shouldSkipOptimization(
+                    imgSrc,
+                    !!asset.thumbnailUrl,
+                  )}
                 />
               ) : (
                 <div className="text-muted-foreground/30">
@@ -425,7 +515,7 @@ function GalleryCard({
                 v{asset.versionNumber} &middot; {asset.platformLabel}
               </p>
             </div>
-          </Link>
+          </button>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs">
           <p className="font-medium">
@@ -445,27 +535,34 @@ function GalleryCard({
 function GalleryListRow({
   asset,
   projectId,
+  onAssetClick,
 }: {
   asset: GalleryAsset;
   projectId: string;
+  onAssetClick: (id: string) => void;
 }) {
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
 
   return (
-    <Link
-      href={`/projects/${projectId}/scenes/${asset.sceneId}`}
-      className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/30 transition-colors group ${
+    <button
+      type="button"
+      onClick={() => onAssetClick(asset.id)}
+      className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/30 transition-colors group text-left cursor-pointer ${
         asset.selected ? "bg-emerald-500/5" : ""
       }`}
     >
       {/* Thumbnail */}
       <div className="h-10 w-16 rounded border border-border/40 overflow-hidden bg-muted/30 shrink-0 flex items-center justify-center">
         {imgSrc ? (
-          <img
+          <Image
             src={imgSrc}
             alt=""
+            width={64}
+            height={40}
             className="h-full w-full object-cover"
-            loading="lazy"
+            sizes="64px"
+            quality={50}
+            unoptimized={shouldSkipOptimization(imgSrc, !!asset.thumbnailUrl)}
           />
         ) : (
           <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
@@ -493,6 +590,6 @@ function GalleryListRow({
       {asset.selected && (
         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 shrink-0" />
       )}
-    </Link>
+    </button>
   );
 }

@@ -347,7 +347,13 @@ export async function updateSceneAssetVersion(
   }
 
   const shouldSelect = data.selected || data.status === AssetStatus.SELECTED;
-  const normalizedStatus = toSelectedStatus(data.status, shouldSelect);
+
+  // When deselecting (selected: false) without an explicit status, revert to
+  // GENERATED instead of DRAFT so the SELECTED → GENERATED transition is valid.
+  const normalizedStatus =
+    data.selected === false && !data.status
+      ? AssetStatus.GENERATED
+      : toSelectedStatus(data.status, shouldSelect);
 
   // Validate status transition if status is changing
   if (normalizedStatus !== existing.status) {

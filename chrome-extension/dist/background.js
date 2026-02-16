@@ -77,6 +77,7 @@ var QUEUE_KEY = "syncQueue";
 var CONFIG_KEY = "extensionConfig";
 var SYNC_ALARM = "production-tracker-sync";
 var MAX_RETRY = 10;
+var MAX_QUEUE_SIZE = 200;
 async function getStorageValue(key, defaultValue) {
   const result = await chrome.storage.local.get(key);
   return result[key] ?? defaultValue;
@@ -109,8 +110,21 @@ async function getConfig() {
 }
 async function enqueue(item) {
   const queue = await getQueue();
+  let trimmed = queue;
+  if (trimmed.length >= MAX_QUEUE_SIZE) {
+    const failed = trimmed.filter((i) => i.failedPermanently);
+    if (failed.length > 0) {
+      const failedIds = new Set(
+        failed.slice(0, trimmed.length - MAX_QUEUE_SIZE + 1).map((i) => i.id)
+      );
+      trimmed = trimmed.filter((i) => !failedIds.has(i.id));
+    }
+    if (trimmed.length >= MAX_QUEUE_SIZE) {
+      trimmed = trimmed.slice(trimmed.length - MAX_QUEUE_SIZE + 1);
+    }
+  }
   const nextQueue = [
-    ...queue,
+    ...trimmed,
     {
       id: crypto.randomUUID(),
       retryCount: 0,
@@ -251,7 +265,23 @@ async function syncQueue() {
   }
   const nextQueue = [];
   let processed = 0;
+  let authExpired = false;
+  const now = Date.now();
   for (const item of queue) {
+    if (item.failedPermanently) {
+      nextQueue.push(item);
+      continue;
+    }
+    if (authExpired) {
+      nextQueue.push({ ...item, lastError: "Authentication expired" });
+      continue;
+    }
+    if (item.nextRetryAfter && new Date(item.nextRetryAfter).getTime() > now) {
+      nextQueue.push(item);
+      continue;
+    }
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3e4);
     try {
       const response = await fetch(`${baseUrl}/api/extension/ingest`, {
         method: "POST",
@@ -259,22 +289,53 @@ async function syncQueue() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(item.payload)
+        body: JSON.stringify(item.payload),
+        signal: controller.signal
       });
+      if (response.status === 401) {
+        authExpired = true;
+        chrome.runtime.sendMessage({ type: "auth-expired" }).catch(() => {
+        });
+        nextQueue.push({
+          ...item,
+          retryCount: MAX_RETRY + 1,
+          lastError: "Authentication expired \u2014 reconnect in settings",
+          failedPermanently: true
+        });
+        continue;
+      }
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${response.status}`);
+        throw new Error(
+          body.error || `HTTP ${response.status}: ${item.payload?.prompt?.substring(0, 30) || "unknown"}`
+        );
       }
       processed += 1;
     } catch (error) {
+      if (error.name === "AbortError") {
+        const retryCount2 = (item.retryCount || 0) + 1;
+        if (retryCount2 <= MAX_RETRY) {
+          nextQueue.push({
+            ...item,
+            retryCount: retryCount2,
+            lastError: "Request timed out"
+          });
+        }
+        continue;
+      }
       const errorMsg = error instanceof Error ? error.message : String(error);
       const isClientError = /HTTP (40[0-9]|4[1-9]\d)/.test(errorMsg);
       const retryCount = (item.retryCount || 0) + 1;
+      const backoffMs = Math.min(1e3 * Math.pow(2, retryCount - 1), 6e5);
+      const lastAttempt = item.lastAttemptAt ? new Date(item.lastAttemptAt).getTime() : 0;
+      const now2 = Date.now();
       if (!isClientError && retryCount <= MAX_RETRY) {
         nextQueue.push({
           ...item,
           retryCount,
-          lastError: errorMsg
+          lastError: errorMsg,
+          lastAttemptAt: (/* @__PURE__ */ new Date()).toISOString(),
+          nextRetryAfter: new Date(now2 + backoffMs).toISOString()
         });
       } else if (isClientError) {
         nextQueue.push({
@@ -284,6 +345,8 @@ async function syncQueue() {
           failedPermanently: true
         });
       }
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
   await setQueue(nextQueue);

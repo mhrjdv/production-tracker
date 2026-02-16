@@ -174,15 +174,37 @@
     const baseUrl = normalizeBaseUrl(config.baseUrl);
     const token = (config.token || "").trim();
     if (!baseUrl || !token) throw new Error("Missing API URL or token.");
-    const response = await fetch(`${baseUrl}${path}`, {
-      method: options.method || "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...options.headers || {}
-      },
-      ...options.body !== void 0 ? { body: JSON.stringify(options.body) } : {}
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      options.timeout ?? DEFAULT_TIMEOUT_MS
+    );
+    let response;
+    try {
+      response = await fetch(`${baseUrl}${path}`, {
+        method: options.method || "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...options.headers || {}
+        },
+        signal: controller.signal,
+        ...options.body !== void 0 ? { body: JSON.stringify(options.body) } : {}
+      });
+    } catch (err) {
+      if (err.name === "AbortError") {
+        throw new Error(
+          `Request timed out after ${(options.timeout ?? DEFAULT_TIMEOUT_MS) / 1e3}s`
+        );
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    if (response.status === 401) {
+      dispatchEvent(new CustomEvent("lm-auth-expired"));
+      throw new Error("Authentication expired. Please reconnect.");
+    }
     if (!response.ok) {
       const body = await response.json().catch(() => ({}));
       throw new Error(body.error || `Request failed (${response.status})`);
@@ -209,11 +231,13 @@
       body: { preferences }
     }).catch((err) => console.warn("[sidepanel] syncProfile:", err.message));
   }
+  var DEFAULT_TIMEOUT_MS;
   var init_api = __esm({
     "chrome-extension/src/api.js"() {
       "use strict";
       init_config();
       init_state();
+      DEFAULT_TIMEOUT_MS = 3e4;
     }
   });
 
@@ -4021,9 +4045,23 @@
     clearCompareSelections: () => clearCompareSelections,
     closeCompare: () => closeCompare,
     openCompare: () => openCompare,
+    restoreCompareIds: () => restoreCompareIds,
     toggleCompareSelect: () => toggleCompareSelect,
     updateCompareBar: () => updateCompareBar
   });
+  function persistCompareIds() {
+    chrome.storage.local.set({ compareIds: state_default.compareIds }).catch(() => {
+    });
+  }
+  function restoreCompareIds() {
+    chrome.storage.local.get("compareIds").then((data) => {
+      if (Array.isArray(data.compareIds)) {
+        state_default.compareIds = data.compareIds;
+        updateCompareBar();
+      }
+    }).catch(() => {
+    });
+  }
   function toggleCompareSelect(assetId) {
     const idx = state_default.compareIds.indexOf(assetId);
     if (idx >= 0) {
@@ -4038,6 +4076,7 @@
       }
       state_default.compareIds = [...state_default.compareIds, assetId];
     }
+    persistCompareIds();
     updateCompareBar();
     renderReuseList();
   }
@@ -4066,6 +4105,7 @@
   function clearCompareSelections() {
     state_default.compareIds = [];
     state_default.compareOpen = false;
+    persistCompareIds();
     dom.compareOverlay.classList.add("hidden");
     updateCompareBar();
     renderReuseList();
@@ -4402,6 +4442,7 @@
     return {
       projectId: dom.ctxProjectSelect.value,
       sceneId: dom.ctxSceneSelect.value,
+      shotId: dom.ctxShotSelect?.value || "",
       platformKey: dom.capPlatformSelect.value,
       platformLabel: state_default.platforms.find((p) => p.slug === dom.capPlatformSelect.value)?.name || "",
       assetType: dom.capAssetType.value,
@@ -4794,16 +4835,24 @@
       const sub = document.createElement("div");
       sub.className = "sp-queue-item-sub";
       const retries = item.retryCount || 0;
-      sub.textContent = `${item.payload?.assetType || "?"} -- ${item.payload?.platformKey || "?"} -- queued ${formatRelativeTime(item.queuedAt)}${retries > 0 ? ` -- retry ${retries}` : ""}`;
+      sub.textContent = `${item.payload?.assetType || "?"} \xB7 ${item.payload?.platformKey || "?"} \xB7 queued ${formatRelativeTime(item.queuedAt)}${retries > 0 ? ` \xB7 retry ${retries}` : ""}`;
       info.appendChild(title);
       info.appendChild(sub);
+      if (item.lastError && (retries >= 5 || item.failedPermanently)) {
+        const errEl = document.createElement("div");
+        errEl.className = "sp-queue-item-error";
+        errEl.textContent = item.lastError;
+        info.appendChild(errEl);
+      }
       const badge = document.createElement("span");
-      if (retries >= 5) {
+      if (item.failedPermanently || retries >= 5) {
         badge.className = "sp-badge failed";
         badge.textContent = "Failed";
+        badge.title = item.lastError || "Permanently failed";
       } else if (retries > 0) {
         badge.className = "sp-badge queued";
         badge.textContent = `Retry ${retries}`;
+        if (item.lastError) badge.title = item.lastError;
       } else {
         badge.className = "sp-badge queued";
         badge.textContent = "Queued";
@@ -4854,7 +4903,9 @@
   async function clearFailedItems() {
     const data = await chrome.storage.local.get("syncQueue");
     const queue = data.syncQueue || [];
-    const filtered = queue.filter((item) => (item.retryCount || 0) < 5);
+    const filtered = queue.filter(
+      (item) => !item.failedPermanently && (item.retryCount || 0) < 5
+    );
     await chrome.storage.local.set({ syncQueue: filtered });
     state_default.localQueueMirror = filtered;
     renderQueueList();
@@ -4901,6 +4952,9 @@
     }
     if (data.platformKey && state_default.platforms.some((p) => p.slug === data.platformKey)) {
       dom.capPlatformSelect.value = data.platformKey;
+    }
+    if (data.shotId && dom.ctxShotSelect?.querySelector(`option[value="${data.shotId}"]`)) {
+      dom.ctxShotSelect.value = data.shotId;
     }
   }
   function resetCaptureForm(opts = {}) {
@@ -5545,6 +5599,7 @@
       );
       renderCharacterCards();
       updateContextBar();
+      restoreCompareIds();
       resetCaptureForm({ preserveSourceUrl: true });
       await restoreSceneDraft();
       const detected = await detectFromPage();
@@ -5603,8 +5658,20 @@
   dom.settingsToggle.addEventListener("click", () => toggleSettings());
   dom.settingsClose.addEventListener("click", () => toggleSettings(false));
   dom.cfgSave.addEventListener("click", async () => {
+    const baseUrl = dom.cfgBaseUrl.value.trim();
+    if (baseUrl) {
+      try {
+        new URL(baseUrl);
+      } catch {
+        setStatus(
+          "Invalid Base URL format. Must be a valid URL (e.g. https://example.com).",
+          true
+        );
+        return;
+      }
+    }
     const nextConfig = {
-      baseUrl: dom.cfgBaseUrl.value.trim(),
+      baseUrl,
       token: dom.cfgToken.value.trim(),
       openAiBaseUrl: normalizeBaseUrl(dom.cfgOpenAiBaseUrl.value),
       openAiModel: dom.cfgOpenAiModel.value.trim(),
@@ -5625,10 +5692,19 @@
       setStatus("API Token is required.", true);
       return;
     }
+    const authBaseUrlVal = dom.authBaseUrl.value.trim();
+    if (authBaseUrlVal) {
+      try {
+        new URL(authBaseUrlVal);
+      } catch {
+        setStatus("Invalid Base URL format.", true);
+        return;
+      }
+    }
     dom.authConnect.disabled = true;
     dom.authConnect.textContent = "Connecting...";
     const nextConfig = {
-      baseUrl: dom.authBaseUrl.value.trim(),
+      baseUrl: authBaseUrlVal,
       token,
       openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
       openAiModel: dom.authOpenAiModel.value.trim(),
@@ -5963,6 +6039,16 @@
       renderQueueList();
       updateQueueDot((changes.syncQueue.newValue || []).length);
     }
+  });
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type === "auth-expired") {
+      setStatus("Token expired. Please reconnect in Settings.", true);
+      toggleSettings(true);
+    }
+  });
+  addEventListener("lm-auth-expired", () => {
+    setStatus("Token expired. Please reconnect in Settings.", true);
+    toggleSettings(true);
   });
   initialize();
 })();

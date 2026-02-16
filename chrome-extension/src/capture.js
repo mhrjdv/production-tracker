@@ -53,6 +53,13 @@ export function hydrateCapture(data) {
   ) {
     dom.capPlatformSelect.value = data.platformKey;
   }
+  // Restore shot selection
+  if (
+    data.shotId &&
+    dom.ctxShotSelect?.querySelector(`option[value="${data.shotId}"]`)
+  ) {
+    dom.ctxShotSelect.value = data.shotId;
+  }
 }
 
 export function resetCaptureForm(opts = {}) {

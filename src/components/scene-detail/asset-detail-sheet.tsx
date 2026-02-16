@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
+import { shouldSkipOptimization } from "@/lib/image-utils";
 import {
   Sheet,
   SheetContent,
@@ -185,7 +186,11 @@ export function AssetDetailSheet({
                     className="w-full max-h-80 object-contain"
                     sizes="(max-width: 512px) 100vw, 512px"
                     quality={80}
-                    unoptimized
+                    priority
+                    unoptimized={shouldSkipOptimization(
+                      imgSrc,
+                      !!asset.thumbnailUrl,
+                    )}
                   />
                 )}
               </div>

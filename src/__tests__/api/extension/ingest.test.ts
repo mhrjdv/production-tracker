@@ -27,6 +27,11 @@ vi.mock("@/lib/extension-ingest-schema", async () => {
   return vi.importActual("@/lib/extension-ingest-schema");
 });
 
+const mockRevalidatePath = vi.fn();
+vi.mock("next/cache", () => ({
+  revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
+}));
+
 import { POST, OPTIONS } from "@/app/api/extension/ingest/route";
 
 // ─── Minimal valid ingest payload ────────────────────────────
@@ -42,7 +47,11 @@ const VALID_PAYLOAD = {
 // ─── Reusable mock data ──────────────────────────────────────
 
 const MOCK_PROJECT = { id: "proj_001" };
-const MOCK_SCENE = { id: "scene_db_001", sceneId: "S001", projectId: "proj_001" };
+const MOCK_SCENE = {
+  id: "scene_db_001",
+  sceneId: "S001",
+  projectId: "proj_001",
+};
 const MOCK_PLATFORM = { id: "plat_mj", slug: "midjourney", name: "Midjourney" };
 
 const MOCK_CREATED_ASSET = {
@@ -72,6 +81,7 @@ function setupSuccessfulLookups() {
 beforeEach(() => {
   resetPrismaMocks();
   resetExtensionAuthMock();
+  mockRevalidatePath.mockReset();
 });
 
 // ─── Tests ───────────────────────────────────────────────────
@@ -83,7 +93,9 @@ describe("POST /api/extension/ingest", () => {
 
       expect(response.status).toBe(204);
       expect(response.headers.get("Access-Control-Allow-Origin")).toBe("*");
-      expect(response.headers.get("Access-Control-Allow-Methods")).toContain("POST");
+      expect(response.headers.get("Access-Control-Allow-Methods")).toContain(
+        "POST",
+      );
     });
   });
 
@@ -224,6 +236,55 @@ describe("POST /api/extension/ingest", () => {
       expect(createCall.data.createdById).toBe(DEFAULT_AUTH_CONTEXT.userId);
     });
 
+    it("calls revalidatePath for all relevant dashboard pages", async () => {
+      setupSuccessfulLookups();
+
+      const request = createAuthenticatedRequest("/api/extension/ingest", {
+        method: "POST",
+        body: VALID_PAYLOAD,
+      });
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+
+      // Should revalidate scene detail, gallery, production, and timeline
+      expect(mockRevalidatePath).toHaveBeenCalledWith(
+        `/projects/${MOCK_PROJECT.id}/scenes/${MOCK_SCENE.sceneId}`,
+      );
+      expect(mockRevalidatePath).toHaveBeenCalledWith(
+        `/projects/${MOCK_PROJECT.id}/gallery`,
+      );
+      expect(mockRevalidatePath).toHaveBeenCalledWith(
+        `/projects/${MOCK_PROJECT.id}/production`,
+      );
+      expect(mockRevalidatePath).toHaveBeenCalledWith(
+        `/projects/${MOCK_PROJECT.id}/timeline`,
+      );
+    });
+
+    it("does not call revalidatePath on failure", async () => {
+      mockPrisma.project.findFirst.mockResolvedValue(MOCK_PROJECT);
+      mockPrisma.scene.findUnique.mockResolvedValue(MOCK_SCENE);
+      mockPrisma.aiPlatform.findUnique.mockResolvedValue(MOCK_PLATFORM);
+      mockPrisma.sceneAssetVersion.aggregate.mockResolvedValue({
+        _max: { versionNumber: 0 },
+      });
+      mockPrisma.$transaction.mockRejectedValue(new Error("DB error"));
+
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const request = createAuthenticatedRequest("/api/extension/ingest", {
+        method: "POST",
+        body: VALID_PAYLOAD,
+      });
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      expect(mockRevalidatePath).not.toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
     it("auto-increments version number", async () => {
       mockPrisma.project.findFirst.mockResolvedValue(MOCK_PROJECT);
       mockPrisma.scene.findUnique.mockResolvedValue(MOCK_SCENE);
@@ -271,7 +332,8 @@ describe("POST /api/extension/ingest", () => {
 
       // Verify updateMany was called to deselect previous selections
       expect(mockPrisma.sceneAssetVersion.updateMany).toHaveBeenCalledOnce();
-      const updateCall = mockPrisma.sceneAssetVersion.updateMany.mock.calls[0][0];
+      const updateCall =
+        mockPrisma.sceneAssetVersion.updateMany.mock.calls[0][0];
       expect(updateCall.where.sceneId).toBe(MOCK_SCENE.id);
       expect(updateCall.where.selected).toBe(true);
       expect(updateCall.data.selected).toBe(false);
@@ -371,7 +433,9 @@ describe("POST /api/extension/ingest", () => {
       );
 
       // Suppress expected console.error
-      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const request = createAuthenticatedRequest("/api/extension/ingest", {
         method: "POST",
