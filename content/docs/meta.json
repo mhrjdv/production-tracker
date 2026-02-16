@@ -1,6 +1,6 @@
 {
   "root": true,
-  "title": "Laserman",
+  "title": "Lazer",
   "pages": [
     "index",
     "---Getting Started---",
@@ -11,6 +11,8 @@
     "web-app",
     "---Chrome Extension---",
     "chrome-extension",
+    "---MCP Server---",
+    "mcp-server",
     "---API Reference---",
     "api-reference",
     "---Supported Platforms---",

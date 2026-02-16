@@ -9,10 +9,10 @@ This document provides detailed reference for all Chrome extension API endpoints
 
 ## Base URL
 
-All endpoints are relative to your Laserman instance:
+All endpoints are relative to your Lazer instance:
 
 ```
-https://laserman.yourdomain.com/api/extension
+https://lazer.yourdomain.com/api/extension
 ```
 
 ## Authentication
@@ -20,7 +20,7 @@ https://laserman.yourdomain.com/api/extension
 All endpoints require Bearer token authentication:
 
 ```http
-Authorization: Bearer lmt_your_token_here
+Authorization: Bearer lzr_your_token_here
 ```
 
 See [Authentication](/docs/api-reference/authentication) for details.
@@ -35,8 +35,8 @@ List all projects for the authenticated user.
 
 ```http
 GET /api/extension/projects HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Response
@@ -88,8 +88,8 @@ List all scenes for a specific project.
 
 ```http
 GET /api/extension/scenes?projectId=proj_abc123 HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Query Parameters
@@ -144,8 +144,8 @@ List asset versions for a specific scene.
 
 ```http
 GET /api/extension/scene-assets?projectId=proj_abc123&sceneId=001&assetType=VIDEO&limit=30 HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Query Parameters
@@ -217,8 +217,8 @@ List all available AI platforms.
 
 ```http
 GET /api/extension/platforms HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Response
@@ -276,8 +276,8 @@ Create a new asset version from captured data.
 
 ```http
 POST /api/extension/ingest HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 Content-Type: application/json
 
 {
@@ -388,8 +388,8 @@ Get user profile and extension preferences.
 
 ```http
 GET /api/extension/profile HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Response
@@ -431,8 +431,8 @@ Update user preferences.
 
 ```http
 PUT /api/extension/profile HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 Content-Type: application/json
 
 {
@@ -469,8 +469,8 @@ List shots for a specific scene.
 
 ```http
 GET /api/extension/shots?sceneDbId=scene_001 HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Query Parameters
@@ -522,8 +522,8 @@ List characters for a specific project.
 
 ```http
 GET /api/extension/characters?projectId=proj_abc123 HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 ```
 
 ### Query Parameters
@@ -568,8 +568,8 @@ Update asset selection or compare group.
 
 ```http
 PATCH /api/extension/asset-update HTTP/1.1
-Host: laserman.yourdomain.com
-Authorization: Bearer lmt_abc123...
+Host: lazer.yourdomain.com
+Authorization: Bearer lzr_abc123...
 Content-Type: application/json
 
 {

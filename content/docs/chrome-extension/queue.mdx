@@ -15,7 +15,7 @@ When you click "Save Capture," the extension:
 2. Adds the item to the local queue
 3. Immediately shows it in Queue Mode with "Pending" status
 4. Background service worker picks up the item
-5. Attempts to sync to Laserman API
+5. Attempts to sync to Lazer API
 6. Updates status to "Synced" or "Failed"
 
 All of this happens asynchronously, so you can continue capturing while syncs process in the background.
@@ -90,7 +90,7 @@ This provides confidence that sync is working and allows quick navigation to rec
 
 ### Synced
 
-- Successfully uploaded to Laserman API
+- Successfully uploaded to Lazer API
 - Item is removed from queue and moved to "Recent"
 - Accessible in web app scene detail view
 
@@ -118,7 +118,7 @@ After 5 failed attempts, the item is marked as permanently failed and requires m
 Click "Retry" on a failed item if:
 
 - Network was down temporarily
-- Laserman API was restarting
+- Lazer API was restarting
 - API token expired and you've updated it
 - You've fixed validation errors (e.g., corrected output URL)
 
@@ -170,7 +170,7 @@ Click "Clear Failed" if:
 
 ### 500 Internal Server Error
 
-**Cause:** Laserman API encountered an error
+**Cause:** Lazer API encountered an error
 
 **Fix:**
 1. Wait a few minutes (may be temporary)
@@ -180,11 +180,11 @@ Click "Clear Failed" if:
 
 ### Network Error
 
-**Cause:** No internet connection or Laserman API unreachable
+**Cause:** No internet connection or Lazer API unreachable
 
 **Fix:**
 1. Verify your internet connection
-2. Verify Laserman instance is running
+2. Verify Lazer instance is running
 3. Check App URL in Settings
 4. Items will retry automatically once network is restored
 

@@ -1,0 +1,105 @@
+---
+title: Authentication
+description: OAuth 2.0, API keys, and token management for the Lazer MCP server
+---
+
+# Authentication
+
+The Lazer MCP server supports three authentication methods depending on your client and deployment.
+
+## OAuth 2.0 (Recommended for Remote)
+
+OAuth is the recommended method for remote clients like ChatGPT. The server implements the full OAuth 2.0 Authorization Code flow with PKCE.
+
+### How It Works
+
+1. Client discovers OAuth metadata at `/.well-known/oauth-protected-resource`
+2. Client registers via Dynamic Client Registration at `/oauth/register`
+3. Client redirects user to `/oauth/authorize` for login
+4. User logs in with their Lazer credentials
+5. Server redirects back with an authorization code
+6. Client exchanges the code for an access token at `/oauth/token`
+7. Client uses the token as `Authorization: Bearer lzr_...` on MCP requests
+
+### OAuth Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/.well-known/oauth-protected-resource` | GET | Protected Resource Metadata (RFC 9728) |
+| `/.well-known/oauth-authorization-server` | GET | Authorization Server Metadata (RFC 8414) |
+| `/oauth/register` | POST | Dynamic Client Registration (RFC 7591) |
+| `/oauth/authorize` | GET | Authorization endpoint (login + auto-approve) |
+| `/oauth/token` | POST | Token exchange (code → access_token) |
+
+### Security Features
+
+- **PKCE S256** — Required on all authorization requests
+- **Single-use codes** — Authorization codes expire after 10 minutes and can only be used once
+- **Token hashing** — Only SHA-256 hashes are stored in the database, never raw tokens
+- **Redirect URI validation** — Must match the URI registered during client registration
+
+## Bearer Token (API Key)
+
+For local clients or scripts, generate a token on the [Integrations](/integrations) page and pass it directly.
+
+### HTTP Header
+
+```http
+Authorization: Bearer lzr_a1b2c3d4e5f6...
+```
+
+### STDIO (Claude Desktop, Cursor)
+
+```bash
+# Via CLI flag
+npx lazer-mcp --token lzr_your_token
+
+# Via environment variable
+LAZER_TOKEN=lzr_your_token npx lazer-mcp
+```
+
+## Token Format
+
+All Lazer tokens use the `lzr_` prefix format:
+
+| Component | Example |
+|-----------|---------|
+| Prefix | `lzr_` |
+| Random data | 24 bytes (48 hex characters) |
+| Full token | `lzr_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3` |
+
+## Token Lifecycle
+
+- **Creation** — Via [Integrations](/integrations) page or OAuth token exchange
+- **Default expiry** — 90 days (customizable)
+- **Revocation** — Soft-delete via the Integrations page (instant effect)
+- **Audit** — `lastUsedAt` timestamp updated on every authenticated request
+
+## Managing Tokens
+
+Navigate to [Integrations](/integrations) in the Lazer web app to:
+
+- **Create** new tokens with custom names and expiry
+- **View** all tokens with their prefix, creation date, and last-used date
+- **Revoke** any active token immediately
+
+> Tokens created via OAuth are labeled **"MCP: [Client Name] (OAuth)"** for easy identification.
+
+## 401 Response and OAuth Discovery
+
+When an MCP request arrives without valid authentication, the server returns:
+
+```http
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer resource_metadata="https://your-domain/.well-known/oauth-protected-resource"
+Content-Type: application/json
+
+{"error": "Unauthorized", "message": "Valid Bearer token required"}
+```
+
+MCP clients that support OAuth will automatically discover and initiate the authorization flow from this response.
+
+## Next Steps
+
+- [Setup Guide](/docs/mcp-server/setup) — Connect your specific client
+- [Tools Reference](/docs/mcp-server/tools) — Start using tools after authenticating

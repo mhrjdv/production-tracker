@@ -1,11 +1,11 @@
 ---
 title: Installation
-description: Install and configure the Laserman web application.
+description: Install and configure the Lazer web application.
 ---
 
 # Installation
 
-This guide walks you through setting up Laserman on your local development environment. By the end, you'll have a running instance of the web application with a seeded database.
+This guide walks you through setting up Lazer on your local development environment. By the end, you'll have a running instance of the web application with a seeded database.
 
 ## Prerequisites Check
 
@@ -18,11 +18,11 @@ Before proceeding, verify that you have:
 
 ## Step 1: Clone the Repository
 
-Clone the Laserman repository to your local machine:
+Clone the Lazer repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/laserman_v2.git
-cd laserman_v2
+git clone https://github.com/yourusername/lazer_v2.git
+cd lazer_v2
 ```
 
 ## Step 2: Install Dependencies
@@ -35,7 +35,7 @@ npm install
 
 This will install Next.js, Prisma, React, and all other dependencies defined in `package.json`.
 
-> **Note:** If you prefer `pnpm` or `yarn`, you can use those package managers instead. Laserman has no specific npm-only requirements.
+> **Note:** If you prefer `pnpm` or `yarn`, you can use those package managers instead. Lazer has no specific npm-only requirements.
 
 ## Step 3: Configure Environment Variables
 
@@ -50,35 +50,36 @@ Open `.env` in your text editor and configure the following variables:
 ### Database Configuration
 
 ```bash
-DATABASE_URL="postgresql://username:password@localhost:5432/laserman_dev?schema=public"
+DATABASE_URL="postgresql://username:password@localhost:5432/lazer_dev?schema=public"
 ```
 
-Replace `username`, `password`, and database name (`laserman_dev`) with your PostgreSQL credentials. If your database runs on a different host or port, update `localhost:5432` accordingly.
+Replace `username`, `password`, and database name (`lazer_dev`) with your PostgreSQL credentials. If your database runs on a different host or port, update `localhost:5432` accordingly.
 
-> **Note:** The database name (`laserman_dev`) will be created automatically when you run migrations in Step 4.
+> **Note:** The database name (`lazer_dev`) will be created automatically when you run migrations in Step 4.
 
-### Authentication Configuration
+### Supabase Auth Configuration
 
 ```bash
-AUTH_SECRET="your-random-secret-key-here"
-NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 ```
 
-Generate a secure random string for `AUTH_SECRET`:
+To obtain these credentials:
 
-```bash
-openssl rand -base64 32
-```
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project (or create a new one)
+3. Navigate to **Settings** > **API**
+4. Copy the **Project URL** and **anon public** key
 
-For local development, `NEXTAUTH_URL` should remain `http://localhost:3000`. In production, change this to your actual domain.
+> **Note:** The `anon` key is safe to expose in the browser. It works with Supabase Row Level Security (RLS) to control access.
 
 ### OpenRouter Configuration
 
 ```bash
-OPENROUTER_API_KEY="sk-or-v1-your-api-key-here"
+API_KEY="sk-or-v1-your-api-key-here"
 ```
 
-Laserman uses OpenRouter for AI-powered script parsing and analysis. Get your API key from [OpenRouter](https://openrouter.ai/keys).
+Lazer uses OpenRouter for AI-powered script parsing and analysis. Get your API key from [OpenRouter](https://openrouter.ai/keys).
 
 > **Note:** Script parsing is optional for initial setup. You can leave this blank and add it later if you want to test the application without AI features first.
 
@@ -88,7 +89,7 @@ Laserman uses OpenRouter for AI-powered script parsing and analysis. Get your AP
 R2_ACCOUNT_ID="your-cloudflare-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
 R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
-R2_BUCKET_NAME="laserman-assets"
+R2_BUCKET_NAME="lazer-assets"
 R2_PUBLIC_URL="https://your-public-r2-domain.com"
 ```
 
@@ -96,7 +97,7 @@ To obtain these credentials:
 
 1. Log in to your [Cloudflare Dashboard](https://dash.cloudflare.com/)
 2. Navigate to **R2** in the sidebar
-3. Create a new bucket (e.g., `laserman-assets`)
+3. Create a new bucket (e.g., `lazer-assets`)
 4. Go to **Manage R2 API Tokens** and create a new API token with read/write permissions
 5. Copy the `Access Key ID` and `Secret Access Key`
 6. Set up a public domain for your bucket (optional but recommended for asset URLs)
@@ -109,20 +110,22 @@ Your `.env` file should look like this:
 
 ```bash
 # Database
-DATABASE_URL="postgresql://username:password@localhost:5432/laserman_dev?schema=public"
+DATABASE_URL="postgresql://username:password@localhost:5432/lazer_dev?schema=public"
 
-# Authentication
-AUTH_SECRET="your-random-secret-key-here"
-NEXTAUTH_URL="http://localhost:3000"
+# Supabase Auth
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 
-# AI Provider
-OPENROUTER_API_KEY="sk-or-v1-your-api-key-here"
+# AI Provider (OpenRouter)
+API_KEY="sk-or-v1-your-api-key-here"
+AI_MODEL="anthropic/claude-haiku-4.5"
+AI_LOGGING="true"
 
 # Cloudflare R2 Storage
 R2_ACCOUNT_ID="your-cloudflare-account-id"
 R2_ACCESS_KEY_ID="your-r2-access-key-id"
 R2_SECRET_ACCESS_KEY="your-r2-secret-access-key"
-R2_BUCKET_NAME="laserman-assets"
+R2_BUCKET_NAME="lazer-assets"
 R2_PUBLIC_URL="https://your-public-r2-domain.com"
 ```
 
@@ -131,7 +134,7 @@ R2_PUBLIC_URL="https://your-public-r2-domain.com"
 Create the PostgreSQL database if it doesn't exist:
 
 ```bash
-createdb laserman_dev
+createdb lazer_dev
 ```
 
 Run Prisma migrations to create all required tables:
@@ -157,8 +160,8 @@ npx prisma db seed
 
 This will create:
 - A sample user account
-- An example project ("Laserman V2")
-- Sample scenes from the Laserman script
+- An example project ("Lazer V2")
+- Sample scenes from the Lazer script
 - Example shot structures and prompt packages
 
 > **Note:** You can inspect the seed data in `prisma/seed.ts` to understand the data model.
@@ -183,7 +186,7 @@ You should see output similar to:
 
 ## Step 7: Verify Installation
 
-Open your browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the Laserman landing page or login screen.
+Open your browser and navigate to [http://localhost:3000](http://localhost:3000). You should see the Lazer landing page or login screen.
 
 To verify the database connection, check the Prisma Studio (database GUI):
 
@@ -219,15 +222,15 @@ If port 3000 is occupied:
 PORT=3001 npm run dev
 ```
 
-Update `NEXTAUTH_URL` in `.env` to match the new port.
+Update your Supabase site URL settings if needed.
 
 ## Next Steps
 
-Now that Laserman is running, proceed to [Your First Project](/docs/getting-started/first-project) to create a production project and upload a script.
+Now that Lazer is running, proceed to [Your First Project](/docs/getting-started/first-project) to create a production project and upload a script.
 
 ## Development Tools
 
-Useful commands for working with Laserman:
+Useful commands for working with Lazer:
 
 ```bash
 # Run type checking

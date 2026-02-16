@@ -44,7 +44,7 @@ export function createAuthenticatedRequest(
   return createMockRequest(path, {
     ...options,
     headers: {
-      Authorization: "Bearer lmt_test_token_12345",
+      Authorization: "Bearer lzr_test_token_12345",
       ...options.headers,
     },
   });

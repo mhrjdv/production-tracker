@@ -1,15 +1,15 @@
 ---
 title: Chrome Extension Setup
-description: Install and connect the Laserman Chrome extension for capturing AI-generated assets.
+description: Install and connect the Lazer Chrome extension for capturing AI-generated assets.
 ---
 
 # Chrome Extension Setup
 
-The Laserman Chrome extension enables you to capture AI-generated images and videos directly from platforms like Sora, Veo, and Freepik. This guide walks you through installation, authentication, and your first capture.
+The Lazer Chrome extension enables you to capture AI-generated images and videos directly from platforms like Sora, Veo, and Freepik. This guide walks you through installation, authentication, and your first capture.
 
 ## Why Use the Chrome Extension?
 
-Laserman's architecture separates generation from orchestration. You generate assets on external platforms (where the best models live), and the extension captures results back to Laserman for version control, comparison, and rights tracking.
+Lazer's architecture separates generation from orchestration. You generate assets on external platforms (where the best models live), and the extension captures results back to Lazer for version control, comparison, and rights tracking.
 
 **Key Benefits**:
 
@@ -23,16 +23,16 @@ Laserman's architecture separates generation from orchestration. You generate as
 
 Before installing the extension, ensure:
 
-- You have completed [Installation](/docs/getting-started/installation) and the Laserman web app is running
+- You have completed [Installation](/docs/getting-started/installation) and the Lazer web app is running
 - Google Chrome or Chromium-based browser (Edge, Brave, Arc) version 116+
-- A Laserman user account with API access
+- A Lazer user account with API access
 
 ## Step 1: Locate the Extension Files
 
-The Chrome extension source code is located in the `chrome-extension/` directory of the Laserman repository:
+The Chrome extension source code is located in the `chrome-extension/` directory of the Lazer repository:
 
 ```
-laserman_v2/
+lazer_v2/
   chrome-extension/
     manifest.json
     sidepanel.html
@@ -71,24 +71,24 @@ In the top-right corner, toggle **Developer mode** to ON. This reveals additiona
 ## Step 3: Load the Unpacked Extension
 
 1. Click **Load unpacked** button (top-left of the Extensions page)
-2. Navigate to the `chrome-extension/` directory in your Laserman repository
+2. Navigate to the `chrome-extension/` directory in your Lazer repository
 3. Select the folder and click **Open**
 
-The Laserman extension should now appear in your extensions list:
+The Lazer extension should now appear in your extensions list:
 
 ```
-Laserman Capture
+Lazer Capture
 Version 1.0.0
 ID: [auto-generated-extension-id]
 ```
 
-Pin the extension to your toolbar by clicking the puzzle piece icon and pinning Laserman.
+Pin the extension to your toolbar by clicking the puzzle piece icon and pinning Lazer.
 
 ## Step 4: Generate an API Token
 
-The extension requires an API token to authenticate with your Laserman instance.
+The extension requires an API token to authenticate with your Lazer instance.
 
-Navigate to the **Integrations** page in the Laserman web app:
+Navigate to the **Integrations** page in the Lazer web app:
 
 ```
 http://localhost:3000/integrations
@@ -110,7 +110,7 @@ Or access it from the dashboard:
 The token will be displayed once:
 
 ```
-ls_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
+lzr_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
 ```
 
 > **Important**: Copy this token immediately. It will not be shown again. If you lose it, you must generate a new token.
@@ -132,13 +132,13 @@ Tokens **cannot**:
 
 ## Step 5: Configure the Extension
 
-Click the Laserman extension icon in your Chrome toolbar (or open the side panel if auto-opened).
+Click the Lazer extension icon in your Chrome toolbar (or open the side panel if auto-opened).
 
 You'll see the **Connection Setup** screen with two fields:
 
-### Laserman URL
+### Lazer URL
 
-Enter the URL of your Laserman instance. The field starts empty — you **must** configure this explicitly:
+Enter the URL of your Lazer instance. The field starts empty — you **must** configure this explicitly:
 
 For local development:
 ```
@@ -147,7 +147,7 @@ http://localhost:3000
 
 For production deployments:
 ```
-https://laserman.yourdomain.com
+https://lazer.yourdomain.com
 ```
 
 > **Important:** The URL must include the protocol (`http://` or `https://`) and should not have a trailing slash. The extension will not sync captures until a valid URL is configured.
@@ -157,24 +157,24 @@ https://laserman.yourdomain.com
 Paste the API token you generated in Step 4:
 
 ```
-ls_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
+lzr_abc123xyz789def456ghi012jkl345mno678pqr901stu234vwx567yza890bcd
 ```
 
 Click **Connect**.
 
 ## Step 6: Test the Connection
 
-After entering your credentials, the extension will attempt to connect to Laserman. You should see:
+After entering your credentials, the extension will attempt to connect to Lazer. You should see:
 
 ```
-✓ Connected to Laserman
+✓ Connected to Lazer
   User: your-email@example.com
   Projects: 1 available
 ```
 
 If the connection fails, verify:
 
-- Laserman web app is running at the specified URL
+- Lazer web app is running at the specified URL
 - API token is correct and not expired
 - No firewall blocking localhost connections
 
@@ -182,13 +182,13 @@ If the connection fails, verify:
 
 Click **Test Connection** to run diagnostics:
 
-- **Network**: Checks if Laserman is reachable
+- **Network**: Checks if Lazer is reachable
 - **Authentication**: Validates the API token
 - **Permissions**: Verifies token has required scopes
 
 ## Understanding the Side Panel
 
-Laserman uses Chrome's Side Panel API (not a popup) for a persistent workflow alongside generation platforms. The side panel remains open while you browse, providing continuous access to capture controls.
+Lazer uses Chrome's Side Panel API (not a popup) for a persistent workflow alongside generation platforms. The side panel remains open while you browse, providing continuous access to capture controls.
 
 ### Four Extension Modes
 
@@ -220,7 +220,7 @@ The primary capture interface:
 1. Generate an asset on an external platform
 2. Platform detector identifies the asset automatically
 3. Review the detected metadata
-4. Click **Capture** to save to Laserman
+4. Click **Capture** to save to Lazer
 
 #### 3. Reuse Mode
 
@@ -249,7 +249,7 @@ Let's test the extension by capturing a sample asset.
 1. Open a new tab and navigate to an AI image generation platform (e.g., [Freepik AI](https://www.freepik.com/ai))
 2. Generate an image using a simple prompt: `coffee shop interior, morning light`
 3. Wait for the image to finish generating
-4. Open the Laserman side panel (click the extension icon or press `Ctrl+Shift+Y`)
+4. Open the Lazer side panel (click the extension icon or press `Ctrl+Shift+Y`)
 
 ### Automatic Detection
 
@@ -280,7 +280,7 @@ Before capturing, verify:
 Click **Save Capture**. The extension will:
 
 1. Add the capture to the local sync queue
-2. Send the payload to the Laserman API (`POST /api/extension/ingest`)
+2. Send the payload to the Lazer API (`POST /api/extension/ingest`)
 3. Create a `SceneAssetVersion` record in the database (with optional prompt package)
 4. Associate the version with the selected scene and shot
 5. Display sync status in the status bar
@@ -294,7 +294,7 @@ You should see:
   File: [R2 URL]
 ```
 
-### Verify in Laserman
+### Verify in Lazer
 
 Navigate to your project's scene detail page in the web app:
 
@@ -369,14 +369,14 @@ If the extension doesn't detect generated assets:
 
 1. Ensure the platform detector is enabled in settings
 2. Refresh the platform page after the asset finishes generating
-3. Try manually selecting the asset image and right-clicking **Capture to Laserman**
+3. Try manually selecting the asset image and right-clicking **Capture to Lazer**
 4. Check the browser console for detector errors
 
 ### Upload Failures
 
 If captures fail to upload:
 
-1. Verify Laserman web app is running
+1. Verify Lazer web app is running
 2. Check API token is valid and not expired
 3. Ensure R2 credentials in `.env` are correct
 4. Review network requests in Chrome DevTools (Network tab)
@@ -421,7 +421,7 @@ Now that the extension is installed and connected, you're ready to:
 
 1. Generate assets on external platforms (Sora, Veo, Freepik, etc.)
 2. Capture versions using the side panel
-3. Compare versions in the Laserman web app
+3. Compare versions in the Lazer web app
 4. Select finals for each shot
 5. Track rights and licensing status
 6. Export production-ready deliverables
@@ -430,11 +430,11 @@ For advanced capture workflows, see the [Extension Advanced Usage](/docs/extensi
 
 ## Updating the Extension
 
-When new versions of Laserman are released, update the extension:
+When new versions of Lazer are released, update the extension:
 
 1. Pull the latest code from the repository: `git pull origin main`
 2. Navigate to `chrome://extensions`
-3. Click the **Reload** icon on the Laserman extension card
+3. Click the **Reload** icon on the Lazer extension card
 
 No need to uninstall and reinstall—Chrome will reload the updated files automatically.
 
@@ -444,6 +444,6 @@ If you encounter issues with the extension:
 
 - Check the [Troubleshooting Guide](/docs/troubleshooting)
 - Review browser console logs (F12 → Console)
-- Report bugs on [GitHub Issues](https://github.com/yourusername/laserman/issues)
+- Report bugs on [GitHub Issues](https://github.com/yourusername/lazer/issues)
 
-For feature requests or workflow suggestions, join the discussion on [GitHub Discussions](https://github.com/yourusername/laserman/discussions).
+For feature requests or workflow suggestions, join the discussion on [GitHub Discussions](https://github.com/yourusername/lazer/discussions).

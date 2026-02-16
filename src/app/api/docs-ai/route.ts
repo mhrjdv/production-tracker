@@ -103,10 +103,10 @@ export async function POST(request: Request) {
   const context = contextParts.join("\n\n---\n\n");
 
   const openrouter = createOpenRouter({
-    apiKey: process.env.OPENROUTER_API_KEY,
+    apiKey: process.env.API_KEY,
   });
 
-  const model = openrouter(process.env.AI_MODEL || "x-ai/grok-4.1-fast");
+  const model = openrouter(process.env.AI_MODEL || "anthropic/claude-haiku-4.5");
 
   // Build source references list for the AI to cite
   const sourcesList = pageUrls
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model,
-    system: `You are a concise documentation assistant for Laserman (AI film production orchestration tool).
+    system: `You are a concise documentation assistant for Lazer (AI film production orchestration tool).
 
 CRITICAL: Keep answers SHORT — 3-5 sentences max for simple questions, 8-10 sentences max for complex ones. Use bullet points, not paragraphs. No filler.
 

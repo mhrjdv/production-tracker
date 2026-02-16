@@ -118,7 +118,7 @@ export const aiLogger = {
         log("info", "PIPELINE", "Starting script analysis", {
             scriptChars: scriptLength,
             scriptWords: scriptLength > 0 ? Math.round(scriptLength / 5) : 0,
-            model: process.env.AI_MODEL || "x-ai/grok-4.1-fast",
+            model: process.env.AI_MODEL || "anthropic/claude-haiku-4.5",
         });
     },
 

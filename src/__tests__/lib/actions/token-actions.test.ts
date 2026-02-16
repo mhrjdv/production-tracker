@@ -16,8 +16,8 @@ import {
 // vi.hoisted ensures this runs before vi.mock factory (both are hoisted)
 const mockGenerateExtensionToken = vi.hoisted(() =>
   vi.fn(() => ({
-    token: "lmt_test_token_abc123",
-    tokenPrefix: "lmt_test_tok",
+    token: "lzr_test_token_abc123",
+    tokenPrefix: "lzr_test_tok",
     tokenHash: "hash_abc123",
   })),
 );
@@ -50,8 +50,8 @@ beforeEach(() => {
   resetAuthMock();
   resetNextMocks();
   mockGenerateExtensionToken.mockReturnValue({
-    token: "lmt_test_token_abc123",
-    tokenPrefix: "lmt_test_tok",
+    token: "lzr_test_token_abc123",
+    tokenPrefix: "lzr_test_tok",
     tokenHash: "hash_abc123",
   });
 });
@@ -82,7 +82,7 @@ describe("createExtensionApiToken", () => {
 
     mockPrisma.extensionApiToken.create.mockResolvedValue({
       id: "token_001",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: expectedExpiry,
       createdAt: new Date(now),
     });
@@ -95,12 +95,12 @@ describe("createExtensionApiToken", () => {
           userId: DEFAULT_USER.id,
           name: "My Token",
           tokenHash: "hash_abc123",
-          tokenPrefix: "lmt_test_tok",
+          tokenPrefix: "lzr_test_tok",
           expiresAt: expectedExpiry,
         }),
       }),
     );
-    expect(result.token).toBe("lmt_test_token_abc123");
+    expect(result.token).toBe("lzr_test_token_abc123");
     expect(result.id).toBe("token_001");
 
     vi.spyOn(Date, "now").mockRestore();
@@ -114,7 +114,7 @@ describe("createExtensionApiToken", () => {
 
     mockPrisma.extensionApiToken.create.mockResolvedValue({
       id: "token_002",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: expectedExpiry,
       createdAt: new Date(now),
     });
@@ -140,7 +140,7 @@ describe("createExtensionApiToken", () => {
 
     mockPrisma.extensionApiToken.create.mockResolvedValue({
       id: "token_003",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: expectedExpiry,
       createdAt: new Date(now),
     });
@@ -164,7 +164,7 @@ describe("createExtensionApiToken", () => {
   it("trims the token name", async () => {
     mockPrisma.extensionApiToken.create.mockResolvedValue({
       id: "token_004",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: new Date(),
       createdAt: new Date(),
     });
@@ -183,7 +183,7 @@ describe("createExtensionApiToken", () => {
   it("revalidates /integrations path after creation", async () => {
     mockPrisma.extensionApiToken.create.mockResolvedValue({
       id: "token_005",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: new Date(),
       createdAt: new Date(),
     });
@@ -196,7 +196,7 @@ describe("createExtensionApiToken", () => {
   it("returns the raw token along with db fields", async () => {
     const dbRecord = {
       id: "token_006",
-      tokenPrefix: "lmt_test_tok",
+      tokenPrefix: "lzr_test_tok",
       expiresAt: new Date("2026-05-15"),
       createdAt: new Date("2026-02-14"),
     };
@@ -206,7 +206,7 @@ describe("createExtensionApiToken", () => {
 
     expect(result).toEqual({
       ...dbRecord,
-      token: "lmt_test_token_abc123",
+      token: "lzr_test_token_abc123",
     });
   });
 });

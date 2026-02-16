@@ -367,7 +367,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S042",
@@ -376,7 +376,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S043",
@@ -385,7 +385,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S044",
@@ -394,7 +394,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S045",
@@ -403,7 +403,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S046",
@@ -412,7 +412,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S047",
@@ -421,16 +421,16 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S048",
-      "source_text": "Laserman rubs his eyes. Shoots again.",
+      "source_text": "Lazer rubs his eyes. Shoots again.",
       "reason": "physical action change",
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S049",
@@ -439,7 +439,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S050",
@@ -448,7 +448,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S051",
@@ -457,7 +457,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Hero Reveal & Victory",
-      "story_beat": "Laserman appears, defeats octopus"
+      "story_beat": "Lazer appears, defeats octopus"
     },
     {
       "scene_id": "S052",
@@ -583,7 +583,7 @@
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
       "macro_scene": "Grandfather's Story Begins",
-      "story_beat": "Set up Laserman's past"
+      "story_beat": "Set up Lazer's past"
     },
     {
       "scene_id": "S066",
@@ -677,7 +677,7 @@
     },
     {
       "scene_id": "S076",
-      "source_text": "Humara Laserman fight mein kood pada!",
+      "source_text": "Humara Lazer fight mein kood pada!",
       "reason": "hero entry narration",
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
@@ -713,7 +713,7 @@
     },
     {
       "scene_id": "S080",
-      "source_text": "Match cut to Laserman's eyes in his room. He looks at the ceiling.",
+      "source_text": "Match cut to Lazer's eyes in his room. He looks at the ceiling.",
       "reason": "match cut POV shift",
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
@@ -722,7 +722,7 @@
     },
     {
       "scene_id": "S081",
-      "source_text": "A montage of the Laserman defeating various villains, in comic book style images.",
+      "source_text": "A montage of the Lazer defeating various villains, in comic book style images.",
       "reason": "montage",
       "act": 2,
       "act_title": "THE HERO & THE WORLD",
@@ -1118,11 +1118,11 @@
     },
     {
       "scene_id": "S125",
-      "source_text": "Laserman looks at the reporters outside his house as he is sadly looking out his window.",
+      "source_text": "Lazer looks at the reporters outside his house as he is sadly looking out his window.",
       "reason": "location and emotional shift",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1131,7 +1131,7 @@
       "reason": "parallel reaction",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1140,7 +1140,7 @@
       "reason": "emotional beat",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1149,7 +1149,7 @@
       "reason": "decision moment",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1158,7 +1158,7 @@
       "reason": "mental transition",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1167,7 +1167,7 @@
       "reason": "cross-cut visualization",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1176,7 +1176,7 @@
       "reason": "educational musical beat",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1185,7 +1185,7 @@
       "reason": "educational musical beat",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1194,7 +1194,7 @@
       "reason": "musical end",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1203,16 +1203,16 @@
       "reason": "external visual commentary",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
       "scene_id": "S135",
-      "source_text": "Laserman looks at this and mumbles to himself.",
+      "source_text": "Lazer looks at this and mumbles to himself.",
       "reason": "reaction beat",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1221,7 +1221,7 @@
       "reason": "dialogue emotional low",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1230,7 +1230,7 @@
       "reason": "decision action",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1239,7 +1239,7 @@
       "reason": "identity shift",
       "act": 3,
       "act_title": "FALL OF A HERO",
-      "macro_scene": "Laserman Withdraws",
+      "macro_scene": "Lazer Withdraws",
       "story_beat": "Billboard, resignation"
     },
     {
@@ -1294,7 +1294,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "Fallen Hero",
-      "story_beat": "Laserman alone, broken"
+      "story_beat": "Lazer alone, broken"
     },
     {
       "scene_id": "S145",
@@ -1303,7 +1303,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "First Confrontation",
-      "story_beat": "Vyom meets Laserman"
+      "story_beat": "Vyom meets Lazer"
     },
     {
       "scene_id": "S146",
@@ -1312,7 +1312,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "First Confrontation",
-      "story_beat": "Vyom meets Laserman"
+      "story_beat": "Vyom meets Lazer"
     },
     {
       "scene_id": "S147",
@@ -1321,7 +1321,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "First Confrontation",
-      "story_beat": "Vyom meets Laserman"
+      "story_beat": "Vyom meets Lazer"
     },
     {
       "scene_id": "S148",
@@ -1330,7 +1330,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "First Confrontation",
-      "story_beat": "Vyom meets Laserman"
+      "story_beat": "Vyom meets Lazer"
     },
     {
       "scene_id": "S149",
@@ -1339,7 +1339,7 @@
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
       "macro_scene": "First Confrontation",
-      "story_beat": "Vyom meets Laserman"
+      "story_beat": "Vyom meets Lazer"
     },
     {
       "scene_id": "S150",
@@ -1451,7 +1451,7 @@
     },
     {
       "scene_id": "S162",
-      "source_text": "We see Laserman's face for a few moments. We zoom in. And then he looks at Vyom and nods.",
+      "source_text": "We see Lazer's face for a few moments. We zoom in. And then he looks at Vyom and nods.",
       "reason": "decision reversal",
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
@@ -1541,7 +1541,7 @@
     },
     {
       "scene_id": "S172",
-      "source_text": "OPTOMETRIST (looking at Laserman):\nAapne apni aankhon ko kabhi maintainance hi nahi kiya.",
+      "source_text": "OPTOMETRIST (looking at Lazer):\nAapne apni aankhon ko kabhi maintainance hi nahi kiya.",
       "reason": "dialogue beat",
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",
@@ -1613,7 +1613,7 @@
     },
     {
       "scene_id": "S180",
-      "source_text": "While the optometrist is explaining the above, we show the Optometrist, Vyom and Laserman all in the surreal space.",
+      "source_text": "While the optometrist is explaining the above, we show the Optometrist, Vyom and Lazer all in the surreal space.",
       "reason": "visualized explanation",
       "act": 4,
       "act_title": "THE SCIENCE OF SEEING",

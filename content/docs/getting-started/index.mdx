@@ -1,15 +1,15 @@
 ---
 title: Getting Started
-description: Set up Laserman and create your first AI film production project in minutes.
+description: Set up Lazer and create your first AI film production project in minutes.
 ---
 
 # Getting Started
 
-Welcome to Laserman, an orchestration and traceability layer for AI-assisted film production. Laserman helps you manage the complete lifecycle of AI-generated film assets: draft scripts, generate content on external platforms, capture results, compare versions, select finals, approve deliverables, and assemble your project.
+Welcome to Lazer, an orchestration and traceability layer for AI-assisted film production. Lazer helps you manage the complete lifecycle of AI-generated film assets: draft scripts, generate content on external platforms, capture results, compare versions, select finals, approve deliverables, and assemble your project.
 
-## What Laserman Does
+## What Lazer Does
 
-Laserman is **not a media generator**. Instead, it provides a centralized hub for:
+Lazer is **not a media generator**. Instead, it provides a centralized hub for:
 
 - **Script Management**: Upload and parse scripts into structured scenes and shots
 - **Asset Orchestration**: Track assets generated across multiple AI platforms (Sora, Veo, Freepik, etc.)
@@ -21,7 +21,7 @@ Laserman is **not a media generator**. Instead, it provides a centralized hub fo
 
 ## Object Hierarchy
 
-Laserman organizes your production work in a clear hierarchy:
+Lazer organizes your production work in a clear hierarchy:
 
 ```
 Project
@@ -43,7 +43,7 @@ Each level serves a specific purpose:
 
 ## Prerequisites
 
-Before installing Laserman, ensure you have:
+Before installing Lazer, ensure you have:
 
 - **Node.js 18+**: JavaScript runtime ([download here](https://nodejs.org/))
 - **PostgreSQL 14+**: Database server ([download here](https://www.postgresql.org/download/))
@@ -51,11 +51,11 @@ Before installing Laserman, ensure you have:
 - **npm or pnpm**: Package manager (npm comes with Node.js)
 - **Git**: Version control ([download here](https://git-scm.com/))
 
-> **Note:** Laserman uses Cloudflare R2 for scalable, cost-effective object storage. You'll need an R2 bucket and API credentials before running the application.
+> **Note:** Lazer uses Cloudflare R2 for scalable, cost-effective object storage. You'll need an R2 bucket and API credentials before running the application.
 
 ## Setup Overview
 
-Getting started with Laserman involves four main steps:
+Getting started with Lazer involves four main steps:
 
 1. **[Installation](/docs/getting-started/installation)**: Clone the repository, install dependencies, and configure your environment
 2. **Database Setup**: Run migrations and seed initial data
@@ -66,13 +66,13 @@ Each step is covered in detail in the following pages.
 
 ## Tech Stack
 
-Laserman is built with modern, production-ready technologies:
+Lazer is built with modern, production-ready technologies:
 
 - **Next.js 16**: React framework with App Router and Server Components
 - **React 19**: UI library with latest concurrent features
 - **Prisma v7**: Type-safe database ORM
 - **PostgreSQL**: Relational database for structured data
-- **NextAuth v5**: Authentication and session management
+- **Supabase Auth**: Authentication and session management
 - **Cloudflare R2**: S3-compatible object storage
 - **Tailwind CSS 4**: Utility-first styling
 - **Zod**: Runtime schema validation
@@ -80,7 +80,7 @@ Laserman is built with modern, production-ready technologies:
 
 ## Architecture Philosophy
 
-Laserman follows these core principles:
+Lazer follows these core principles:
 
 - **Immutability**: Asset versions are never modified, only appended. Selection is not deletion.
 - **Platform Agnostic**: Capture assets from any AI platform via browser extension
@@ -92,7 +92,7 @@ Laserman follows these core principles:
 
 Ready to get started? Head to the [Installation](/docs/getting-started/installation) page to set up your local environment.
 
-If you encounter any issues during setup, check the [Troubleshooting](/docs/troubleshooting) guide or visit our [GitHub Issues](https://github.com/yourusername/laserman/issues) page.
+If you encounter any issues during setup, check the [Troubleshooting](/docs/troubleshooting) guide or visit our [GitHub Issues](https://github.com/yourusername/lazer/issues) page.
 
 ## Production Deployment
 

@@ -5,7 +5,7 @@ description: Understanding the persistent extension interface
 
 # Side Panel
 
-The Laserman extension uses Chrome's Side Panel API to provide a persistent workspace alongside AI platform pages. Unlike traditional popups that close when you click away, the side panel stays open, enabling continuous capture workflow.
+The Lazer extension uses Chrome's Side Panel API to provide a persistent workspace alongside AI platform pages. Unlike traditional popups that close when you click away, the side panel stays open, enabling continuous capture workflow.
 
 ## Why Side Panel, Not Popup?
 
@@ -25,7 +25,7 @@ The side panel solves these problems by providing:
 
 ## Opening the Side Panel
 
-1. Click the Laserman extension icon in your browser toolbar
+1. Click the Lazer extension icon in your browser toolbar
 2. The side panel will slide in from the right side of your browser window
 3. The panel remains open until you explicitly close it
 
@@ -39,7 +39,7 @@ The side panel is organized into distinct sections:
 
 The header contains:
 
-- **Laserman Logo** - Brand identity
+- **Lazer Logo** - Brand identity
 - **Settings Icon** - Opens settings overlay
 
 ### Tab Navigation
@@ -112,8 +112,8 @@ Click the gear icon to open the settings overlay:
 
 ### Basic Settings
 
-- **App URL** - Your Laserman instance URL
-- **API Token** - Authentication token (starts with `lmt_`)
+- **App URL** - Your Lazer instance URL
+- **API Token** - Authentication token (starts with `lzr_`)
 
 ### Advanced Settings (Optional)
 
@@ -149,7 +149,7 @@ The status bar at the bottom provides real-time feedback:
 | Status | Color | Meaning |
 |--------|-------|---------|
 | Connected | Green | Authenticated and ready to sync |
-| Disconnected | Red | Cannot reach Laserman API or invalid token |
+| Disconnected | Red | Cannot reach Lazer API or invalid token |
 | Syncing | Yellow | Currently uploading items |
 | Queue: N pending | Blue | Items waiting to sync |
 | Idle | Gray | No active operations |

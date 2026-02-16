@@ -1,0 +1,57 @@
+---
+title: MCP Server
+description: Control your entire Lazer production workflow from Claude, ChatGPT, Cursor, or any MCP-compatible client
+---
+
+# MCP Server
+
+Lazer ships a built-in **Model Context Protocol (MCP)** server that exposes every project operation — projects, scenes, shots, assets, characters, and more — as structured tools that AI agents can call directly.
+
+## What is MCP?
+
+The [Model Context Protocol](https://modelcontextprotocol.io) is an open standard for connecting AI assistants to external tools and data. Instead of copying and pasting between your AI chat and Lazer, MCP lets the assistant manage your production directly.
+
+## Capabilities
+
+The Lazer MCP server provides:
+
+- **53 tools** across 11 domains — full CRUD for every object in the hierarchy
+- **7 resources** — live schema, project trees, and documentation
+- **5 prompts** — AI workflow templates for scene breakdown, shot planning, and asset review
+
+## Architecture
+
+The MCP server runs **embedded inside Next.js** — no separate process to manage. When you start `npm run dev`, the MCP HTTP server starts automatically on port 3100.
+
+```
+Client (Claude, ChatGPT, Cursor)
+    │
+    ▼
+Cloudflare Tunnel / localhost
+    │
+    ▼
+Next.js  ─── /mcp route ──→  Embedded MCP Server (port 3100)
+                                    │
+                                    ▼
+                              Prisma / Supabase DB
+```
+
+**Two transports** are supported:
+
+| Transport | Use Case | Auth |
+|-----------|----------|------|
+| **STDIO** | Local clients (Claude Desktop, Cursor) | `--token` flag or `LAZER_TOKEN` env var |
+| **Streamable HTTP** | Remote clients (ChatGPT, web agents) | OAuth 2.0 or Bearer token |
+
+## Quick Start
+
+1. **ChatGPT** — Add as MCP server with OAuth. See [Setup Guide](/docs/mcp-server/setup).
+2. **Claude Desktop** — Add STDIO config to `claude_desktop_config.json`. See [Setup Guide](/docs/mcp-server/setup).
+3. **Cursor** — Add STDIO config to MCP settings. See [Setup Guide](/docs/mcp-server/setup).
+
+## Next Steps
+
+- [Setup Guide](/docs/mcp-server/setup) — Connect your AI client
+- [Authentication](/docs/mcp-server/authentication) — OAuth, API keys, and token management
+- [Tools Reference](/docs/mcp-server/tools) — All 53 tools documented
+- [Resources & Prompts](/docs/mcp-server/resources-prompts) — Schema access and workflow templates

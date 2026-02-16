@@ -6,6 +6,10 @@ export const PUBLIC_ROUTES = [
   "/forgot-password",
   "/reset-password",
   "/docs",
+  "/mcp",
+  "/health",
+  "/oauth",
+  "/.well-known",
 ] as const;
 
 /** Routes that authenticated users should be redirected away from */

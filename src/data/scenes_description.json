@@ -2528,7 +2528,7 @@
     },
     {
       "scene_id": "S081",
-      "narrative_purpose": "Establish Laserman's public dominance while subtly planting the seed of physical strain.",
+      "narrative_purpose": "Establish Lazer's public dominance while subtly planting the seed of physical strain.",
       "setting": {
         "location": "Abstracted comic-book montage space",
         "time": "Non-literal, compressed time",
@@ -2542,7 +2542,7 @@
         }
       ],
       "actions": [
-        "Comic-style frames snap into place showing Laserman defeating different villains",
+        "Comic-style frames snap into place showing Lazer defeating different villains",
         "Laser beams cut clean, precise shapes across panels",
         "Each victory freezes briefly before snapping to the next"
       ],
@@ -2564,7 +2564,7 @@
     },
     {
       "scene_id": "S082",
-      "narrative_purpose": "Introduce the first undeniable visual sign of Laserman's decline.",
+      "narrative_purpose": "Introduce the first undeniable visual sign of Lazer's decline.",
       "setting": {
         "location": "Continuation of montage space",
         "time": "Compressed",
@@ -2578,7 +2578,7 @@
         }
       ],
       "actions": [
-        "Laserman fires a laser and completes the victory",
+        "Lazer fires a laser and completes the victory",
         "Immediately after, his hand comes up to his eyes",
         "The pose lingers half a beat longer than expected"
       ],
@@ -2609,7 +2609,7 @@
       "characters_present": [
         {
           "name": "Vyom Bakshi",
-          "behavior": "Watches intently, mirrors Laserman's eye strain"
+          "behavior": "Watches intently, mirrors Lazer's eye strain"
         }
       ],
       "actions": [
@@ -2800,7 +2800,7 @@
     },
     {
       "scene_id": "S089",
-      "narrative_purpose": "Introduce the tactical shift against Laserman.",
+      "narrative_purpose": "Introduce the tactical shift against Lazer.",
       "setting": {
         "location": "Conference room",
         "time": "Continuous",
@@ -3014,13 +3014,13 @@
         }
       ],
       "actions": [
-        "Laserman bends toward the cake"
+        "Lazer bends toward the cake"
       ],
       "emotional_tone": "Momentary ease",
       "camera_intent": {
         "philosophy": "Contrast setup",
         "movement": "Slow tilt down",
-        "framing": "Centered on Laserman"
+        "framing": "Centered on Lazer"
       },
       "visual_motifs": [
         "Candles",
@@ -3127,7 +3127,7 @@
     },
     {
       "scene_id": "S099",
-      "narrative_purpose": "Focus Laserman's intent on precision.",
+      "narrative_purpose": "Focus Lazer's intent on precision.",
       "setting": {
         "location": "Festival ground",
         "time": "Night",
@@ -3141,7 +3141,7 @@
         }
       ],
       "actions": [
-        "Laserman fixes his eyes on the life crystal"
+        "Lazer fixes his eyes on the life crystal"
       ],
       "emotional_tone": "Determined concentration",
       "camera_intent": {
@@ -5240,7 +5240,7 @@
       "scene_id": "S162",
       "narrative_purpose": "Mark the internal decision point for the hero to re-engage.",
       "setting": {
-        "location": "Laserman's hideaway room",
+        "location": "Lazer's hideaway room",
         "time_of_day": "Night",
         "environment": "Sparse, worn interior with signs of neglect",
         "atmosphere": "Heavy stillness, broken only by the TV audio bleed"

@@ -3954,8 +3954,8 @@
   }
 
   // chrome-extension/src/content-script.js
-  if (!window.__lasermanContentScriptLoaded) {
-    window.__lasermanContentScriptLoaded = true;
+  if (!window.__lazerContentScriptLoaded) {
+    window.__lazerContentScriptLoaded = true;
     setup();
   }
   function setup() {

@@ -5,7 +5,7 @@ description: REST API for Chrome extension integration
 
 # API Reference
 
-The Laserman Extension API is a REST API that enables the Chrome extension to sync captured assets to your Laserman workspace. It provides endpoints for listing projects and scenes, submitting captured assets, and managing user profile preferences.
+The Lazer Extension API is a REST API that enables the Chrome extension to sync captured assets to your Lazer workspace. It provides endpoints for listing projects and scenes, submitting captured assets, and managing user profile preferences.
 
 ## Overview
 
@@ -20,17 +20,17 @@ All endpoints are prefixed with `/api/extension/` and require authentication via
 
 ## Base URL
 
-The base URL depends on your Laserman deployment:
+The base URL depends on your Lazer deployment:
 
 - **Development:** `http://localhost:3000`
-- **Production:** `https://laserman.yourdomain.com`
+- **Production:** `https://lazer.yourdomain.com`
 
 ## Authentication
 
 All endpoints require a valid API token passed as a Bearer token in the Authorization header:
 
 ```http
-Authorization: Bearer lmt_1234567890abcdef...
+Authorization: Bearer lzr_1234567890abcdef...
 ```
 
 See the [Authentication guide](/docs/api-reference/authentication) for details on generating and managing tokens.

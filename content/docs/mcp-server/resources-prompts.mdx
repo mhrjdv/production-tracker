@@ -1,0 +1,110 @@
+---
+title: Resources & Prompts
+description: MCP resources for schema access and prompts for AI workflow templates
+---
+
+# Resources & Prompts
+
+Beyond tools, the Lazer MCP server exposes **resources** (read-only data) and **prompts** (workflow templates) that help AI agents understand your production.
+
+## Resources (7)
+
+Resources provide context about the Lazer schema, project structure, and documentation. AI agents can read these to understand the data model before making tool calls.
+
+### Schema Resources
+
+| URI | Description |
+|-----|-------------|
+| `lazer://schema/prisma` | Full Prisma schema (all models, fields, relations) |
+| `lazer://schema/enums` | All enum values as JSON (asset types, statuses, etc.) |
+| `lazer://schema/status-transitions` | Valid asset status transitions with the full state machine |
+
+### Project Resources
+
+| URI | Description |
+|-----|-------------|
+| `lazer://project/{id}/tree` | Complete project hierarchy (scenes → shots → assets) |
+
+> The project tree resource is a **template** — replace `{id}` with a real project ID.
+
+### Documentation Resources
+
+| URI | Description |
+|-----|-------------|
+| `lazer://docs/product-research` | Lazer UX and product research document |
+| `lazer://docs/product-plan` | AI film market and execution plan |
+| `lazer://docs/system-blueprint` | Production AI system architecture |
+
+### Example: Reading a resource
+
+```json
+{
+  "method": "resources/read",
+  "params": {
+    "uri": "lazer://schema/status-transitions"
+  }
+}
+```
+
+Returns the valid transitions:
+
+```json
+{
+  "draft": ["in_review", "rejected"],
+  "in_review": ["approved", "revision_requested", "rejected"],
+  "revision_requested": ["draft"],
+  "approved": ["final"],
+  "rejected": [],
+  "final": []
+}
+```
+
+## Prompts (5)
+
+Prompts are pre-built workflow templates that guide the AI through complex production tasks. Each prompt accepts parameters and returns a structured message that the AI can execute.
+
+| Prompt | Parameters | Description |
+|--------|-----------|-------------|
+| `scene_breakdown` | `projectId`, `sceneId` | Analyze a scene and suggest shots with camera angles, movement, and descriptions |
+| `shot_planning` | `projectId`, `sceneId`, `style?` | Create a shot-by-shot cinematography plan for a scene |
+| `asset_review` | `projectId`, `sceneId`, `assetType?` | Evaluate generated assets and recommend which to select |
+| `prompt_refinement` | `projectId`, `sceneId`, `currentPrompt`, `platform?` | Refine a generation prompt for better results |
+| `production_summary` | `projectId` | Get production status with actionable next steps |
+
+### Example: Scene breakdown
+
+```json
+{
+  "method": "prompts/get",
+  "params": {
+    "name": "scene_breakdown",
+    "arguments": {
+      "projectId": "clx...",
+      "sceneId": "clx..."
+    }
+  }
+}
+```
+
+The AI receives a detailed prompt that:
+1. Reads the scene's story beat, source text, and tone
+2. Lists existing shots (if any)
+3. Suggests new shots with camera angles and movements
+4. Considers the film's visual identity
+
+### Workflow: Full Scene Production
+
+A typical AI-assisted workflow using prompts and tools:
+
+1. **`production_summary`** — See what needs work
+2. **`scene_breakdown`** — Plan shots for a scene
+3. Use `shot_create` tools to create the planned shots
+4. **`prompt_refinement`** — Craft generation prompts
+5. Use `asset_create` or `workflow_ingest` to create assets
+6. **`asset_review`** — Evaluate and select the best versions
+7. Use `asset_select` to mark selections
+
+## Next Steps
+
+- [Tools Reference](/docs/mcp-server/tools) — Explore all available tools
+- [Setup Guide](/docs/mcp-server/setup) — Connect your AI client

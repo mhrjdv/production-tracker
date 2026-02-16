@@ -5,9 +5,9 @@ description: Track licensing, commercial use rights, and content provenance for 
 
 # Rights & Provenance
 
-One of Laserman's core responsibilities is tracking the licensing rights and content provenance of every asset you generate. When you're ready to ship, you need to know: "Can I legally use this? Do I have commercial rights? Where did it come from?"
+One of Lazer's core responsibilities is tracking the licensing rights and content provenance of every asset you generate. When you're ready to ship, you need to know: "Can I legally use this? Do I have commercial rights? Where did it come from?"
 
-Laserman makes these questions answerable at a glance.
+Lazer makes these questions answerable at a glance.
 
 ## The Four Rights States
 
@@ -58,11 +58,11 @@ The asset has specific restrictions beyond simple non-commercial use.
 
 **What to do:** Review the specific restrictions. Add notes to the asset version. Consult legal if uncertain.
 
-> **Important:** Laserman tracks what it can detect automatically. You are ultimately responsible for verifying rights and compliance with platform terms. Laserman surfaces what it knows and flags uncertainty clearly.
+> **Important:** Lazer tracks what it can detect automatically. You are ultimately responsible for verifying rights and compliance with platform terms. Lazer surfaces what it knows and flags uncertainty clearly.
 
 ## Platform-Specific Licensing
 
-Different platforms have different licensing models. Laserman tracks these automatically when possible.
+Different platforms have different licensing models. Lazer tracks these automatically when possible.
 
 ### Sora (OpenAI)
 
@@ -94,7 +94,7 @@ Different platforms have different licensing models. Laserman tracks these autom
 
 - **Free tier:** Non-commercial use only.
 - **Paid tiers:** Commercial use allowed.
-- **Voice cloning:** Requires consent from voice owner. Laserman cannot verify this automatically.
+- **Voice cloning:** Requires consent from voice owner. Lazer cannot verify this automatically.
 - **Attribution:** Not required.
 
 ### Freepik
@@ -109,7 +109,7 @@ Different platforms have different licensing models. Laserman tracks these autom
 - **Pro tier:** Commercial use allowed up to $1M/year revenue.
 - **Music licensing:** Complex. May require additional clearances for samples or similar melodies.
 
-> **Note:** Platform terms change frequently. Laserman captures the rights state at generation time. Always verify current terms before final delivery.
+> **Note:** Platform terms change frequently. Lazer captures the rights state at generation time. Always verify current terms before final delivery.
 
 ## Automatic Rights Detection
 
@@ -128,7 +128,7 @@ If detection fails, rights state defaults to `Unknown` and you'll see a warning 
 
 Provenance tracking answers: "Where did this content come from? Can we prove it?"
 
-Laserman captures multiple provenance signals:
+Lazer captures multiple provenance signals:
 
 ### SynthID Watermarks (Google/DeepMind)
 
@@ -148,7 +148,7 @@ Some platforms (Adobe Firefly, potentially others) embed Content Credentials met
 
 ### Platform Metadata
 
-Laserman captures platform-specific metadata:
+Lazer captures platform-specific metadata:
 
 - **Generation timestamp** from the platform (not just capture timestamp).
 - **Model version** (e.g., "sora-v1", "midjourney-v6.1").
@@ -169,7 +169,7 @@ This is not provenance in the cryptographic sense, but it's valuable documentati
 
 ## The "OK to Ship?" Checklist
 
-Before final delivery, Laserman surfaces a checklist for each asset:
+Before final delivery, Lazer surfaces a checklist for each asset:
 
 - [ ] **Rights state is Commercial Allowed or Restricted (with acceptable restrictions).**
 - [ ] **Platform terms have been reviewed and are current.**
@@ -179,7 +179,7 @@ Before final delivery, Laserman surfaces a checklist for each asset:
 - [ ] **Attribution requirements are met (if any).**
 - [ ] **Asset has been reviewed and approved by appropriate stakeholders.**
 
-This checklist is a guide, not a guarantee. You are responsible for final legal review, but Laserman makes it easy to spot potential issues early.
+This checklist is a guide, not a guarantee. You are responsible for final legal review, but Lazer makes it easy to spot potential issues early.
 
 ## Rights State Overrides
 
@@ -288,7 +288,7 @@ const blockers = await prisma.sceneAssetVersion.findMany({
 
 ## UI Indicators
 
-Laserman's UI uses color-coded badges for rights state:
+Lazer's UI uses color-coded badges for rights state:
 
 - **Unknown:** Gray with "?" icon.
 - **Non-Commercial:** Red with "NC" badge.
@@ -299,7 +299,7 @@ Hovering over the badge shows detailed notes and platform terms.
 
 ## Provenance Export
 
-When exporting final assets, Laserman can generate a provenance report in JSON or PDF format:
+When exporting final assets, Lazer can generate a provenance report in JSON or PDF format:
 
 ```json
 {
@@ -339,15 +339,15 @@ This report serves as documentation for legal review, client delivery, or regula
 
 ## Limitations and Disclaimers
 
-Laserman tracks rights and provenance to the best of its ability, but it is not a substitute for legal advice.
+Lazer tracks rights and provenance to the best of its ability, but it is not a substitute for legal advice.
 
-**What Laserman can do:**
+**What Lazer can do:**
 - Detect platform and account type.
 - Look up common licensing terms.
 - Capture provenance metadata.
 - Surface uncertainty clearly.
 
-**What Laserman cannot do:**
+**What Lazer cannot do:**
 - Verify that platform terms haven't changed since generation.
 - Detect third-party IP (characters, brands, music) in generated content.
 - Determine if a voice clone has proper consent.
@@ -361,6 +361,6 @@ Always consult legal counsel for commercial projects, especially when:
 
 ## Next Steps
 
-You've completed the Core Concepts section. For hands-on guidance, see the [Getting Started](/docs/getting-started) guide to begin using Laserman in your production workflow.
+You've completed the Core Concepts section. For hands-on guidance, see the [Getting Started](/docs/getting-started) guide to begin using Lazer in your production workflow.
 
 For specific workflows like capturing outputs from Sora or comparing versions across platforms, see the [Guides](/docs/guides) section.

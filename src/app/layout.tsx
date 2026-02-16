@@ -1,9 +1,7 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Navigation } from "@/components/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
@@ -20,10 +18,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Production Tracker",
-    template: "%s | Production Tracker",
+    default: "Lazer",
+    template: "%s | Lazer",
   },
-  description: "Manage your film & animation productions with precision",
+  description: "Generate anywhere, decide here, ship with traceability.",
 };
 
 export default function RootLayout({
@@ -44,9 +42,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider>
-              <Suspense>
-                <Navigation />
-              </Suspense>
               {children}
               <Toaster richColors position="bottom-right" />
             </TooltipProvider>

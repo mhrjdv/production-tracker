@@ -10,10 +10,10 @@ Operational guide for Claude-compatible agents in this repo.
 
 ## Skill Usage Contract
 
-- If the task touches **product decisions, scope, or roadmap**: apply `laserman-product-bible`.
-- If the task touches **database, schema, or migrations**: apply `laserman-schema`.
-- If the task touches **web app pages, components, or server actions**: apply `laserman-webapp-dev`.
-- If the task touches **Chrome extension, capture, or sync**: apply `laserman-extension-dev`.
+- If the task touches **product decisions, scope, or roadmap**: apply `lazer-product-bible`.
+- If the task touches **database, schema, or migrations**: apply `lazer-schema`.
+- If the task touches **web app pages, components, or server actions**: apply `lazer-webapp-dev`.
+- If the task touches **Chrome extension, capture, or sync**: apply `lazer-extension-dev`.
 - If the task requests **UI/UX design**: apply `ui-ux-pro-max` + `frontend-design`.
 - If the task requests **discovery**: run `find-skills` flow first.
 - If the task requests **new reusable behavior**: apply `skill-creator`.
@@ -21,7 +21,7 @@ Operational guide for Claude-compatible agents in this repo.
 
 ## Product Context
 
-Laserman is an **orchestration and traceability layer** for AI-assisted film production. It does NOT generate media. It manages: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
+Lazer is an **orchestration and traceability layer** for AI-assisted film production. It does NOT generate media. It manages: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
 
 **Object hierarchy:** Project -> Script -> Scene -> Shot -> Asset Version + Prompt Package.
 
@@ -46,7 +46,7 @@ Laserman is an **orchestration and traceability layer** for AI-assisted film pro
 
 ## Reference
 
-- `docs/laserman-ux-product-research-2026.md` — Canonical product research
+- `docs/lazer-ux-product-research-2026.md` — Canonical product research
 - `docs/ai-film-product-plan-2026.md` — Market and execution plan
 - `docs/production-ai-system-blueprint-2026.md` — System architecture
 - `.agents/rules.md` — Runtime rules

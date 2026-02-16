@@ -1,13 +1,13 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: laserman_db
+    container_name: lazer_db
     ports:
       - "5646:5432"
     environment:
-      POSTGRES_USER: laserman
-      POSTGRES_PASSWORD: laserman_secret
-      POSTGRES_DB: laserman_production
+      POSTGRES_USER: lazer
+      POSTGRES_PASSWORD: lazer_secret
+      POSTGRES_DB: lazer_production
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped

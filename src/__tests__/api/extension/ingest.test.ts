@@ -124,7 +124,7 @@ describe("POST /api/extension/ingest", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer lmt_test_token",
+          Authorization: "Bearer lzr_test_token",
         },
         body: "not-valid-json{{{",
       });
@@ -136,7 +136,7 @@ describe("POST /api/extension/ingest", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer lmt_test_token",
+          Authorization: "Bearer lzr_test_token",
         },
         body: "not-valid-json{{{",
       });

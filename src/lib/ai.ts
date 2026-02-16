@@ -9,18 +9,18 @@ import { createOpenRouter } from "@openrouter/ai-sdk-provider";
  * Uses environment variables for API key and model selection.
  */
 export function getOpenRouter() {
-    const apiKey = process.env.OPENROUTER_API_KEY;
+    const apiKey = process.env.API_KEY;
     if (!apiKey) {
         throw new Error(
-            "OPENROUTER_API_KEY is not set. Add it to your .env file."
+            "API_KEY is not set. Add it to your .env file."
         );
     }
 
     return createOpenRouter({
         apiKey,
         headers: {
-            "X-Title": "Production Tracker",
-            "HTTP-Referer": process.env.NEXTAUTH_URL || "http://localhost:3000",
+            "X-Title": "Lazer",
+            "HTTP-Referer": process.env.NEXT_PUBLIC_SUPABASE_URL || "http://localhost:3000",
         },
     });
 }
@@ -30,7 +30,7 @@ export function getOpenRouter() {
  */
 export function getModel() {
     const openrouter = getOpenRouter();
-    const modelId = process.env.AI_MODEL || "x-ai/grok-4.1-fast";
+    const modelId = process.env.AI_MODEL || "anthropic/claude-haiku-4.5";
     return openrouter(modelId);
 }
 

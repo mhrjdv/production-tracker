@@ -212,7 +212,7 @@ describe("SceneDescriptionSchema", () => {
 describe("FullPipelineResultSchema", () => {
     it("should validate a complete pipeline result", () => {
         const result = FullPipelineResultSchema.safeParse({
-            project_name: "Laserman V2",
+            project_name: "Lazer V2",
             project_description: "A sci-fi animated film",
             genre: "sci-fi",
             scenes_extracted: [

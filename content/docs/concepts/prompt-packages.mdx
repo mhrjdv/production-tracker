@@ -7,7 +7,7 @@ description: Reusable intent bundles for consistent AI generation across platfor
 
 A prompt package is a structured, reusable bundle of creative intent. Instead of writing platform-specific prompts from scratch each time, you define your creative vision once in a prompt package, then fan it out to multiple platforms.
 
-Prompt packages are Laserman's answer to the "write once, generate everywhere" problem.
+Prompt packages are Lazer's answer to the "write once, generate everywhere" problem.
 
 ## What Is a Prompt Package?
 
@@ -99,7 +99,7 @@ Fan-out is the process of generating the same creative concept on multiple platf
 3. Each run card translates P1 into platform-specific syntax.
 4. Generate on all three platforms (manually or via automation).
 5. Extension captures all outputs with the same `compareGroupId`.
-6. View all three results side-by-side in Laserman.
+6. View all three results side-by-side in Lazer.
 7. Select the best one.
 
 This allows you to leverage the strengths of different platforms without rewriting prompts from scratch.
@@ -114,7 +114,7 @@ Each platform has quirks:
 - **Midjourney:** Heavily relies on style tags and negative prompts.
 - **ElevenLabs (voice):** Needs emotion tags, speaker style, pacing.
 
-Laserman's run card system translates your prompt package into the format each platform expects. You don't need to learn every platform's syntax.
+Lazer's run card system translates your prompt package into the format each platform expects. You don't need to learn every platform's syntax.
 
 ## Run Cards
 
@@ -281,4 +281,4 @@ const versions = await prisma.promptPackage.findMany({
 
 ## Next Steps
 
-Learn about [Rights & Provenance](/docs/concepts/rights-provenance) to understand how Laserman tracks licensing and commercial use rights for every generated asset.
+Learn about [Rights & Provenance](/docs/concepts/rights-provenance) to understand how Lazer tracks licensing and commercial use rights for every generated asset.

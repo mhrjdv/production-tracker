@@ -8,8 +8,8 @@ import { extractLatest, extractCandidates, applyPrompt, findAdapter } from "./de
 
 // Guard against double injection (manifest + programmatic).
 // In the IIFE bundle, this runs at the top of the wrapper function.
-if (!window.__lasermanContentScriptLoaded) {
-  window.__lasermanContentScriptLoaded = true;
+if (!window.__lazerContentScriptLoaded) {
+  window.__lazerContentScriptLoaded = true;
   setup();
 }
 

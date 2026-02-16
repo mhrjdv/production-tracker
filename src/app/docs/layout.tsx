@@ -16,7 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <DocsLayout
           tree={source.getPageTree()}
           nav={{
-            title: <span className="font-semibold">Laserman Docs</span>,
+            title: <span className="font-semibold">Lazer Docs</span>,
             url: "/docs",
           }}
           links={[{ text: "Dashboard", url: "/" }]}

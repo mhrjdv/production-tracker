@@ -28,6 +28,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Skip MCP + OAuth routes (token-based auth, not session-based)
+  if (
+    pathname === "/mcp" ||
+    pathname === "/health" ||
+    pathname.startsWith("/oauth/") ||
+    pathname.startsWith("/.well-known/")
+  ) {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next({ request });
 
   // Refresh Supabase session (keeps JWT fresh in cookies)

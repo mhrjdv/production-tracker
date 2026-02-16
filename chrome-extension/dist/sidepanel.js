@@ -23,7 +23,7 @@
     return crypto.subtle.deriveKey(
       {
         name: "PBKDF2",
-        salt: encoder.encode("laserman-byok-salt-v1"),
+        salt: encoder.encode("lazer-byok-salt-v1"),
         iterations: 1e5,
         hash: "SHA-256"
       },
