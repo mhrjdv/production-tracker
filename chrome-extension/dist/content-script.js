@@ -436,8 +436,8 @@
     return [];
   }
   var GeminiAdapter = {
-    platformKey: "google-veo",
-    displayName: "Google Gemini / Veo",
+    platformKey: "google-gemini",
+    displayName: "Google Gemini",
     match(url) {
       return URL_PATTERNS.some((p) => p.test(url));
     },
@@ -451,12 +451,14 @@
                 const prompt2 = readText2(turns[j].el);
                 const outputs2 = extractOutputsFromContainer2(turns[i].el);
                 if (prompt2) {
+                  const assetType = inferAssetType2(outputs2);
                   return {
                     prompt: prompt2,
                     negativePrompt: null,
                     outputs: outputs2,
                     settings: extractSettings2(doc),
-                    assetType: inferAssetType2(outputs2),
+                    assetType,
+                    platformKey: assetType === "VIDEO" ? "google-veo" : void 0,
                     timestamp: 0
                   };
                 }
@@ -485,12 +487,14 @@
           }
         });
       }
+      const fallbackAssetType = inferAssetType2(outputs);
       return {
         prompt,
         negativePrompt: null,
         outputs: outputs.slice(0, 10),
         settings: extractSettings2(doc),
-        assetType: inferAssetType2(outputs),
+        assetType: fallbackAssetType,
+        platformKey: fallbackAssetType === "VIDEO" ? "google-veo" : void 0,
         timestamp: 0
       };
     },
@@ -505,12 +509,14 @@
               const prompt = readText2(turns[j].el);
               const outputs = extractOutputsFromContainer2(turns[i].el);
               if (prompt || outputs.length > 0) {
+                const candAssetType = inferAssetType2(outputs);
                 candidates.push({
                   prompt,
                   negativePrompt: null,
                   outputs,
                   settings: extractSettings2(doc),
-                  assetType: inferAssetType2(outputs),
+                  assetType: candAssetType,
+                  platformKey: candAssetType === "VIDEO" ? "google-veo" : void 0,
                   timestamp: 0
                 });
               }
@@ -3869,7 +3875,7 @@
       assetType: raw.assetType || "IMAGE",
       confidence,
       timestamp: raw.timestamp || 0,
-      platformKey
+      platformKey: raw.platformKey || platformKey
     });
   }
   function normalizeCandidates(raws, platformKey) {

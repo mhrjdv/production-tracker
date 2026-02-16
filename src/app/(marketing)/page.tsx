@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { auth } from "@/lib/auth/server";
-import { redirect } from "next/navigation";
 import {
   Film,
   Layers,
@@ -12,6 +11,7 @@ import {
   Crosshair,
   Clock,
   Sparkles,
+  LayoutDashboard,
 } from "lucide-react";
 
 export const metadata = {
@@ -20,18 +20,46 @@ export const metadata = {
     "Generate anywhere, decide here, ship with traceability. The open-source orchestration layer for AI-assisted film production.",
 };
 
-async function AuthRedirect() {
+async function AuthNav() {
   const session = await auth();
-  if (session?.user) redirect("/home");
-  return null;
+  const isLoggedIn = !!session?.user;
+
+  if (isLoggedIn) {
+    return (
+      <div className="flex items-center gap-3">
+        <Link
+          href="/home"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <LayoutDashboard className="h-3.5 w-3.5" />
+          Dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <Link
+        href="/login"
+        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        Sign in
+      </Link>
+      <Link
+        href="/register"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        Get Started
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Link>
+    </div>
+  );
 }
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      <Suspense fallback={null}>
-        <AuthRedirect />
-      </Suspense>
       {/* ─── Nav ─────────────────────────────────── */}
       <nav className="fixed top-0 inset-x-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 h-16">
@@ -69,21 +97,15 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Get Started
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
+          <Suspense
+            fallback={
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-24 rounded-lg bg-muted/30 animate-pulse" />
+              </div>
+            }
+          >
+            <AuthNav />
+          </Suspense>
         </div>
       </nav>
 

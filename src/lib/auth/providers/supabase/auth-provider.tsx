@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "./client";
 import { createClientAuth } from "./client-auth";
@@ -49,9 +43,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, s) => {
-      if (event === "SIGNED_OUT" || !s?.user) {
+      if (event === "SIGNED_OUT") {
         setUser(null);
         router.push(LOGIN_REDIRECT);
+        return;
+      }
+
+      if (!s?.user) {
+        setUser(null);
         return;
       }
 

@@ -1,9 +1,12 @@
 /**
  * Hostnames allowed in next.config.ts remotePatterns.
- * next/image can only optimize images from these hosts.
- * For any other host, use `unoptimized` on the Image component.
+ * Kept for reference — these are the hosts we accept images from.
+ * We no longer route through the Next.js optimization proxy because:
+ * - All hosts are already CDN-backed (R2, Google, OpenAI, MJ, etc.)
+ * - Original assets can be 5-33MB PNGs that timeout the 7s proxy limit
+ * - Direct CDN delivery is faster than double-proxying through /_next/image
  */
-const OPTIMIZABLE_HOSTS = new Set([
+const ALLOWED_HOSTS = new Set([
   "pub-15baef71f1364d1e867fa9a59fcb3717.r2.dev",
   "lh3.googleusercontent.com",
   "storage.googleapis.com",
@@ -18,33 +21,32 @@ const OPTIMIZABLE_HOSTS = new Set([
 ]);
 
 /**
- * Returns true if the URL hostname is in next.config.ts remotePatterns,
- * meaning next/image can optimize it. Returns false for unknown hosts
- * or invalid URLs — use `unoptimized` prop for those.
+ * Returns true if the URL hostname is in our allowlist.
  */
-export function isOptimizableImageUrl(url: string | null | undefined): boolean {
+export function isAllowedImageHost(url: string | null | undefined): boolean {
   if (!url) return false;
   try {
     const { hostname } = new URL(url);
-    return OPTIMIZABLE_HOSTS.has(hostname);
+    return ALLOWED_HOSTS.has(hostname);
   } catch {
     return false;
   }
 }
 
+/** @deprecated Use isAllowedImageHost instead */
+export const isOptimizableImageUrl = isAllowedImageHost;
+
 /**
- * Determines if an asset image should skip next/image optimization.
- * Returns true (unoptimized) when:
- * - The URL host is not in remotePatterns, OR
- * - The image has no thumbnail (original uploads can be 5-33MB and
- *   cause TimeoutError in the optimization proxy)
+ * Always returns true — skip Next.js image optimization for all external images.
+ *
+ * Rationale: All image sources are already CDN-hosted. Routing through
+ * the Next.js /_next/image proxy adds latency and a 7s timeout that
+ * causes 500 errors on large assets (5-33MB originals from R2, platform captures).
+ * Direct CDN delivery is both faster and more reliable.
  */
 export function shouldSkipOptimization(
-  imgSrc: string | null | undefined,
-  hasThumbnail: boolean,
+  _imgSrc?: string | null,
+  _hasThumbnail?: boolean,
 ): boolean {
-  if (!imgSrc) return true;
-  if (!isOptimizableImageUrl(imgSrc)) return true;
-  if (!hasThumbnail) return true;
-  return false;
+  return true;
 }

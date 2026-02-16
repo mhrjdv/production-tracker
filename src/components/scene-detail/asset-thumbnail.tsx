@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { Star, CheckSquare, Square } from "lucide-react";
+import { Star, CheckSquare, Square, ImageOff } from "lucide-react";
 import { shouldSkipOptimization } from "@/lib/image-utils";
 import type { AssetItem } from "./types";
 
@@ -21,7 +22,9 @@ const PLATFORM_ABBREV: Record<string, string> = {
   "eleven-labs": "11L",
   suno: "Suno",
   udio: "Udio",
+  "google-gemini": "Gem",
   "gemini-veo": "Veo",
+  "google-veo": "Veo",
 };
 
 function platformAbbrev(key: string): string {
@@ -68,6 +71,7 @@ export function AssetThumbnail({
 }: AssetThumbnailProps) {
   // Prefer thumbnail (small WebP) over full-res output for compact display
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <button
@@ -78,7 +82,7 @@ export function AssetThumbnail({
       onClick={() => onClick(asset.id)}
     >
       {/* Image or placeholder */}
-      {imgSrc ? (
+      {imgSrc && !imgError ? (
         <Image
           src={imgSrc}
           alt={`${asset.platformLabel} v${asset.versionNumber}`}
@@ -88,14 +92,11 @@ export function AssetThumbnail({
           sizes="96px"
           quality={60}
           unoptimized={shouldSkipOptimization(imgSrc, !!asset.thumbnailUrl)}
+          onError={() => setImgError(true)}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-muted/40 text-xs text-muted-foreground">
-          {asset.assetType === "VIDEO"
-            ? "VID"
-            : asset.assetType === "AUDIO" || asset.assetType === "MUSIC"
-              ? "AUD"
-              : "IMG"}
+        <div className="flex h-full w-full items-center justify-center bg-muted/40 text-muted-foreground">
+          <ImageOff className="h-4 w-4 opacity-40" />
         </div>
       )}
 

@@ -4,6 +4,7 @@ import { createMDX } from "fumadocs-mdx/next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  staticPageGenerationTimeout: 300,
   images: {
     localPatterns: [{ pathname: "/images/**" }],
     remotePatterns: [

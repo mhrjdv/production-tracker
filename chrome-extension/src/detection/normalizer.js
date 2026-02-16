@@ -45,7 +45,7 @@ export function normalizeCandidate(raw, platformKey, turnIndex) {
     assetType: raw.assetType || "IMAGE",
     confidence,
     timestamp: raw.timestamp || 0,
-    platformKey,
+    platformKey: raw.platformKey || platformKey,
   });
 }
 

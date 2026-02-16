@@ -185,8 +185,8 @@ function parseGeminiTurns(doc) {
 // ── Adapter ──────────────────────────────────────────────
 
 const GeminiAdapter = {
-  platformKey: "google-veo",
-  displayName: "Google Gemini / Veo",
+  platformKey: "google-gemini",
+  displayName: "Google Gemini",
 
   match(url) {
     return URL_PATTERNS.some((p) => p.test(url));
@@ -204,12 +204,14 @@ const GeminiAdapter = {
               const prompt = readText(turns[j].el);
               const outputs = extractOutputsFromContainer(turns[i].el);
               if (prompt) {
+                const assetType = inferAssetType(outputs);
                 return {
                   prompt,
                   negativePrompt: null,
                   outputs,
                   settings: extractSettings(doc),
-                  assetType: inferAssetType(outputs),
+                  assetType,
+                  platformKey: assetType === "VIDEO" ? "google-veo" : undefined,
                   timestamp: 0,
                 };
               }
@@ -244,12 +246,14 @@ const GeminiAdapter = {
       });
     }
 
+    const fallbackAssetType = inferAssetType(outputs);
     return {
       prompt,
       negativePrompt: null,
       outputs: outputs.slice(0, 10),
       settings: extractSettings(doc),
-      assetType: inferAssetType(outputs),
+      assetType: fallbackAssetType,
+      platformKey: fallbackAssetType === "VIDEO" ? "google-veo" : undefined,
       timestamp: 0,
     };
   },
@@ -267,12 +271,15 @@ const GeminiAdapter = {
             const prompt = readText(turns[j].el);
             const outputs = extractOutputsFromContainer(turns[i].el);
             if (prompt || outputs.length > 0) {
+              const candAssetType = inferAssetType(outputs);
               candidates.push({
                 prompt,
                 negativePrompt: null,
                 outputs,
                 settings: extractSettings(doc),
-                assetType: inferAssetType(outputs),
+                assetType: candAssetType,
+                platformKey:
+                  candAssetType === "VIDEO" ? "google-veo" : undefined,
                 timestamp: 0,
               });
             }

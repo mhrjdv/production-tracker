@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Columns2, Columns3, Columns4, Star, X } from "lucide-react";
+import { Columns2, Columns3, Columns4, ImageOff, Star, X } from "lucide-react";
 import { updateSceneAssetVersion } from "@/lib/actions";
 import { computeCompareMetrics } from "@/lib/compare-utils";
 import { shouldSkipOptimization } from "@/lib/image-utils";
@@ -128,7 +128,7 @@ function CompareCard({
   onPickWinner: (id: string) => void;
 }) {
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
-  const isR2 = imgSrc?.includes("r2.dev") ?? false;
+  const [imgError, setImgError] = useState(false);
 
   return (
     <div
@@ -140,7 +140,7 @@ function CompareCard({
     >
       {/* Preview */}
       <div className="aspect-video bg-muted/20 relative">
-        {imgSrc ? (
+        {imgSrc && !imgError ? (
           asset.assetType === "VIDEO" ? (
             <video
               src={imgSrc}
@@ -157,11 +157,15 @@ function CompareCard({
               quality={75}
               priority
               unoptimized={shouldSkipOptimization(imgSrc, !!asset.thumbnailUrl)}
+              onError={() => setImgError(true)}
             />
           )
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
-            No preview
+          <div className="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
+            <ImageOff className="h-6 w-6 mb-1 opacity-40" />
+            <span className="text-xs">
+              {imgError ? "Load failed" : "No preview"}
+            </span>
           </div>
         )}
 

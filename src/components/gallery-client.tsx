@@ -25,6 +25,7 @@ import {
   X,
   Star,
   ImageIcon,
+  ImageOff,
   PlayCircle,
   Music2,
   Grid3x3,
@@ -152,7 +153,9 @@ const PLATFORM_ABBREV: Record<string, string> = {
   runway: "RW",
   pika: "Pika",
   kling: "Kling",
+  "google-gemini": "Gem",
   "gemini-veo": "Veo",
+  "google-veo": "Veo",
 };
 
 function platformAbbrev(key: string): string {
@@ -265,6 +268,24 @@ export function GalleryClient({
 
     return result;
   }, [assets, matchIds, typeFilter, platformFilter]);
+
+  // Navigation within filtered list
+  const currentIndex = useMemo(() => {
+    if (!sheetAssetId) return -1;
+    return filtered.findIndex((a) => a.id === sheetAssetId);
+  }, [sheetAssetId, filtered]);
+
+  const hasPrev = currentIndex > 0;
+  const hasNext = currentIndex >= 0 && currentIndex < filtered.length - 1;
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex > 0) setSheetAssetId(filtered[currentIndex - 1].id);
+  }, [currentIndex, filtered]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex >= 0 && currentIndex < filtered.length - 1)
+      setSheetAssetId(filtered[currentIndex + 1].id);
+  }, [currentIndex, filtered]);
 
   const hasFilters = query || typeFilter !== "all" || platformFilter !== "all";
 
@@ -434,6 +455,10 @@ export function GalleryClient({
           if (!open) setSheetAssetId(null);
         }}
         onDeleted={() => setSheetAssetId(null)}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
       />
     </div>
   );
@@ -452,6 +477,7 @@ function GalleryCard({
 }) {
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
   const isVisual = ["IMAGE", "STORYBOARD", "VIDEO"].includes(asset.assetType);
+  const [imgError, setImgError] = useState(false);
 
   return (
     <TooltipProvider>
@@ -466,7 +492,7 @@ function GalleryCard({
           >
             {/* Image / Placeholder */}
             <div className="aspect-video bg-muted/30 flex items-center justify-center">
-              {imgSrc && isVisual ? (
+              {imgSrc && isVisual && !imgError ? (
                 <Image
                   src={imgSrc}
                   alt=""
@@ -479,10 +505,13 @@ function GalleryCard({
                     imgSrc,
                     !!asset.thumbnailUrl,
                   )}
+                  onError={() => setImgError(true)}
                 />
               ) : (
                 <div className="text-muted-foreground/30">
-                  {asset.assetType === "VIDEO" ? (
+                  {imgError ? (
+                    <ImageOff className="h-8 w-8" />
+                  ) : asset.assetType === "VIDEO" ? (
                     <PlayCircle className="h-8 w-8" />
                   ) : ["AUDIO", "MUSIC", "VOICE", "NARRATION"].includes(
                       asset.assetType,

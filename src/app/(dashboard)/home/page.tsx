@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+
 import {
   Card,
   CardContent,
@@ -19,7 +19,7 @@ import DashboardLoading from "../loading";
 
 async function DashboardContent() {
   const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  if (!session?.user?.id) return null;
 
   const projects = await prisma.project.findMany({
     where: { userId: session.user.id },
