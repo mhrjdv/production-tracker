@@ -84,8 +84,8 @@ Premiere-style horizontal timeline lanes for story, image, video, and audio visi
 
 ```bash
 # Clone the repository
-git clone https://github.com/mhrjdv/lazer.git
-cd lazer
+git clone https://github.com/mhrjdv/production-tracker.git
+cd production-tracker
 
 # Install dependencies
 npm install
@@ -108,6 +108,105 @@ The MCP server starts automatically on port 3100 alongside the dev server.
 
 ---
 
+## Chrome Extension
+
+### Installation
+
+1. Build the extension:
+   ```bash
+   npm run ext:build
+   ```
+
+2. Open Chrome and navigate to `chrome://extensions`
+
+3. Enable **Developer Mode** (toggle in top-right)
+
+4. Click **Load unpacked** and select the `chrome-extension/` folder
+
+5. The Lazer icon appears in your extensions bar. Click it to open the side panel.
+
+### Setup
+
+1. Open the Lazer web app and go to **Settings > Integrations**
+
+2. Click **Generate Token** to create an API token (starts with `lzr_`)
+
+3. In the extension side panel, enter:
+   - **Server URL**: Your Lazer instance URL (e.g. `http://localhost:3000`)
+   - **API Token**: The `lzr_` token from step 2
+
+4. Click **Connect** — the extension will verify the connection
+
+### Usage
+
+The extension has four modes:
+
+| Mode | Purpose |
+|------|---------|
+| **Context** | Shows your active project, scene, and shot. Switch context here. |
+| **Capture** | Auto-detects AI platform outputs. One click saves the asset to your active shot. |
+| **Reuse** | Browse previously captured assets to re-use prompts on a different platform. |
+| **Queue** | View pending captures (queued offline) and retry failed uploads. |
+
+Supported platforms: Sora, Veo/Gemini, Midjourney, Freepik, Runway, ElevenLabs, Suno.
+
+---
+
+## MCP Server
+
+The built-in MCP server exposes every Lazer operation as structured tools for AI agents.
+
+| Capability | Count |
+|-----------|-------|
+| Tools | 53 across 11 domains |
+| Resources | 7 (schema, project trees, docs) |
+| Prompts | 5 (scene breakdown, shot planning, asset review, prompt refinement, production summary) |
+
+### Connect ChatGPT (OAuth)
+
+1. In ChatGPT, go to **Settings > Connected Apps > Add MCP Server**
+2. Enter your Lazer URL: `https://your-domain.com/mcp`
+3. Select **OAuth** — the login flow handles authentication automatically
+
+### Connect Claude Desktop (STDIO)
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "lazer": {
+      "command": "npx",
+      "args": ["lazer-mcp", "--token", "lzr_your_token"],
+      "env": { "DATABASE_URL": "postgresql://..." }
+    }
+  }
+}
+```
+
+### Connect Cursor (STDIO)
+
+Same configuration as Claude Desktop. Add it in **Cursor > Settings > MCP**.
+
+### Standalone HTTP Server
+
+The MCP server can also run standalone on port 3100:
+
+```bash
+# Set required env vars
+export DATABASE_URL="postgresql://..."
+export LAZER_MCP_DEFAULT_TOKEN="lzr_your_token"
+
+# Start the HTTP transport
+npx lazer-mcp --port 3100
+```
+
+Then point any MCP client to `http://localhost:3100/mcp` with `Authorization: Bearer lzr_your_token`.
+
+See [MCP documentation](content/docs/mcp-server/) for the full tool reference and authentication details.
+
+---
+
 ## Project Structure
 
 ```
@@ -124,56 +223,6 @@ prisma/             Database schema & migrations
 chrome-extension/   Manifest V3 side panel extension
 content/docs/       Fumadocs documentation site
 ```
-
----
-
-## MCP Server
-
-The built-in MCP server exposes every Lazer operation as structured tools for AI agents.
-
-| Capability | Count |
-|-----------|-------|
-| Tools | 53 across 11 domains |
-| Resources | 7 (schema, project trees, docs) |
-| Prompts | 5 (scene breakdown, shot planning, asset review, prompt refinement, production summary) |
-
-### Connect Your AI Client
-
-**ChatGPT** (OAuth):
-1. Settings -> Connected Apps -> Add MCP Server
-2. Enter `https://your-domain.com/mcp`
-3. Select OAuth — login flow handles the rest
-
-**Claude Desktop** (STDIO):
-```json
-{
-  "mcpServers": {
-    "lazer": {
-      "command": "npx",
-      "args": ["lazer-mcp", "--token", "lzr_your_token"],
-      "env": { "DATABASE_URL": "postgresql://..." }
-    }
-  }
-}
-```
-
-**Cursor** (STDIO): Same configuration as Claude Desktop, added in MCP settings.
-
-See [MCP documentation](content/docs/mcp-server/) for the full setup guide, tool reference, and authentication details.
-
----
-
-## Chrome Extension
-
-Install the unpacked extension from the `chrome-extension/` directory:
-
-1. Navigate to `chrome://extensions`
-2. Enable Developer Mode
-3. Click "Load unpacked" and select the `chrome-extension/` folder
-4. Generate an API token on the Integrations page
-5. Configure the extension with your Lazer URL and token
-
-The extension uses the Side Panel API for a persistent workflow alongside generation platforms.
 
 ---
 
@@ -234,6 +283,14 @@ Full documentation is available at `/docs` when the app is running, powered by [
 - [MCP Server](content/docs/mcp-server/)
 - [API Reference](content/docs/api-reference/)
 - [Supported Platforms](content/docs/platforms/)
+
+---
+
+## Links
+
+- [GitHub](https://github.com/mhrjdv/production-tracker)
+- [LinkedIn](https://www.linkedin.com/in/-mihirjadhav/)
+- [X (Twitter)](https://x.com/mhrjdv)
 
 ---
 

@@ -26,6 +26,8 @@ import {
   Wrench,
   BookOpen,
   Zap,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 
 export const metadata = {
@@ -168,7 +170,7 @@ export default function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="https://github.com/mihir-lazer/lazer-v2"
+              href="https://github.com/mhrjdv/production-tracker"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-all"
@@ -668,7 +670,7 @@ export default function LandingPage() {
           <div className="grid gap-4 md:grid-cols-4 mt-12 max-w-4xl mx-auto">
             {[
               { icon: Shield, label: "OAuth 2.0 + PKCE" },
-              { icon: Globe, label: "Cloudflare Tunnel ready" },
+              { icon: Globe, label: "Self-hostable" },
               { icon: Wrench, label: "Zod-validated inputs" },
               { icon: BookOpen, label: "Schema as a resource" },
             ].map((f) => (
@@ -772,7 +774,7 @@ export default function LandingPage() {
 
           <div className="flex items-center justify-center gap-4">
             <a
-              href="https://github.com/mihir-lazer/lazer-v2"
+              href="https://github.com/mhrjdv/production-tracker"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-6 py-3 text-sm font-medium hover:bg-muted/50 transition-all"
@@ -820,24 +822,45 @@ export default function LandingPage() {
               <Film className="h-3 w-3 text-primary-foreground" />
             </div>
             <span className="text-sm font-semibold">Lazer</span>
+            <span className="text-xs text-muted-foreground/50 ml-1">
+              MIT License
+            </span>
           </div>
 
-          <div className="flex items-center gap-6 text-xs text-muted-foreground">
+          <div className="flex items-center gap-5">
             <Link
               href="/docs"
-              className="hover:text-foreground transition-colors"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Documentation
+              Docs
             </Link>
             <a
-              href="https://github.com/mihir-lazer/lazer-v2"
+              href="https://github.com/mhrjdv/production-tracker"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="GitHub"
             >
-              GitHub
+              <Github className="h-4 w-4" />
             </a>
-            <span>MIT License</span>
+            <a
+              href="https://x.com/mhrjdv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="X (Twitter)"
+            >
+              <Twitter className="h-4 w-4" />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/-mihirjadhav/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="h-4 w-4" />
+            </a>
           </div>
         </div>
       </footer>
