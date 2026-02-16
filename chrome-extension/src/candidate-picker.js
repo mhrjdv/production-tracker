@@ -11,7 +11,10 @@ import { scheduleSceneDraftSave } from "./drafts.js";
  * Open the candidate picker overlay and request thread candidates.
  */
 export async function openCandidatePicker() {
-  const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  const tabs = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
   const tab = tabs[0];
   if (!tab?.id) {
     setStatus("No active tab available.", true);
@@ -19,9 +22,18 @@ export async function openCandidatePicker() {
   }
 
   setStatus("Scanning thread...");
-  dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Loading...</div>';
+  dom.candidateList.innerHTML =
+    '<div class="sp-candidate-empty">Scanning page for generated content...</div>';
   dom.candidatePicker.classList.remove("hidden");
   state.candidatePickerOpen = true;
+
+  // Scroll the picker into view so user can see it
+  requestAnimationFrame(() => {
+    dom.candidatePicker.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  });
 
   try {
     const response = await sendMessageWithTimeout(tab.id, {
@@ -29,9 +41,17 @@ export async function openCandidatePicker() {
       maxCandidates: 20,
     });
 
-    if (!response?.ok || !response.candidates?.length) {
-      dom.candidateList.innerHTML = '<div class="sp-candidate-empty">No thread candidates found.</div>';
-      setStatus("No thread candidates detected.");
+    if (!response?.ok) {
+      dom.candidateList.innerHTML =
+        '<div class="sp-candidate-empty">Could not scan this page. Try refreshing the tab.</div>';
+      setStatus(response?.error || "Detection failed.", true);
+      return;
+    }
+
+    if (!response.candidates?.length) {
+      dom.candidateList.innerHTML =
+        '<div class="sp-candidate-empty">No generated content found on this page.</div>';
+      setStatus("No candidates detected on this page.");
       return;
     }
 
@@ -39,7 +59,8 @@ export async function openCandidatePicker() {
     renderCandidateList(response.candidates);
     setStatus(`Found ${response.candidates.length} candidate(s).`);
   } catch (err) {
-    dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Detection failed.</div>';
+    dom.candidateList.innerHTML =
+      '<div class="sp-candidate-empty">Could not connect to page. Try refreshing the tab.</div>';
     setStatus(err.message, true);
   }
 }
@@ -59,7 +80,8 @@ function renderCandidateList(candidates) {
   dom.candidateList.innerHTML = "";
 
   if (!candidates?.length) {
-    dom.candidateList.innerHTML = '<div class="sp-candidate-empty">No candidates.</div>';
+    dom.candidateList.innerHTML =
+      '<div class="sp-candidate-empty">No candidates.</div>';
     return;
   }
 
@@ -91,7 +113,8 @@ function renderCandidateList(candidates) {
     const promptText = document.createElement("div");
     promptText.className = "sp-candidate-prompt";
     promptText.textContent = candidate.prompt
-      ? candidate.prompt.substring(0, 120) + (candidate.prompt.length > 120 ? "..." : "")
+      ? candidate.prompt.substring(0, 120) +
+        (candidate.prompt.length > 120 ? "..." : "")
       : "(no prompt)";
     info.appendChild(promptText);
 
@@ -149,7 +172,10 @@ function selectCandidate(candidate) {
   }
 
   // Fill asset type
-  if (candidate.assetType && dom.capAssetType.querySelector(`option[value="${candidate.assetType}"]`)) {
+  if (
+    candidate.assetType &&
+    dom.capAssetType.querySelector(`option[value="${candidate.assetType}"]`)
+  ) {
     dom.capAssetType.value = candidate.assetType;
   }
 
@@ -173,7 +199,9 @@ function selectCandidate(candidate) {
 
   closeCandidatePicker();
   scheduleSceneDraftSave();
-  setStatus(`Applied candidate (${Math.round((candidate.confidence || 0) * 100)}% confidence).`);
+  setStatus(
+    `Applied candidate (${Math.round((candidate.confidence || 0) * 100)}% confidence).`,
+  );
 }
 
 function confidenceClass(conf) {
@@ -185,7 +213,13 @@ function confidenceClass(conf) {
 function createPlaceholder(assetType) {
   const placeholder = document.createElement("div");
   placeholder.className = "sp-candidate-thumb-placeholder";
-  const labels = { VIDEO: "VID", IMAGE: "IMG", AUDIO: "AUD", MUSIC: "MUS", VOICE: "VOX" };
+  const labels = {
+    VIDEO: "VID",
+    IMAGE: "IMG",
+    AUDIO: "AUD",
+    MUSIC: "MUS",
+    VOICE: "VOX",
+  };
   placeholder.textContent = labels[assetType] || "?";
   return placeholder;
 }

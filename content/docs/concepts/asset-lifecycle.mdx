@@ -116,14 +116,14 @@ A compare group is a set of asset versions generated from the same prompt packag
 **Example workflow:**
 1. Create prompt package P1 for "wide establishing shot of futuristic city."
 2. Generate on Sora, Veo, and Runway.
-3. Extension captures all three outputs with the same `compareGroupId`.
+3. Extension captures all three outputs with the same `compareGroup`.
 4. UI shows all three side-by-side.
 5. You select the best one.
 
-Compare groups enable apples-to-apples comparison across platforms. The `compareGroupId` field links related versions.
+Compare groups enable apples-to-apples comparison across platforms. The `compareGroup` field links related versions.
 
 **Compare group rules:**
-- Versions in a group typically have the same `basePrompt` and `shotId`.
+- Versions in a group typically have the same `prompt` and `shotId`.
 - Only one version in a group should be marked `selected: true` (though the system doesn't enforce this).
 - Compare groups can span different statuses (e.g., one Approved, two Rejected).
 
@@ -170,7 +170,7 @@ Common query patterns:
 **Get all assets pending review:**
 ```typescript
 const pending = await prisma.sceneAssetVersion.findMany({
-  where: { status: 'Needs Review' }
+  where: { status: 'NEEDS_REVIEW' }
 });
 ```
 
@@ -179,7 +179,7 @@ const pending = await prisma.sceneAssetVersion.findMany({
 const approved = await prisma.sceneAssetVersion.findMany({
   where: {
     sceneId: 'scene_xyz',
-    status: 'Approved'
+    status: 'APPROVED'
   }
 });
 ```
@@ -189,7 +189,7 @@ const approved = await prisma.sceneAssetVersion.findMany({
 const readyToShip = await prisma.sceneAssetVersion.findMany({
   where: {
     selected: true,
-    status: 'Approved'
+    status: 'APPROVED'
   }
 });
 ```
@@ -197,8 +197,8 @@ const readyToShip = await prisma.sceneAssetVersion.findMany({
 **Get all versions in a compare group:**
 ```typescript
 const group = await prisma.sceneAssetVersion.findMany({
-  where: { compareGroupId: 'cmp_123' },
-  orderBy: { platform: 'asc' }
+  where: { compareGroup: 'cmp_123' },
+  orderBy: { platformKey: 'asc' }
 });
 ```
 

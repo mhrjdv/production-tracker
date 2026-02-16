@@ -28,6 +28,7 @@ import {
   Search,
   Plug,
   Keyboard,
+  GalleryHorizontalEnd,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -104,7 +105,7 @@ export function CommandPalette({
       {
         key: "g d",
         label: "Go to Dashboard",
-        action: () => navigate("/"),
+        action: () => navigate("/home"),
         group: "Navigation",
       },
       {
@@ -150,6 +151,12 @@ export function CommandPalette({
           action: () => navigate(`/projects/${currentProjectId}/bible`),
           group: "Navigation",
         },
+        {
+          key: "g g",
+          label: "Go to Gallery",
+          action: () => navigate(`/projects/${currentProjectId}/gallery`),
+          group: "Navigation",
+        },
       );
     }
 
@@ -183,6 +190,8 @@ export function CommandPalette({
     if (label.includes("Characters")) return <Users className="h-4 w-4" />;
     if (label.includes("Bible")) return <BookOpen className="h-4 w-4" />;
     if (label.includes("Integrations")) return <Plug className="h-4 w-4" />;
+    if (label.includes("Gallery"))
+      return <GalleryHorizontalEnd className="h-4 w-4" />;
     return <Search className="h-4 w-4" />;
   };
 
@@ -263,7 +272,9 @@ export function CommandPalette({
                 <CommandItem
                   key={scene.id}
                   onSelect={() =>
-                    navigate(`/projects/${scene.projectId}/scenes/${scene.id}`)
+                    navigate(
+                      `/projects/${scene.projectId}/scenes/${scene.sceneId}`,
+                    )
                   }
                 >
                   <Crosshair className="h-4 w-4" />

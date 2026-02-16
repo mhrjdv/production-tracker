@@ -127,6 +127,7 @@ function CompareCard({
   onPickWinner: (id: string) => void;
 }) {
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
+  const isR2 = imgSrc?.includes("r2.dev") ?? false;
 
   return (
     <div
@@ -153,6 +154,7 @@ function CompareCard({
               className="object-contain"
               sizes="(max-width: 768px) 100vw, 33vw"
               quality={75}
+              unoptimized
             />
           )
         ) : (

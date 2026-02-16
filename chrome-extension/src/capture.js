@@ -208,9 +208,12 @@ export async function saveCapture() {
   }
   const tags = normalizeTags(dom.capTags.value);
 
+  const shotId = dom.ctxShotSelect?.value || undefined;
+
   const payload = {
     projectId,
     sceneId,
+    shotId,
     platformId: platform.id,
     platformKey: platform.slug,
     platformLabel: platform.name,
@@ -224,6 +227,7 @@ export async function saveCapture() {
     outputUrl: dom.capOutputUrl.value.trim() || undefined,
     thumbnailUrl: dom.capThumbUrl.value.trim() || undefined,
     externalAssetId: dom.capExternalId.value.trim() || undefined,
+    createPromptPackage: true,
     metadata,
     tags,
     notes: dom.capNotes.value.trim() || undefined,

@@ -21,12 +21,15 @@ When you generate content on an AI platform, Capture Mode:
 
 ### Context Selectors
 
-At the top of Capture Mode, you'll find two dropdown selectors:
+At the top of Capture Mode, you'll find three dropdown selectors:
 
 - **Project** - Choose which film project this asset belongs to
 - **Scene** - Choose which scene this asset belongs to
+- **Shot** - (Optional) Choose which specific shot this asset belongs to. Defaults to "(Scene-level)" if not specified.
 
 These selectors remember your last selection and apply it as the default for subsequent captures.
+
+> When a shot is selected, the capture is associated with that specific shot. When "(Scene-level)" is selected, the asset is attached to the scene without a specific shot.
 
 > Selecting a scene automatically loads that scene's existing assets into History mode for reference.
 
@@ -78,7 +81,7 @@ The form is organized into essential and advanced fields:
 **Status**
 - Asset status: Draft, Generated, Selected
 - Controls review workflow in web app
-- Defaults to "Generated"
+- Defaults to "Draft"
 
 #### Advanced Fields (Expandable)
 
@@ -174,7 +177,7 @@ These defaults persist across browser sessions.
 If detection fails for a field, the extension:
 
 - Leaves the field empty
-- Does not block capture (only Platform, Prompt, and Output URL are required)
+- Does not block capture (only Project, Scene, Platform, and Prompt are required)
 - Allows manual entry
 
 ## Batch Capture
@@ -209,11 +212,12 @@ The extension validates required fields before queueing:
 - **Project** - Required
 - **Scene** - Required
 - **Platform** - Required
-- **Prompt** - Required (minimum 3 characters)
-- **Output URL** - Required (must be valid URL)
+- **Prompt** - Required (minimum 1 character)
 - **Asset Type** - Required
 
 If validation fails, the extension highlights the missing field and shows an error message.
+
+> Note: Output URL is optional. Captures can be saved without a media URL to record prompts and metadata for later generation.
 
 ## Capture Tips
 
@@ -256,9 +260,10 @@ After capturing an asset:
 After clicking "Save Capture":
 
 - Item is added to the sync queue
+- A prompt package is automatically created alongside the asset version
 - Background worker attempts upload
 - Check Queue mode to verify success
-- Failed items remain in queue for retry (up to 5 attempts)
+- Failed items remain in queue for retry (up to 10 attempts for server errors; client errors like 401, 400, 404 fail immediately)
 
 ## Troubleshooting
 
@@ -293,8 +298,9 @@ After clicking "Save Capture":
 
 - Switch to Queue mode to check sync status
 - Click "Sync Now" to retry
-- Clear the item if it fails after 5 retries
+- Clear the item if it fails after 10 retries
 - Verify your API token is valid and not expired
+- Check for client errors (401, 400, 404) which fail immediately and require manual intervention
 
 ## Next Steps
 

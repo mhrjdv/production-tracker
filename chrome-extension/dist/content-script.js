@@ -1,12 +1,15 @@
 "use strict";
 (() => {
   // chrome-extension/src/detection/adapters/chatgpt-sora.js
-  var URL_PATTERNS = [
+  var SORA_URL_PATTERNS = [
     /^https?:\/\/(www\.)?sora\.com/i,
-    /^https?:\/\/sora\.chatgpt\.com/i,
+    /^https?:\/\/sora\.chatgpt\.com/i
+  ];
+  var CHATGPT_URL_PATTERNS = [
     /^https?:\/\/chat\.openai\.com/i,
     /^https?:\/\/chatgpt\.com/i
   ];
+  var ALL_URL_PATTERNS = [...SORA_URL_PATTERNS, ...CHATGPT_URL_PATTERNS];
   var PROMPT_SELECTORS = [
     'textarea[data-testid="sora-prompt-input"]',
     'textarea[placeholder*="Describe" i]',
@@ -16,7 +19,10 @@
     "#prompt-textarea",
     'textarea[data-testid="prompt-textarea"]',
     '[contenteditable="true"][data-placeholder*="Describe" i]',
-    '[contenteditable="true"][data-testid="prompt-textarea"]'
+    '[contenteditable="true"][data-testid="prompt-textarea"]',
+    // ChatGPT prosemirror editor
+    'div[id="prompt-textarea"][contenteditable="true"]',
+    'div.ProseMirror[contenteditable="true"]'
   ];
   var PROMPT_DISPLAY_SELECTORS = [
     '[data-testid="generation-prompt"]',
@@ -46,6 +52,21 @@
     '[data-testid^="conversation-turn"]',
     "article[data-testid]"
   ];
+  var GENERATED_URL_PATTERNS = [
+    "oaiusercontent",
+    "oaidalleapiprodscus",
+    "dalle",
+    "blob.core.windows.net",
+    "openai.com/file"
+  ];
+  function isSoraUrl(url) {
+    return SORA_URL_PATTERNS.some((p) => p.test(url));
+  }
+  function isGeneratedUrl(url) {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return GENERATED_URL_PATTERNS.some((pat) => lower.includes(pat));
+  }
   function readText(el) {
     if (!el) return "";
     if (el instanceof HTMLTextAreaElement || el instanceof HTMLInputElement) {
@@ -78,7 +99,14 @@
     });
     container.querySelectorAll("img[src]").forEach((el) => {
       const src = el.currentSrc || el.src;
-      if (src?.startsWith("http") && !seen.has(src) && (el.naturalWidth > 64 || !el.complete)) {
+      if (!src?.startsWith("http") || seen.has(src)) return;
+      const isSmall = el.complete && el.naturalWidth > 0 && el.naturalWidth <= 48;
+      if (isSmall) return;
+      const isAvatar = el.closest('[class*="avatar" i]') || el.getAttribute("alt")?.toLowerCase().includes("avatar") || el.closest('[data-testid*="avatar"]');
+      if (isAvatar) return;
+      const isLarge = !el.complete || el.naturalWidth > 64;
+      const isGenerated = isGeneratedUrl(src);
+      if (isLarge || isGenerated) {
         seen.add(src);
         outputs.push({
           type: "image",
@@ -123,7 +151,7 @@
   }
   function turnPromptText(el) {
     const clone = el.cloneNode(true);
-    clone.querySelectorAll("pre, code, img, video, audio, svg").forEach((n) => n.remove());
+    clone.querySelectorAll("pre, code, img, video, audio, svg, button").forEach((n) => n.remove());
     return clone.textContent?.trim() || "";
   }
   function buildCandidateFromTurnPair(userTurn, assistantTurn) {
@@ -134,23 +162,54 @@
   }
   var ChatGPTSoraAdapter = {
     platformKey: "openai-sora",
-    displayName: "OpenAI Sora",
+    get displayName() {
+      try {
+        if (typeof window !== "undefined" && isSoraUrl(window.location.href)) {
+          return "Sora";
+        }
+      } catch {
+      }
+      return "ChatGPT";
+    },
     match(url) {
-      return URL_PATTERNS.some((p) => p.test(url));
+      return ALL_URL_PATTERNS.some((p) => p.test(url));
+    },
+    /**
+     * Resolve display name from a specific URL (used by engine).
+     */
+    displayNameForUrl(url) {
+      if (isSoraUrl(url)) return "Sora";
+      return "ChatGPT";
     },
     extractLatest(doc) {
       const turns = parseTurns(doc);
       if (turns.length >= 2) {
         for (let i = turns.length - 1; i >= 0; i--) {
-          if (turnRole(turns[i]) === "assistant") {
-            for (let j = i - 1; j >= 0; j--) {
-              if (turnRole(turns[j]) === "user") {
-                const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
-                if (candidate.prompt) {
-                  candidate.settings = extractSettings(doc);
-                  return candidate;
+          const role = turnRole(turns[i]);
+          if (role === "assistant" || role === "tool") {
+            const outputs = extractOutputsFromContainer(turns[i]);
+            if (outputs.length > 0) {
+              for (let j = i - 1; j >= 0; j--) {
+                if (turnRole(turns[j]) === "user") {
+                  const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
+                  if (candidate.prompt || candidate.outputs.length > 0) {
+                    candidate.settings = extractSettings(doc);
+                    return candidate;
+                  }
+                  break;
                 }
-                break;
+              }
+            }
+            if (role === "assistant") {
+              for (let j = i - 1; j >= 0; j--) {
+                if (turnRole(turns[j]) === "user") {
+                  const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
+                  if (candidate.prompt) {
+                    candidate.settings = extractSettings(doc);
+                    return candidate;
+                  }
+                  break;
+                }
               }
             }
           }
@@ -174,11 +233,9 @@
       }
       const inputEl = querySelector(doc, PROMPT_SELECTORS);
       const prompt = readText(inputEl);
-      const allOutputs = [
-        ...extractOutputsFromContainer(doc.body)
-      ];
+      const allOutputs = extractOutputsFromContainer(doc.body);
       const filteredOutputs = allOutputs.filter(
-        (o) => o.url.includes("oaiusercontent") || o.metadata?.width > 200 || o.type === "video"
+        (o) => isGeneratedUrl(o.url) || o.metadata?.width > 200 || o.type === "video"
       );
       return {
         prompt,
@@ -196,18 +253,22 @@
         const pairs = [];
         let i = turns.length - 1;
         while (i >= 0) {
-          if (turnRole(turns[i]) === "assistant") {
+          const role = turnRole(turns[i]);
+          if (role === "assistant" || role === "tool") {
+            let found = false;
             for (let j = i - 1; j >= 0; j--) {
               if (turnRole(turns[j]) === "user") {
                 pairs.push({ user: turns[j], assistant: turns[i] });
                 i = j - 1;
+                found = true;
                 break;
               }
-              if (j === 0) i = -1;
             }
-            if (pairs[pairs.length - 1]?.assistant !== turns[i]) i--;
-          } else {
+            if (!found) i--;
+          } else if (role === "user") {
             pairs.push({ user: turns[i], assistant: null });
+            i--;
+          } else {
             i--;
           }
         }
@@ -247,7 +308,7 @@
   var chatgpt_sora_default = ChatGPTSoraAdapter;
 
   // chrome-extension/src/detection/adapters/gemini.js
-  var URL_PATTERNS2 = [
+  var URL_PATTERNS = [
     /^https?:\/\/gemini\.google\.com/i,
     /^https?:\/\/aistudio\.google\.com/i,
     /^https?:\/\/deepmind\.google.*veo/i,
@@ -378,7 +439,7 @@
     platformKey: "google-veo",
     displayName: "Google Gemini / Veo",
     match(url) {
-      return URL_PATTERNS2.some((p) => p.test(url));
+      return URL_PATTERNS.some((p) => p.test(url));
     },
     extractLatest(doc) {
       const turns = parseGeminiTurns(doc);
@@ -490,7 +551,7 @@
   var gemini_default = GeminiAdapter;
 
   // chrome-extension/src/detection/adapters/midjourney.js
-  var URL_PATTERNS3 = [
+  var URL_PATTERNS2 = [
     /^https?:\/\/(www\.)?midjourney\.com/i,
     /^https?:\/\/alpha\.midjourney\.com/i
   ];
@@ -608,7 +669,7 @@
     platformKey: "midjourney",
     displayName: "Midjourney",
     match(url) {
-      return URL_PATTERNS3.some((p) => p.test(url));
+      return URL_PATTERNS2.some((p) => p.test(url));
     },
     extractLatest(doc) {
       const cards = [];
@@ -713,7 +774,7 @@
   var midjourney_default = MidjourneyAdapter;
 
   // chrome-extension/src/detection/adapters/runway.js
-  var URL_PATTERNS4 = [
+  var URL_PATTERNS3 = [
     /^https?:\/\/app\.runwayml\.com/i,
     /^https?:\/\/(www\.)?runwayml\.com/i,
     /^https?:\/\/runway\.com/i
@@ -806,7 +867,7 @@
     platformKey: "runway",
     displayName: "Runway",
     match(url) {
-      return URL_PATTERNS4.some((p) => p.test(url));
+      return URL_PATTERNS3.some((p) => p.test(url));
     },
     extractLatest(doc) {
       const cards = [];
@@ -894,7 +955,7 @@
   var runway_default = RunwayAdapter;
 
   // chrome-extension/src/detection/adapters/elevenlabs.js
-  var URL_PATTERNS5 = [
+  var URL_PATTERNS4 = [
     /^https?:\/\/(www\.)?elevenlabs\.io/i,
     /^https?:\/\/beta\.elevenlabs\.io/i
   ];
@@ -1001,7 +1062,7 @@
     platformKey: "elevenlabs",
     displayName: "ElevenLabs",
     match(url) {
-      return URL_PATTERNS5.some((p) => p.test(url));
+      return URL_PATTERNS4.some((p) => p.test(url));
     },
     extractLatest(doc) {
       const mode = inferMode(doc);

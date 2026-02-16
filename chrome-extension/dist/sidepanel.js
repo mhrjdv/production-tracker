@@ -81,6 +81,7 @@
       state = {
         projects: [],
         scenes: [],
+        shots: [],
         platforms: [],
         sceneAssets: [],
         characters: [],
@@ -149,7 +150,7 @@
       init_crypto_utils();
       CONFIG_KEY = "extensionConfig";
       DEFAULT_CONFIG = {
-        baseUrl: "http://localhost:3000",
+        baseUrl: "",
         token: "",
         openAiBaseUrl: "",
         openAiModel: "",
@@ -236,17 +237,33 @@
   }
   function setActiveMode(mode) {
     state_default.activeMode = mode;
-    const buttons = dom.modeNav.querySelectorAll(".sp-tab");
-    buttons.forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.mode === mode);
-    });
-    document.querySelectorAll(".sp-main[data-panel]").forEach((panel) => {
-      panel.classList.toggle("hidden", panel.dataset.panel !== mode);
-    });
+    if (dom.panelCapture) {
+      dom.panelCapture.classList.remove("hidden");
+    }
+    if (dom.panelQueue) {
+      dom.panelQueue.classList.toggle("hidden", mode !== "queue");
+    }
+    if (dom.panelReuse) {
+      dom.panelReuse.classList.add("hidden");
+    }
   }
   function toggleSettings(forceOpen) {
     state_default.settingsOpen = forceOpen !== void 0 ? forceOpen : !state_default.settingsOpen;
     dom.settingsPanel.classList.toggle("hidden", !state_default.settingsOpen);
+  }
+  function toggleQueue(forceOpen) {
+    const isOpen = !dom.panelQueue.classList.contains("hidden");
+    const shouldOpen = forceOpen !== void 0 ? forceOpen : !isOpen;
+    if (shouldOpen) {
+      setActiveMode("queue");
+    } else {
+      setActiveMode("capture");
+    }
+  }
+  function updateQueueDot(count) {
+    if (dom.queueDot) {
+      dom.queueDot.classList.toggle("hidden", count === 0);
+    }
   }
   function updateDetectionBanner(platformName, assetType, confidence) {
     const banner = dom.ctxDetectionBanner;
@@ -282,7 +299,7 @@
         cfgOpenAiApiKey: $("cfgOpenAiApiKey"),
         cfgSave: $("cfgSave"),
         cfgReload: $("cfgReload"),
-        // Mode nav
+        // Mode nav (hidden, kept for compat)
         modeNav: $("modeNav"),
         // Auth gate
         authGate: $("authGate"),
@@ -292,11 +309,12 @@
         authOpenAiModel: $("authOpenAiModel"),
         authOpenAiApiKey: $("authOpenAiApiKey"),
         authConnect: $("authConnect"),
-        // Context (now inside capture panel)
+        // Context
         panelContext: $("panelContext"),
         ctxProjectSelect: $("ctxProjectSelect"),
         ctxSceneSelect: $("ctxSceneSelect"),
         ctxSceneSearch: $("ctxSceneSearch"),
+        ctxShotSelect: $("ctxShotSelect"),
         ctxShotCard: $("ctxShotCard"),
         ctxDetectedPlatform: $("ctxDetectedPlatform"),
         ctxDetectedType: $("ctxDetectedType"),
@@ -318,6 +336,7 @@
         capContextBar: $("capContextBar"),
         capContextLabel: $("capContextLabel"),
         capPlatformSelect: $("capPlatformSelect"),
+        capPlatformSearch: $("capPlatformSearch"),
         capAssetType: $("capAssetType"),
         capAssetStatus: $("capAssetStatus"),
         capTitle: $("capTitle"),
@@ -336,14 +355,15 @@
         capRefinePrompt: $("capRefinePrompt"),
         capSave: $("capSave"),
         capClearAll: $("capClearAll"),
-        // Reuse panel
+        // Reuse / Versions (inline in main view)
         panelReuse: $("panelReuse"),
         reuseAssetList: $("reuseAssetList"),
         reuseRestoreDraft: $("reuseRestoreDraft"),
         reuseClearDraft: $("reuseClearDraft"),
         reuseSearch: $("reuseSearch"),
         reuseFilterChips: $("reuseFilterChips"),
-        // Queue panel
+        versionsCount: $("versionsCount"),
+        // Queue panel (overlay)
         panelQueue: $("panelQueue"),
         queueCount: $("queueCount"),
         queueList: $("queueList"),
@@ -351,6 +371,9 @@
         queueClearFailed: $("queueClearFailed"),
         queuePreviewList: $("queuePreviewList"),
         queueFilterChips: $("queueFilterChips"),
+        queueToggle: $("queueToggle"),
+        queueClose: $("queueClose"),
+        queueDot: $("queueDot"),
         // Compare
         compareBar: $("compareBar"),
         compareBtn: $("compareBtn"),
@@ -373,13 +396,13 @@
       "use strict";
       SoraDetector = {
         platform: "openai-sora",
-        displayName: "OpenAI Sora",
+        displayName: "ChatGPT / Sora",
         category: "multi",
         urlPatterns: [
           /^https?:\/\/(www\.)?sora\.com/i,
           /^https?:\/\/sora\.chatgpt\.com/i,
-          /^https?:\/\/chat\.openai\.com\/.*sora/i,
-          /^https?:\/\/chatgpt\.com\/.*sora/i
+          /^https?:\/\/chat\.openai\.com/i,
+          /^https?:\/\/chatgpt\.com/i
         ],
         detect(url) {
           return this.urlPatterns.some((pattern) => pattern.test(url));
@@ -4136,7 +4159,7 @@
     const sceneId = dom.ctxSceneSelect.value;
     const scene = state_default.scenes.find((s) => s.sceneId === sceneId);
     if (!scene) {
-      dom.ctxShotCard.innerHTML = '<div class="sp-empty">Select a scene above to see details.</div>';
+      dom.ctxShotCard.innerHTML = '<div class="sp-empty-sm">Select a scene above to see details.</div>';
       return;
     }
     const versionCount = state_default.sceneAssets.length;
@@ -4163,6 +4186,11 @@
       dom.capContextLabel.textContent = "No context set";
     }
   }
+  function updateVersionCount(count) {
+    if (dom.versionsCount) {
+      dom.versionsCount.textContent = count;
+    }
+  }
   function renderReuseList() {
     const container = dom.reuseAssetList;
     container.innerHTML = "";
@@ -4174,49 +4202,32 @@
         return false;
       return true;
     });
+    updateVersionCount(state_default.sceneAssets.length);
     if (state_default.sceneAssets.length === 0) {
-      container.innerHTML = '<div class="sp-empty">No versions yet. Capture something first.</div>';
+      container.innerHTML = '<div class="sp-empty-sm">No versions yet. Capture something first.</div>';
       return;
     }
     if (filtered.length === 0) {
-      container.innerHTML = '<div class="sp-empty">No matching versions.</div>';
+      container.innerHTML = '<div class="sp-empty-sm">No matching versions.</div>';
       return;
     }
     filtered.forEach((asset) => {
-      const row = document.createElement("div");
-      row.className = `sp-reuse-item${asset.selected ? " selected-asset" : ""}`;
+      const card = document.createElement("div");
+      card.className = `sp-v-card${asset.selected ? " selected-asset" : ""}`;
       const checkbox = document.createElement("button");
       checkbox.type = "button";
-      checkbox.className = `sp-compare-check${state_default.compareIds.includes(asset.id) ? " checked" : ""}`;
-      checkbox.title = "Add to compare";
+      checkbox.className = `sp-v-card-check${state_default.compareIds.includes(asset.id) ? " checked" : ""}`;
+      checkbox.title = "Compare";
       checkbox.addEventListener("click", async (e) => {
         e.stopPropagation();
         const { toggleCompareSelect: toggleCompareSelect2 } = await Promise.resolve().then(() => (init_compare(), compare_exports));
         toggleCompareSelect2(asset.id);
       });
-      const thumb = document.createElement("img");
-      thumb.className = "sp-reuse-thumb";
-      thumb.alt = `${asset.platformLabel} preview`;
-      thumb.src = asset.thumbnailUrl || placeholderThumb();
-      const meta = document.createElement("div");
-      meta.className = "sp-reuse-meta";
-      const title = document.createElement("div");
-      title.className = "sp-reuse-title";
-      title.textContent = `${asset.platformLabel} -- ${asset.assetType} v${asset.versionNumber}`;
-      const sub = document.createElement("div");
-      sub.className = "sp-reuse-sub";
-      const timestamp = formatRelativeTime(asset.createdAt);
-      const promptPreview = (asset.prompt || "").substring(0, 60);
-      sub.textContent = `${asset.status}${timestamp ? " -- " + timestamp : ""}${promptPreview ? " -- " + promptPreview + "..." : ""}`;
-      meta.appendChild(title);
-      meta.appendChild(sub);
-      const actions = document.createElement("div");
-      actions.className = "sp-reuse-actions";
       const starBtn = document.createElement("button");
       starBtn.type = "button";
-      starBtn.className = `sp-star-btn${asset.selected ? " active" : ""}`;
+      starBtn.className = `sp-v-card-star${asset.selected ? " active" : ""}`;
       starBtn.title = asset.selected ? "Remove winner" : "Mark as winner";
-      starBtn.innerHTML = asset.selected ? '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="#eab308" stroke="#eab308" stroke-width="1"/></svg>' : '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
+      starBtn.innerHTML = asset.selected ? '<svg width="12" height="12" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="#eab308" stroke="#eab308" stroke-width="1"/></svg>' : '<svg width="12" height="12" viewBox="0 0 14 14"><path d="M7 1l1.8 3.6L13 5.2l-3 2.9.7 4.1L7 10.3 3.3 12.2l.7-4.1-3-2.9 4.2-.6L7 1z" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
       starBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const newSelected = !asset.selected;
@@ -4244,44 +4255,33 @@
           setStatus(err.message, true);
         }
       });
-      const loadBtn = document.createElement("button");
-      loadBtn.type = "button";
-      loadBtn.className = "sp-btn sp-btn-ghost";
-      loadBtn.textContent = "Load";
-      loadBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
+      const thumb = document.createElement("img");
+      thumb.className = "sp-v-card-thumb";
+      thumb.alt = `${asset.platformLabel} v${asset.versionNumber}`;
+      thumb.src = asset.thumbnailUrl || placeholderThumb();
+      const info = document.createElement("div");
+      info.className = "sp-v-card-info";
+      const platform = document.createElement("span");
+      platform.className = "sp-v-card-platform";
+      platform.textContent = asset.platformLabel || "Unknown";
+      const version = document.createElement("span");
+      version.className = "sp-v-card-version";
+      version.textContent = `v${asset.versionNumber} \xB7 ${asset.assetType}`;
+      info.appendChild(platform);
+      info.appendChild(version);
+      card.addEventListener("click", async () => {
         const { applySceneAssetToCapture: applySceneAssetToCapture2 } = await Promise.resolve().then(() => (init_capture(), capture_exports));
         applySceneAssetToCapture2(asset.id);
-        setActiveMode("capture");
         setStatus(
-          `Loaded prompt from ${asset.platformLabel} v${asset.versionNumber}.`
+          `Loaded ${asset.platformLabel} v${asset.versionNumber} into form.`
         );
+        dom.panelCapture.scrollTo({ top: 0, behavior: "smooth" });
       });
-      const applyBtn = document.createElement("button");
-      applyBtn.type = "button";
-      applyBtn.className = "sp-btn sp-btn-ghost";
-      applyBtn.textContent = "Apply";
-      applyBtn.addEventListener("click", async (e) => {
-        e.stopPropagation();
-        try {
-          applyBtn.disabled = true;
-          const { applyPromptToPage: applyPromptToPage2 } = await Promise.resolve().then(() => (init_detect(), detect_exports));
-          await applyPromptToPage2(asset.prompt || "");
-          setStatus("Prompt applied to page.");
-        } catch (err) {
-          setStatus(err.message, true);
-        } finally {
-          applyBtn.disabled = false;
-        }
-      });
-      actions.appendChild(starBtn);
-      actions.appendChild(loadBtn);
-      actions.appendChild(applyBtn);
-      row.appendChild(checkbox);
-      row.appendChild(thumb);
-      row.appendChild(meta);
-      row.appendChild(actions);
-      container.appendChild(row);
+      card.appendChild(checkbox);
+      card.appendChild(starBtn);
+      card.appendChild(thumb);
+      card.appendChild(info);
+      container.appendChild(card);
     });
   }
   function renderCharacterCards() {
@@ -4289,7 +4289,7 @@
     if (!container) return;
     container.innerHTML = "";
     if (state_default.characters.length === 0) {
-      container.innerHTML = '<div class="sp-empty">No characters in this project.</div>';
+      container.innerHTML = '<div class="sp-empty-sm">No characters in this project.</div>';
       return;
     }
     state_default.characters.forEach((char) => {
@@ -4319,7 +4319,7 @@
       copyBtn.type = "button";
       copyBtn.className = "sp-char-copy-btn";
       copyBtn.title = "Copy character prompt";
-      copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+      copyBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
       copyBtn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const visual = (char.visualCues || []).join("; ");
@@ -4330,9 +4330,9 @@
         ].filter(Boolean).join("\n");
         try {
           await navigator.clipboard.writeText(text);
-          copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
+          copyBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>';
           setTimeout(() => {
-            copyBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+            copyBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
           }, 1500);
         } catch {
           setStatus("Failed to copy.", true);
@@ -4349,7 +4349,7 @@
     container.innerHTML = "";
     const items = state_default.sceneAssets.slice(0, 6);
     if (items.length === 0) {
-      container.innerHTML = '<div class="sp-empty">No synced versions yet.</div>';
+      container.innerHTML = '<div class="sp-empty-sm">No synced versions yet.</div>';
       return;
     }
     items.forEach((asset) => {
@@ -4642,7 +4642,8 @@
   __export(data_loaders_exports, {
     loadProjectsAndPlatforms: () => loadProjectsAndPlatforms,
     loadSceneAssets: () => loadSceneAssets,
-    loadScenes: () => loadScenes
+    loadScenes: () => loadScenes,
+    loadShots: () => loadShots
   });
   async function loadProjectsAndPlatforms() {
     const [projectData, platformData] = await Promise.all([
@@ -4674,12 +4675,62 @@
       `/api/extension/scenes?projectId=${encodeURIComponent(projectId)}`
     );
     state_default.scenes = sceneData.scenes || [];
-    populateSelect(
-      dom.ctxSceneSelect,
-      state_default.scenes,
-      (s) => s.sceneId,
-      (s) => `${s.sceneId} -- ${s.storyBeat}`
-    );
+    dom.ctxSceneSelect.innerHTML = "";
+    const groups = {};
+    for (const s of state_default.scenes) {
+      const act = s.act || "Other";
+      if (!groups[act]) groups[act] = [];
+      groups[act].push(s);
+    }
+    const actKeys = Object.keys(groups).sort((a, b) => {
+      if (a === "Other") return 1;
+      if (b === "Other") return -1;
+      return a.localeCompare(b, void 0, { numeric: true });
+    });
+    if (actKeys.length <= 1 && actKeys[0] === "Other") {
+      populateSelect(
+        dom.ctxSceneSelect,
+        state_default.scenes,
+        (s) => s.sceneId,
+        (s) => `${s.sceneId} -- ${s.storyBeat}`
+      );
+    } else {
+      for (const act of actKeys) {
+        const optgroup = document.createElement("optgroup");
+        optgroup.label = act === "Other" ? "Other" : `Act ${act}`;
+        for (const s of groups[act]) {
+          const opt = document.createElement("option");
+          opt.value = s.sceneId;
+          opt.textContent = `${s.sceneId} -- ${s.storyBeat}`;
+          optgroup.appendChild(opt);
+        }
+        dom.ctxSceneSelect.appendChild(optgroup);
+      }
+    }
+  }
+  async function loadShots(sceneDbId) {
+    state_default.shots = [];
+    if (!dom.ctxShotSelect) return;
+    dom.ctxShotSelect.innerHTML = "";
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "(Scene-level)";
+    dom.ctxShotSelect.appendChild(defaultOpt);
+    if (!sceneDbId) return;
+    try {
+      const data = await fetchApi(
+        `/api/extension/shots?sceneDbId=${encodeURIComponent(sceneDbId)}`
+      );
+      state_default.shots = data.shots || [];
+      for (const shot of state_default.shots) {
+        const opt = document.createElement("option");
+        opt.value = shot.id;
+        opt.textContent = `${shot.shotCode} -- ${shot.description}`;
+        dom.ctxShotSelect.appendChild(opt);
+      }
+    } catch (err) {
+      console.warn("[sidepanel] loadShots:", err.message);
+    }
   }
   async function loadSceneAssets(projectId, sceneId) {
     if (!projectId || !sceneId) {
@@ -4963,9 +5014,11 @@
       return;
     }
     const tags = normalizeTags(dom.capTags.value);
+    const shotId = dom.ctxShotSelect?.value || void 0;
     const payload = {
       projectId,
       sceneId,
+      shotId,
       platformId: platform.id,
       platformKey: platform.slug,
       platformLabel: platform.name,
@@ -4979,6 +5032,7 @@
       outputUrl: dom.capOutputUrl.value.trim() || void 0,
       thumbnailUrl: dom.capThumbUrl.value.trim() || void 0,
       externalAssetId: dom.capExternalId.value.trim() || void 0,
+      createPromptPackage: true,
       metadata,
       tags,
       notes: dom.capNotes.value.trim() || void 0
@@ -5071,16 +5125,6 @@
   });
 
   // chrome-extension/src/detect.js
-  var detect_exports = {};
-  __export(detect_exports, {
-    applyPromptToPage: () => applyPromptToPage,
-    autoFillFromPage: () => autoFillFromPage,
-    detectFromPage: () => detectFromPage,
-    detectPlatformSlug: () => detectPlatformSlug,
-    getDetectorDisplayName: () => getDetectorDisplayName,
-    refinePrompt: () => refinePrompt,
-    sendMessageToActiveTab: () => sendMessageToActiveTab
-  });
   function detectPlatformSlug(url) {
     if (!url) return "";
     const detector = detectPlatform(url);
@@ -5114,11 +5158,15 @@
           if (response?.ok && response.context) {
             state_default.lastPageContext = response.context;
             const confidence = response.latestCandidate?.confidence;
+            const adapterName = response.adapter === "openai-sora" ? url.match(/sora\.(com|chatgpt\.com)/i) ? "Sora" : "ChatGPT" : displayName || slug;
             updateDetectionBanner(
-              displayName || slug,
+              adapterName,
               response.context.assetType || "",
               confidence
             );
+            if (!slug && response.adapter && state_default.platforms.some((p) => p.slug === response.adapter)) {
+              dom.capPlatformSelect.value = response.adapter;
+            }
             return response.context;
           }
         } catch {
@@ -5273,31 +5321,45 @@
   init_messaging();
   init_drafts();
   async function openCandidatePicker() {
-    const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    const tabs = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true
+    });
     const tab = tabs[0];
     if (!tab?.id) {
       setStatus("No active tab available.", true);
       return;
     }
     setStatus("Scanning thread...");
-    dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Loading...</div>';
+    dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Scanning page for generated content...</div>';
     dom.candidatePicker.classList.remove("hidden");
     state_default.candidatePickerOpen = true;
+    requestAnimationFrame(() => {
+      dom.candidatePicker.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+      });
+    });
     try {
       const response = await sendMessageWithTimeout(tab.id, {
         type: "extract-thread-candidates",
         maxCandidates: 20
       });
-      if (!response?.ok || !response.candidates?.length) {
-        dom.candidateList.innerHTML = '<div class="sp-candidate-empty">No thread candidates found.</div>';
-        setStatus("No thread candidates detected.");
+      if (!response?.ok) {
+        dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Could not scan this page. Try refreshing the tab.</div>';
+        setStatus(response?.error || "Detection failed.", true);
+        return;
+      }
+      if (!response.candidates?.length) {
+        dom.candidateList.innerHTML = '<div class="sp-candidate-empty">No generated content found on this page.</div>';
+        setStatus("No candidates detected on this page.");
         return;
       }
       state_default.threadCandidates = response.candidates;
       renderCandidateList(response.candidates);
       setStatus(`Found ${response.candidates.length} candidate(s).`);
     } catch (err) {
-      dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Detection failed.</div>';
+      dom.candidateList.innerHTML = '<div class="sp-candidate-empty">Could not connect to page. Try refreshing the tab.</div>';
       setStatus(err.message, true);
     }
   }
@@ -5388,7 +5450,9 @@
     }
     closeCandidatePicker();
     scheduleSceneDraftSave();
-    setStatus(`Applied candidate (${Math.round((candidate.confidence || 0) * 100)}% confidence).`);
+    setStatus(
+      `Applied candidate (${Math.round((candidate.confidence || 0) * 100)}% confidence).`
+    );
   }
   function confidenceClass(conf) {
     if (conf >= 0.8) return "sp-confidence-high";
@@ -5398,7 +5462,13 @@
   function createPlaceholder(assetType) {
     const placeholder = document.createElement("div");
     placeholder.className = "sp-candidate-thumb-placeholder";
-    const labels = { VIDEO: "VID", IMAGE: "IMG", AUDIO: "AUD", MUSIC: "MUS", VOICE: "VOX" };
+    const labels = {
+      VIDEO: "VID",
+      IMAGE: "IMG",
+      AUDIO: "AUD",
+      MUSIC: "MUS",
+      VOICE: "VOX"
+    };
     placeholder.textContent = labels[assetType] || "?";
     return placeholder;
   }
@@ -5416,7 +5486,7 @@
   async function initialize() {
     const config = await getConfig();
     state_default.configCache = config;
-    dom.cfgBaseUrl.value = config.baseUrl || "http://localhost:3000";
+    dom.cfgBaseUrl.value = config.baseUrl || "";
     dom.cfgToken.value = config.token || "";
     dom.cfgOpenAiBaseUrl.value = config.openAiBaseUrl || "";
     dom.cfgOpenAiModel.value = config.openAiModel || "";
@@ -5431,7 +5501,7 @@
     if (state_default.currentTab?.url) dom.capSourceUrl.value = state_default.currentTab.url;
     await loadQueueFromStorage();
     if (!(config.token || "").trim()) {
-      dom.authBaseUrl.value = config.baseUrl || "http://localhost:3000";
+      dom.authBaseUrl.value = config.baseUrl || "";
       dom.authToken.value = config.token || "";
       dom.authOpenAiBaseUrl.value = config.openAiBaseUrl || "";
       dom.authOpenAiModel.value = config.openAiModel || "";
@@ -5442,7 +5512,7 @@
       return;
     }
     dom.authGate.classList.add("hidden");
-    setActiveMode(state_default.activeMode);
+    setActiveMode("capture");
     try {
       const profilePromise = fetchApi("/api/extension/profile").catch(() => ({
         preferences: {}
@@ -5458,6 +5528,16 @@
       const defaultScene = config.lastSceneId || profile.lastSceneId || state_default.scenes[0]?.sceneId || "";
       if (defaultScene && dom.ctxSceneSelect.querySelector(`option[value="${defaultScene}"]`)) {
         dom.ctxSceneSelect.value = defaultScene;
+      }
+      const selectedSceneObj = state_default.scenes.find(
+        (s) => s.sceneId === dom.ctxSceneSelect.value
+      );
+      if (selectedSceneObj?.id) {
+        await loadShots(selectedSceneObj.id);
+        const defaultShot = config.lastShotId || "";
+        if (defaultShot && dom.ctxShotSelect?.querySelector(`option[value="${defaultShot}"]`)) {
+          dom.ctxShotSelect.value = defaultShot;
+        }
       }
       await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
       state_default.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
@@ -5496,25 +5576,35 @@
         applyPageContextToCapture(detected);
       }
       refreshIntentSuggestions();
+      renderReuseList();
       const queueInfo = await chrome.runtime.sendMessage({
         type: "get-queue-size"
       });
       const queueSize = queueInfo?.size || 0;
+      updateQueueDot(queueSize);
       setStatus(`Ready. Queue: ${queueSize} item(s).`);
     } catch (err) {
       setStatus(err.message, true);
     }
   }
-  dom.modeNav.addEventListener("click", (e) => {
-    const btn = e.target.closest(".sp-tab");
-    if (!btn) return;
-    setActiveMode(btn.dataset.mode);
-  });
+  if (dom.modeNav) {
+    dom.modeNav.addEventListener("click", (e) => {
+      const btn = e.target.closest(".sp-tab");
+      if (!btn) return;
+      setActiveMode(btn.dataset.mode);
+    });
+  }
+  if (dom.queueToggle) {
+    dom.queueToggle.addEventListener("click", () => toggleQueue());
+  }
+  if (dom.queueClose) {
+    dom.queueClose.addEventListener("click", () => toggleQueue(false));
+  }
   dom.settingsToggle.addEventListener("click", () => toggleSettings());
   dom.settingsClose.addEventListener("click", () => toggleSettings(false));
   dom.cfgSave.addEventListener("click", async () => {
     const nextConfig = {
-      baseUrl: dom.cfgBaseUrl.value.trim() || "http://localhost:3000",
+      baseUrl: dom.cfgBaseUrl.value.trim(),
       token: dom.cfgToken.value.trim(),
       openAiBaseUrl: normalizeBaseUrl(dom.cfgOpenAiBaseUrl.value),
       openAiModel: dom.cfgOpenAiModel.value.trim(),
@@ -5538,7 +5628,7 @@
     dom.authConnect.disabled = true;
     dom.authConnect.textContent = "Connecting...";
     const nextConfig = {
-      baseUrl: dom.authBaseUrl.value.trim() || "http://localhost:3000",
+      baseUrl: dom.authBaseUrl.value.trim(),
       token,
       openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
       openAiModel: dom.authOpenAiModel.value.trim(),
@@ -5563,12 +5653,17 @@
     try {
       await saveSceneDraft();
       await loadScenes(dom.ctxProjectSelect.value);
+      const sceneObj = state_default.scenes.find(
+        (s) => s.sceneId === dom.ctxSceneSelect.value
+      );
+      await loadShots(sceneObj?.id || null);
       await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
       state_default.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
         () => []
       );
       renderCharacterCards();
       updateContextBar();
+      renderReuseList();
       resetCaptureForm({ preserveSourceUrl: true });
       await restoreSceneDraft();
       await saveConfig({
@@ -5600,8 +5695,13 @@
   dom.ctxSceneSelect.addEventListener("change", async () => {
     try {
       await saveSceneDraft();
+      const sceneObj = state_default.scenes.find(
+        (s) => s.sceneId === dom.ctxSceneSelect.value
+      );
+      await loadShots(sceneObj?.id || null);
       await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
       updateContextBar();
+      renderReuseList();
       resetCaptureForm({ preserveSourceUrl: true });
       await restoreSceneDraft();
       await saveConfig({ lastSceneId: dom.ctxSceneSelect.value });
@@ -5613,6 +5713,32 @@
       setStatus(err.message, true);
     }
   });
+  if (dom.ctxShotSelect) {
+    dom.ctxShotSelect.addEventListener("change", async () => {
+      try {
+        await saveConfig({ lastShotId: dom.ctxShotSelect.value || "" });
+        scheduleSceneDraftSave();
+        refreshIntentSuggestions();
+      } catch (err) {
+        setStatus(err.message, true);
+      }
+    });
+  }
+  if (dom.capPlatformSearch) {
+    dom.capPlatformSearch.addEventListener("input", () => {
+      const query = dom.capPlatformSearch.value.toLowerCase().trim();
+      const options = dom.capPlatformSelect.options;
+      let firstVisible = null;
+      for (let i = 0; i < options.length; i++) {
+        const matches = !query || options[i].textContent.toLowerCase().includes(query);
+        options[i].hidden = !matches;
+        if (matches && !firstVisible) firstVisible = options[i];
+      }
+      if (dom.capPlatformSelect.selectedOptions[0]?.hidden && firstVisible) {
+        firstVisible.selected = true;
+      }
+    });
+  }
   dom.ctxRefreshDetect.addEventListener("click", async () => {
     try {
       dom.ctxRefreshDetect.disabled = true;
@@ -5645,14 +5771,12 @@
   dom.capAiAssist.addEventListener("click", async () => {
     try {
       dom.capAiAssist.disabled = true;
-      dom.capAiAssist.textContent = "...";
       const { aiAssistDetect: aiAssistDetect2 } = await Promise.resolve().then(() => (init_ai_assist(), ai_assist_exports));
       await aiAssistDetect2();
     } catch (err) {
       setStatus(err.message, true);
     } finally {
       dom.capAiAssist.disabled = false;
-      dom.capAiAssist.textContent = "AI";
     }
   });
   dom.capPlatformSelect.addEventListener("change", async () => {
@@ -5682,7 +5806,7 @@
   dom.capAutoFill.addEventListener("click", async () => {
     try {
       dom.capAutoFill.disabled = true;
-      dom.capAutoFill.textContent = "Filling...";
+      dom.capAutoFill.textContent = "...";
       await autoFillFromPage();
       setStatus("Auto-filled from current tab.");
       scheduleSceneDraftSave();
@@ -5690,7 +5814,7 @@
       setStatus(err.message, true);
     } finally {
       dom.capAutoFill.disabled = false;
-      dom.capAutoFill.textContent = "Auto Fill";
+      dom.capAutoFill.textContent = "Fill";
     }
   });
   dom.capApplyPrompt.addEventListener("click", async () => {
@@ -5724,13 +5848,14 @@
       Saving...
     `;
       await saveCapture();
+      renderReuseList();
     } catch (err) {
       setStatus(err.message, true);
     } finally {
       dom.capSave.disabled = false;
       dom.capSave.innerHTML = `
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Save Capture
+      Save
     `;
     }
   });
@@ -5770,8 +5895,8 @@
         setStatus("No saved draft for this scene.");
         return;
       }
-      setActiveMode("capture");
       setStatus("Draft restored.");
+      dom.panelCapture.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setStatus(err.message, true);
     }
@@ -5805,6 +5930,7 @@
     await clearFailedItems();
   });
   function setupFilterChips(chipContainer, stateKey, renderFn) {
+    if (!chipContainer) return;
     chipContainer.addEventListener("click", (e) => {
       const chip = e.target.closest(".sp-chip");
       if (!chip) return;
@@ -5835,6 +5961,7 @@
     if (area === "local" && changes.syncQueue) {
       state_default.localQueueMirror = changes.syncQueue.newValue || [];
       renderQueueList();
+      updateQueueDot((changes.syncQueue.newValue || []).length);
     }
   });
   initialize();

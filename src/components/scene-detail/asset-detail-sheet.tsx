@@ -18,6 +18,7 @@ import {
   Copy,
   Trash2,
   Archive,
+  ArchiveRestore,
   Shield,
   ChevronDown,
   ChevronRight,
@@ -27,6 +28,7 @@ import {
   deleteSceneAssetVersion,
 } from "@/lib/actions";
 import { RightsDrawer } from "@/components/rights-drawer";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { AssetItem } from "./types";
 
 // ─── Helpers ───────────────────────────────────────────────
@@ -79,6 +81,7 @@ export function AssetDetailSheet({
 }: AssetDetailSheetProps) {
   const [isPending, startTransition] = useTransition();
   const [rightsOpen, setRightsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [metadataExpanded, setMetadataExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -88,6 +91,7 @@ export function AssetDetailSheet({
   // cause TimeoutError in the image optimization proxy
   const imgSrc = asset.thumbnailUrl ?? asset.outputUrl;
   const isVideo = asset.assetType === "VIDEO";
+  const isR2 = imgSrc?.includes("r2.dev") ?? false;
 
   const handleToggleSelected = () => {
     startTransition(async () => {
@@ -105,11 +109,17 @@ export function AssetDetailSheet({
     });
   };
 
+  const handleUnarchive = () => {
+    startTransition(async () => {
+      await updateSceneAssetVersion(asset.id, { status: "GENERATED" });
+      onOpenChange(false);
+    });
+  };
+
   const handleDelete = () => {
-    if (!window.confirm("Delete this asset version? This cannot be undone."))
-      return;
     startTransition(async () => {
       await deleteSceneAssetVersion(asset.id);
+      setDeleteOpen(false);
       onDeleted?.();
       onOpenChange(false);
     });
@@ -175,6 +185,7 @@ export function AssetDetailSheet({
                     className="w-full max-h-80 object-contain"
                     sizes="(max-width: 512px) 100vw, 512px"
                     quality={80}
+                    unoptimized
                   />
                 )}
               </div>
@@ -342,7 +353,18 @@ export function AssetDetailSheet({
                 <Shield className="h-3.5 w-3.5" />
                 Rights
               </Button>
-              {asset.status !== "ARCHIVED" && (
+              {asset.status === "ARCHIVED" ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={handleUnarchive}
+                  disabled={isPending}
+                >
+                  <ArchiveRestore className="h-3.5 w-3.5" />
+                  Unarchive
+                </Button>
+              ) : (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -358,7 +380,7 @@ export function AssetDetailSheet({
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 text-destructive hover:text-destructive"
-                onClick={handleDelete}
+                onClick={() => setDeleteOpen(true)}
                 disabled={isPending}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -368,6 +390,18 @@ export function AssetDetailSheet({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Delete confirm */}
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Delete asset version?"
+        description="This will permanently delete this asset version. This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={handleDelete}
+        disabled={isPending}
+      />
 
       {/* Rights sub-drawer */}
       <RightsDrawer

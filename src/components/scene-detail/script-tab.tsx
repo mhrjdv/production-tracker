@@ -400,6 +400,7 @@ function CharactersPresentCard({
                         className="h-full w-full object-cover"
                         sizes="32px"
                         quality={60}
+                        unoptimized
                       />
                     ) : (
                       <span className="text-xs font-medium text-primary">
@@ -441,6 +442,7 @@ function CharactersPresentCard({
                     className="h-full w-full object-cover"
                     sizes="16px"
                     quality={50}
+                    unoptimized
                   />
                 ) : (
                   <span className="text-[8px] font-medium text-primary">
@@ -497,6 +499,7 @@ function KeyframeCard({ scene }: { scene: SceneDetailData }) {
           className="object-contain"
           sizes="(max-width: 768px) 100vw, 50vw"
           quality={80}
+          unoptimized
         />
       </div>
     </EditableCard>

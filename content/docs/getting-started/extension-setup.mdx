@@ -35,14 +35,25 @@ The Chrome extension source code is located in the `chrome-extension/` directory
 laserman_v2/
   chrome-extension/
     manifest.json
-    background.js
     sidepanel.html
-    sidepanel.js
     sidepanel.css
+    build.mjs
+    src/
+      init.js
+      capture.js
+      detect.js
+      state.js
+      config.js
+      background.js
+      ...
     detectors/
-      sora-detector.js
-      veo-detector.js
-      freepik-detector.js
+      sora.js
+      veo.js
+      freepik.js
+    dist/           (built output)
+      sidepanel.js
+      background.js
+      content-script.js
 ```
 
 > **Note:** The extension is not yet published to the Chrome Web Store. You'll install it as an unpacked extension in developer mode.
@@ -127,19 +138,19 @@ You'll see the **Connection Setup** screen with two fields:
 
 ### Laserman URL
 
-Enter the URL of your Laserman instance:
+Enter the URL of your Laserman instance. The field starts empty — you **must** configure this explicitly:
 
+For local development:
 ```
 http://localhost:3000
 ```
 
-For production deployments, use your production domain:
-
+For production deployments:
 ```
 https://laserman.yourdomain.com
 ```
 
-> **Note:** The URL must include the protocol (`http://` or `https://`) and should not have a trailing slash.
+> **Important:** The URL must include the protocol (`http://` or `https://`) and should not have a trailing slash. The extension will not sync captures until a valid URL is configured.
 
 ### API Token
 
@@ -266,13 +277,13 @@ Before capturing, verify:
 
 ### Capture the Asset
 
-Click **Capture Asset**. The extension will:
+Click **Save Capture**. The extension will:
 
-1. Download the asset file to local storage
-2. Upload to Cloudflare R2 via Laserman API
-3. Create an `AssetVersion` record in the database
-4. Associate the version with the specified shot
-5. Display a success notification
+1. Add the capture to the local sync queue
+2. Send the payload to the Laserman API (`POST /api/extension/ingest`)
+3. Create a `SceneAssetVersion` record in the database (with optional prompt package)
+4. Associate the version with the selected scene and shot
+5. Display sync status in the status bar
 
 You should see:
 

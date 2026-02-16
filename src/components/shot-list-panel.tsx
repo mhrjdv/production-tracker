@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ import {
   Loader2,
   X,
 } from "lucide-react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -241,6 +242,7 @@ export function ShotListPanel({
   const [isPending, startTransition] = useTransition();
   const [isAdding, setIsAdding] = useState(false);
   const [editingShotId, setEditingShotId] = useState<string | null>(null);
+  const [deleteShotId, setDeleteShotId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const sorted = [...shots].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -295,20 +297,25 @@ export function ShotListPanel({
 
   // ─── Delete ─────────────────────────────────────────────
 
-  const onDelete = (shotId: string) => {
-    if (!window.confirm("Delete this shot? This cannot be undone.")) return;
+  const onDelete = useCallback((shotId: string) => {
+    setDeleteShotId(shotId);
+  }, []);
 
+  const confirmDelete = () => {
+    if (!deleteShotId) return;
     startTransition(async () => {
       try {
         setFormError(null);
-        await deleteShotAction(shotId);
-        if (selectedShotId === shotId) {
+        await deleteShotAction(deleteShotId);
+        if (selectedShotId === deleteShotId) {
           onShotSelect?.(null);
         }
       } catch (error) {
         setFormError(
           error instanceof Error ? error.message : "Failed to delete shot",
         );
+      } finally {
+        setDeleteShotId(null);
       }
     });
   };
@@ -363,227 +370,242 @@ export function ShotListPanel({
   // ─── Render ─────────────────────────────────────────────
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Crosshair className="h-4 w-4" />
-            Shot List
-            <Badge variant="secondary" className="ml-1 text-xs">
-              {shots.length}
-            </Badge>
-          </CardTitle>
-          <Button
-            size="sm"
-            variant={isAdding ? "outline" : "default"}
-            className="gap-1.5"
-            onClick={() => {
-              setIsAdding((v) => !v);
-              setEditingShotId(null);
-            }}
-          >
-            {isAdding ? (
-              <X className="h-3.5 w-3.5" />
-            ) : (
-              <Plus className="h-3.5 w-3.5" />
-            )}
-            {isAdding ? "Close" : "Add Shot"}
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {formError && <p className="text-sm text-destructive">{formError}</p>}
-
-        {isAdding && (
-          <ShotForm
-            projectCharacters={projectCharacters}
-            onSubmit={onCreate}
-            onCancel={() => setIsAdding(false)}
-            isPending={isPending}
-            submitLabel="Create Shot"
-          />
-        )}
-
-        {sorted.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            No shots yet. Add the first shot for this scene.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {sorted.map((shot, index) =>
-              editingShotId === shot.id ? (
-                <ShotForm
-                  key={shot.id}
-                  initial={{
-                    description: shot.description,
-                    angle: shot.angle ?? "",
-                    framing: shot.framing ?? "",
-                    movement: shot.movement ?? "",
-                    lensNotes: shot.lensNotes ?? "",
-                    characterIds: shotCharactersMap[shot.id] ?? [],
-                  }}
-                  projectCharacters={projectCharacters}
-                  onSubmit={(values) => onUpdate(shot.id, values)}
-                  onCancel={() => setEditingShotId(null)}
-                  isPending={isPending}
-                  submitLabel="Save Changes"
-                />
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Crosshair className="h-4 w-4" />
+              Shot List
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {shots.length}
+              </Badge>
+            </CardTitle>
+            <Button
+              size="sm"
+              variant={isAdding ? "outline" : "default"}
+              className="gap-1.5"
+              onClick={() => {
+                setIsAdding((v) => !v);
+                setEditingShotId(null);
+              }}
+            >
+              {isAdding ? (
+                <X className="h-3.5 w-3.5" />
               ) : (
-                <div
-                  key={shot.id}
-                  role="button"
-                  tabIndex={0}
-                  className={`group flex items-start gap-2 rounded-lg border p-3 transition-colors cursor-pointer hover:bg-muted/30 ${
-                    selectedShotId === shot.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border"
-                  }`}
-                  onClick={() => handleCardClick(shot.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleCardClick(shot.id);
-                    }
-                  }}
-                >
-                  {/* Reorder arrows */}
-                  <div className="flex flex-col items-center gap-0.5 pt-0.5">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      disabled={index === 0 || isPending}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMoveUp(index);
-                      }}
-                    >
-                      <ChevronUp className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      disabled={index === sorted.length - 1 || isPending}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMoveDown(index);
-                      }}
-                    >
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </div>
+                <Plus className="h-3.5 w-3.5" />
+              )}
+              {isAdding ? "Close" : "Add Shot"}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {formError && <p className="text-sm text-destructive">{formError}</p>}
 
-                  {/* Card body */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-sm font-bold">
-                        {shot.shotCode}
-                      </span>
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          disabled={isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingShotId(shot.id);
-                            setIsAdding(false);
-                          }}
-                        >
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          disabled={isPending}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(shot.id);
-                          }}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
+          {isAdding && (
+            <ShotForm
+              projectCharacters={projectCharacters}
+              onSubmit={onCreate}
+              onCancel={() => setIsAdding(false)}
+              isPending={isPending}
+              submitLabel="Create Shot"
+            />
+          )}
+
+          {sorted.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+              No shots yet. Add the first shot for this scene.
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {sorted.map((shot, index) =>
+                editingShotId === shot.id ? (
+                  <ShotForm
+                    key={shot.id}
+                    initial={{
+                      description: shot.description,
+                      angle: shot.angle ?? "",
+                      framing: shot.framing ?? "",
+                      movement: shot.movement ?? "",
+                      lensNotes: shot.lensNotes ?? "",
+                      characterIds: shotCharactersMap[shot.id] ?? [],
+                    }}
+                    projectCharacters={projectCharacters}
+                    onSubmit={(values) => onUpdate(shot.id, values)}
+                    onCancel={() => setEditingShotId(null)}
+                    isPending={isPending}
+                    submitLabel="Save Changes"
+                  />
+                ) : (
+                  <div
+                    key={shot.id}
+                    role="button"
+                    tabIndex={0}
+                    className={`group flex items-start gap-2 rounded-lg border p-3 transition-colors cursor-pointer hover:bg-muted/30 ${
+                      selectedShotId === shot.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
+                    }`}
+                    onClick={() => handleCardClick(shot.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleCardClick(shot.id);
+                      }
+                    }}
+                  >
+                    {/* Reorder arrows */}
+                    <div className="flex flex-col items-center gap-0.5 pt-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        disabled={index === 0 || isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMoveUp(index);
+                        }}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                        disabled={index === sorted.length - 1 || isPending}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMoveDown(index);
+                        }}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
                     </div>
 
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {shot.description}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {shot.angle && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {shot.angle}
-                        </Badge>
-                      )}
-                      {shot.framing && (
-                        <Badge variant="outline" className="text-[10px]">
-                          {shot.framing}
-                        </Badge>
-                      )}
-                      {shot.movement && (
-                        <Badge variant="secondary" className="text-[10px]">
-                          {shot.movement}
-                        </Badge>
-                      )}
-                      {shot._count?.assets != null &&
-                        shot._count.assets > 0 && (
-                          <Badge
-                            variant="secondary"
-                            className="text-[10px] ml-auto"
+                    {/* Card body */}
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-sm font-bold">
+                          {shot.shotCode}
+                        </span>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            disabled={isPending}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingShotId(shot.id);
+                              setIsAdding(false);
+                            }}
                           >
-                            {shot._count.assets} asset
-                            {shot._count.assets !== 1 ? "s" : ""}
-                          </Badge>
-                        )}
-                    </div>
-                    {(shotCharactersMap[shot.id]?.length ?? 0) > 0 && (
-                      <div className="flex items-center gap-1 pt-0.5">
-                        <div className="flex -space-x-1.5">
-                          {(shotCharactersMap[shot.id] ?? [])
-                            .map((cid) =>
-                              projectCharacters.find((c) => c.id === cid),
-                            )
-                            .filter(Boolean)
-                            .map((char) => (
-                              <Tooltip key={char!.id}>
-                                <TooltipTrigger asChild>
-                                  <div className="h-5 w-5 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center overflow-hidden">
-                                    {char!.portraitUrl ? (
-                                      <Image
-                                        src={char!.portraitUrl}
-                                        alt={char!.name}
-                                        width={20}
-                                        height={20}
-                                        className="h-full w-full object-cover"
-                                        sizes="20px"
-                                        quality={50}
-                                      />
-                                    ) : (
-                                      <span className="text-[7px] font-medium text-primary">
-                                        {char!.name[0]?.toUpperCase()}
-                                      </span>
-                                    )}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent side="top">
-                                  <p className="text-xs">{char!.name}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            ))}
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            disabled={isPending}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete(shot.id);
+                            }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
-                    )}
+
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {shot.description}
+                      </p>
+
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {shot.angle && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {shot.angle}
+                          </Badge>
+                        )}
+                        {shot.framing && (
+                          <Badge variant="outline" className="text-[10px]">
+                            {shot.framing}
+                          </Badge>
+                        )}
+                        {shot.movement && (
+                          <Badge variant="secondary" className="text-[10px]">
+                            {shot.movement}
+                          </Badge>
+                        )}
+                        {shot._count?.assets != null &&
+                          shot._count.assets > 0 && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] ml-auto"
+                            >
+                              {shot._count.assets} asset
+                              {shot._count.assets !== 1 ? "s" : ""}
+                            </Badge>
+                          )}
+                      </div>
+                      {(shotCharactersMap[shot.id]?.length ?? 0) > 0 && (
+                        <div className="flex items-center gap-1 pt-0.5">
+                          <div className="flex -space-x-1.5">
+                            {(shotCharactersMap[shot.id] ?? [])
+                              .map((cid) =>
+                                projectCharacters.find((c) => c.id === cid),
+                              )
+                              .filter(Boolean)
+                              .map((char) => (
+                                <Tooltip key={char!.id}>
+                                  <TooltipTrigger asChild>
+                                    <div className="h-5 w-5 rounded-full border-2 border-background bg-primary/10 flex items-center justify-center overflow-hidden">
+                                      {char!.portraitUrl ? (
+                                        <Image
+                                          src={char!.portraitUrl}
+                                          alt={char!.name}
+                                          width={20}
+                                          height={20}
+                                          className="h-full w-full object-cover"
+                                          sizes="20px"
+                                          quality={50}
+                                        />
+                                      ) : (
+                                        <span className="text-[7px] font-medium text-primary">
+                                          {char!.name[0]?.toUpperCase()}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top">
+                                    <p className="text-xs">{char!.name}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ),
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                ),
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <ConfirmDialog
+        open={deleteShotId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteShotId(null);
+        }}
+        title="Delete shot?"
+        description="This will permanently delete this shot and all its assets. This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={confirmDelete}
+        disabled={isPending}
+      />
+    </>
   );
 }

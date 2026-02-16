@@ -7,6 +7,7 @@
 const state = {
   projects: [],
   scenes: [],
+  shots: [],
   platforms: [],
   sceneAssets: [],
   characters: [],

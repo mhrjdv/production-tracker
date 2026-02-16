@@ -4,7 +4,14 @@
 
 import { getConfig, normalizeBaseUrl, saveConfig } from "./config.js";
 import { fetchApi, fetchCharacters, syncProfile } from "./api.js";
-import { dom, setStatus, setActiveMode, toggleSettings } from "./dom.js";
+import {
+  dom,
+  setStatus,
+  setActiveMode,
+  toggleSettings,
+  toggleQueue,
+  updateQueueDot,
+} from "./dom.js";
 import state from "./state.js";
 import {
   detectFromPage,
@@ -49,6 +56,7 @@ import {
 import {
   loadProjectsAndPlatforms,
   loadScenes,
+  loadShots,
   loadSceneAssets,
 } from "./data-loaders.js";
 import { refreshIntentSuggestions } from "./intent.js";
@@ -70,7 +78,7 @@ async function initialize() {
   state.configCache = config;
 
   // Populate settings fields
-  dom.cfgBaseUrl.value = config.baseUrl || "http://localhost:3000";
+  dom.cfgBaseUrl.value = config.baseUrl || "";
   dom.cfgToken.value = config.token || "";
   dom.cfgOpenAiBaseUrl.value = config.openAiBaseUrl || "";
   dom.cfgOpenAiModel.value = config.openAiModel || "";
@@ -94,7 +102,7 @@ async function initialize() {
   // Check auth
   if (!(config.token || "").trim()) {
     // Populate auth gate fields from stored config
-    dom.authBaseUrl.value = config.baseUrl || "http://localhost:3000";
+    dom.authBaseUrl.value = config.baseUrl || "";
     dom.authToken.value = config.token || "";
     dom.authOpenAiBaseUrl.value = config.openAiBaseUrl || "";
     dom.authOpenAiModel.value = config.openAiModel || "";
@@ -108,9 +116,9 @@ async function initialize() {
     return;
   }
 
-  // Auth OK, hide gate and show active panel
+  // Auth OK, hide gate and show main view
   dom.authGate.classList.add("hidden");
-  setActiveMode(state.activeMode);
+  setActiveMode("capture");
 
   try {
     // Load profile + data in parallel
@@ -147,6 +155,23 @@ async function initialize() {
       dom.ctxSceneSelect.querySelector(`option[value="${defaultScene}"]`)
     ) {
       dom.ctxSceneSelect.value = defaultScene;
+    }
+
+    // Load shots for selected scene
+    const selectedSceneObj = state.scenes.find(
+      (s) => s.sceneId === dom.ctxSceneSelect.value,
+    );
+    if (selectedSceneObj?.id) {
+      await loadShots(selectedSceneObj.id);
+
+      // Restore last shot
+      const defaultShot = config.lastShotId || "";
+      if (
+        defaultShot &&
+        dom.ctxShotSelect?.querySelector(`option[value="${defaultShot}"]`)
+      ) {
+        dom.ctxShotSelect.value = defaultShot;
+      }
     }
 
     await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
@@ -210,10 +235,14 @@ async function initialize() {
 
     refreshIntentSuggestions();
 
+    // Render version strip
+    renderReuseList();
+
     const queueInfo = await chrome.runtime.sendMessage({
       type: "get-queue-size",
     });
     const queueSize = queueInfo?.size || 0;
+    updateQueueDot(queueSize);
     setStatus(`Ready. Queue: ${queueSize} item(s).`);
   } catch (err) {
     setStatus(err.message, true);
@@ -222,12 +251,24 @@ async function initialize() {
 
 // ── Event listeners ─────────────────────────────────────
 
-// Mode navigation
-dom.modeNav.addEventListener("click", (e) => {
-  const btn = e.target.closest(".sp-tab");
-  if (!btn) return;
-  setActiveMode(btn.dataset.mode);
-});
+// Mode navigation (hidden but kept for compat)
+if (dom.modeNav) {
+  dom.modeNav.addEventListener("click", (e) => {
+    const btn = e.target.closest(".sp-tab");
+    if (!btn) return;
+    setActiveMode(btn.dataset.mode);
+  });
+}
+
+// Queue toggle (header badge button)
+if (dom.queueToggle) {
+  dom.queueToggle.addEventListener("click", () => toggleQueue());
+}
+
+// Queue close button
+if (dom.queueClose) {
+  dom.queueClose.addEventListener("click", () => toggleQueue(false));
+}
 
 // Settings toggle
 dom.settingsToggle.addEventListener("click", () => toggleSettings());
@@ -236,7 +277,7 @@ dom.settingsClose.addEventListener("click", () => toggleSettings(false));
 // Save settings
 dom.cfgSave.addEventListener("click", async () => {
   const nextConfig = {
-    baseUrl: dom.cfgBaseUrl.value.trim() || "http://localhost:3000",
+    baseUrl: dom.cfgBaseUrl.value.trim(),
     token: dom.cfgToken.value.trim(),
     openAiBaseUrl: normalizeBaseUrl(dom.cfgOpenAiBaseUrl.value),
     openAiModel: dom.cfgOpenAiModel.value.trim(),
@@ -267,7 +308,7 @@ dom.authConnect.addEventListener("click", async () => {
   dom.authConnect.textContent = "Connecting...";
 
   const nextConfig = {
-    baseUrl: dom.authBaseUrl.value.trim() || "http://localhost:3000",
+    baseUrl: dom.authBaseUrl.value.trim(),
     token,
     openAiBaseUrl: normalizeBaseUrl(dom.authOpenAiBaseUrl.value),
     openAiModel: dom.authOpenAiModel.value.trim(),
@@ -299,12 +340,17 @@ dom.ctxProjectSelect.addEventListener("change", async () => {
   try {
     await saveSceneDraft();
     await loadScenes(dom.ctxProjectSelect.value);
+    const sceneObj = state.scenes.find(
+      (s) => s.sceneId === dom.ctxSceneSelect.value,
+    );
+    await loadShots(sceneObj?.id || null);
     await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
     state.characters = await fetchCharacters(dom.ctxProjectSelect.value).catch(
       () => [],
     );
     renderCharacterCards();
     updateContextBar();
+    renderReuseList();
     resetCaptureForm({ preserveSourceUrl: true });
     await restoreSceneDraft();
     await saveConfig({
@@ -332,7 +378,6 @@ dom.ctxSceneSearch.addEventListener("input", () => {
     options[i].hidden = !matches;
     if (matches && !firstVisible) firstVisible = options[i];
   }
-  // If current selection is hidden, select first visible
   if (dom.ctxSceneSelect.selectedOptions[0]?.hidden && firstVisible) {
     firstVisible.selected = true;
   }
@@ -342,8 +387,13 @@ dom.ctxSceneSearch.addEventListener("input", () => {
 dom.ctxSceneSelect.addEventListener("change", async () => {
   try {
     await saveSceneDraft();
+    const sceneObj = state.scenes.find(
+      (s) => s.sceneId === dom.ctxSceneSelect.value,
+    );
+    await loadShots(sceneObj?.id || null);
     await loadSceneAssets(dom.ctxProjectSelect.value, dom.ctxSceneSelect.value);
     updateContextBar();
+    renderReuseList();
     resetCaptureForm({ preserveSourceUrl: true });
     await restoreSceneDraft();
     await saveConfig({ lastSceneId: dom.ctxSceneSelect.value });
@@ -355,6 +405,37 @@ dom.ctxSceneSelect.addEventListener("change", async () => {
     setStatus(err.message, true);
   }
 });
+
+// Context: shot change
+if (dom.ctxShotSelect) {
+  dom.ctxShotSelect.addEventListener("change", async () => {
+    try {
+      await saveConfig({ lastShotId: dom.ctxShotSelect.value || "" });
+      scheduleSceneDraftSave();
+      refreshIntentSuggestions();
+    } catch (err) {
+      setStatus(err.message, true);
+    }
+  });
+}
+
+// Platform search filter
+if (dom.capPlatformSearch) {
+  dom.capPlatformSearch.addEventListener("input", () => {
+    const query = dom.capPlatformSearch.value.toLowerCase().trim();
+    const options = dom.capPlatformSelect.options;
+    let firstVisible = null;
+    for (let i = 0; i < options.length; i++) {
+      const matches =
+        !query || options[i].textContent.toLowerCase().includes(query);
+      options[i].hidden = !matches;
+      if (matches && !firstVisible) firstVisible = options[i];
+    }
+    if (dom.capPlatformSelect.selectedOptions[0]?.hidden && firstVisible) {
+      firstVisible.selected = true;
+    }
+  });
+}
 
 // Detection: refresh
 dom.ctxRefreshDetect.addEventListener("click", async () => {
@@ -395,14 +476,12 @@ dom.candidatePickerClose.addEventListener("click", () => {
 dom.capAiAssist.addEventListener("click", async () => {
   try {
     dom.capAiAssist.disabled = true;
-    dom.capAiAssist.textContent = "...";
     const { aiAssistDetect } = await import("./ai-assist.js");
     await aiAssistDetect();
   } catch (err) {
     setStatus(err.message, true);
   } finally {
     dom.capAiAssist.disabled = false;
-    dom.capAiAssist.textContent = "AI";
   }
 });
 
@@ -440,7 +519,7 @@ dom.capAssetStatus.addEventListener("change", async () => {
 dom.capAutoFill.addEventListener("click", async () => {
   try {
     dom.capAutoFill.disabled = true;
-    dom.capAutoFill.textContent = "Filling...";
+    dom.capAutoFill.textContent = "...";
     await autoFillFromPage();
     setStatus("Auto-filled from current tab.");
     scheduleSceneDraftSave();
@@ -448,7 +527,7 @@ dom.capAutoFill.addEventListener("click", async () => {
     setStatus(err.message, true);
   } finally {
     dom.capAutoFill.disabled = false;
-    dom.capAutoFill.textContent = "Auto Fill";
+    dom.capAutoFill.textContent = "Fill";
   }
 });
 
@@ -488,13 +567,15 @@ dom.capSave.addEventListener("click", async () => {
       Saving...
     `;
     await saveCapture();
+    // Re-render version strip after save
+    renderReuseList();
   } catch (err) {
     setStatus(err.message, true);
   } finally {
     dom.capSave.disabled = false;
     dom.capSave.innerHTML = `
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5L12 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Save Capture
+      Save
     `;
   }
 });
@@ -505,7 +586,7 @@ dom.capClearAll.addEventListener("click", () => {
   scheduleSceneDraftSave();
 });
 
-// Capture: individual clear buttons (×)
+// Capture: individual clear buttons
 document.addEventListener("click", (e) => {
   const clearBtn = e.target.closest(".sp-clear[data-clear]");
   if (!clearBtn) return;
@@ -542,8 +623,8 @@ dom.reuseRestoreDraft.addEventListener("click", async () => {
       setStatus("No saved draft for this scene.");
       return;
     }
-    setActiveMode("capture");
     setStatus("Draft restored.");
+    dom.panelCapture.scrollTo({ top: 0, behavior: "smooth" });
   } catch (err) {
     setStatus(err.message, true);
   }
@@ -583,15 +664,15 @@ dom.queueClearFailed.addEventListener("click", async () => {
   await clearFailedItems();
 });
 
-// ── Filter chips: History panel ──────────────────────────
+// ── Filter chips ─────────────────────────────────────────
 
 function setupFilterChips(chipContainer, stateKey, renderFn) {
+  if (!chipContainer) return;
   chipContainer.addEventListener("click", (e) => {
     const chip = e.target.closest(".sp-chip");
     if (!chip) return;
     const filter = chip.dataset.filter;
     state[stateKey] = filter;
-    // Toggle active class
     chipContainer.querySelectorAll(".sp-chip").forEach((c) => {
       c.classList.toggle("active", c.dataset.filter === filter);
     });
@@ -613,7 +694,7 @@ dom.compareBtn.addEventListener("click", () => openCompare());
 dom.compareClose.addEventListener("click", () => closeCompare());
 dom.compareClear.addEventListener("click", () => clearCompareSelections());
 
-// Listen for tab activation changes (side panel persists across tab switches)
+// Listen for tab activation changes
 chrome.tabs.onActivated.addListener(onTabActivated);
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === "complete" && state.currentTab?.id === tabId) {
@@ -626,6 +707,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.syncQueue) {
     state.localQueueMirror = changes.syncQueue.newValue || [];
     renderQueueList();
+    updateQueueDot((changes.syncQueue.newValue || []).length);
   }
 });
 

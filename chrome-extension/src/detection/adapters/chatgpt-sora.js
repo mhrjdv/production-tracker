@@ -1,14 +1,21 @@
 /* ==========================================================
-   Adapter: ChatGPT / Sora – Thread-aware extraction
-   Consolidates detectors/sora.js selectors + adds thread parsing.
+   Adapter: ChatGPT / Sora / DALL-E – Thread-aware extraction
+   Handles all OpenAI generation platforms:
+   - sora.com / sora.chatgpt.com (video)
+   - chatgpt.com / chat.openai.com (DALL-E images, Sora video)
    ========================================================== */
 
-const URL_PATTERNS = [
+const SORA_URL_PATTERNS = [
   /^https?:\/\/(www\.)?sora\.com/i,
   /^https?:\/\/sora\.chatgpt\.com/i,
+];
+
+const CHATGPT_URL_PATTERNS = [
   /^https?:\/\/chat\.openai\.com/i,
   /^https?:\/\/chatgpt\.com/i,
 ];
+
+const ALL_URL_PATTERNS = [...SORA_URL_PATTERNS, ...CHATGPT_URL_PATTERNS];
 
 // ── Selector sets ────────────────────────────────────────
 
@@ -22,6 +29,9 @@ const PROMPT_SELECTORS = [
   'textarea[data-testid="prompt-textarea"]',
   '[contenteditable="true"][data-placeholder*="Describe" i]',
   '[contenteditable="true"][data-testid="prompt-textarea"]',
+  // ChatGPT prosemirror editor
+  'div[id="prompt-textarea"][contenteditable="true"]',
+  'div.ProseMirror[contenteditable="true"]',
 ];
 
 const PROMPT_DISPLAY_SELECTORS = [
@@ -51,23 +61,6 @@ const DURATION_SELECTORS = [
   '[aria-label*="duration" i]',
 ];
 
-const VIDEO_SELECTORS = [
-  'video[data-testid="sora-output"]',
-  'video[data-testid="generation-video"]',
-  '[class*="generation-result"] video',
-  '[class*="VideoPlayer"] video',
-  '[class*="output-container"] video',
-  'video[src*="oaiusercontent"]',
-];
-
-const IMAGE_SELECTORS = [
-  'img[data-testid="sora-output"]',
-  'img[data-testid="generation-image"]',
-  '[class*="generation-result"] img',
-  '[class*="output-container"] img:not([class*="avatar"])',
-  'img[src*="oaiusercontent"]',
-];
-
 // ── Thread turn selectors (ChatGPT conversation structure) ──
 
 const TURN_SELECTORS = [
@@ -76,7 +69,27 @@ const TURN_SELECTORS = [
   "article[data-testid]",
 ];
 
+// ── URL patterns for generated images/videos ──────────────
+
+const GENERATED_URL_PATTERNS = [
+  "oaiusercontent",
+  "oaidalleapiprodscus",
+  "dalle",
+  "blob.core.windows.net",
+  "openai.com/file",
+];
+
 // ── Helpers ──────────────────────────────────────────────
+
+function isSoraUrl(url) {
+  return SORA_URL_PATTERNS.some((p) => p.test(url));
+}
+
+function isGeneratedUrl(url) {
+  if (!url) return false;
+  const lower = url.toLowerCase();
+  return GENERATED_URL_PATTERNS.some((pat) => lower.includes(pat));
+}
 
 function readText(el) {
   if (!el) return "";
@@ -113,10 +126,25 @@ function extractOutputsFromContainer(container) {
     }
   });
 
-  // Images
+  // Images — broader detection for DALL-E and ChatGPT inline images
   container.querySelectorAll("img[src]").forEach((el) => {
     const src = el.currentSrc || el.src;
-    if (src?.startsWith("http") && !seen.has(src) && (el.naturalWidth > 64 || !el.complete)) {
+    if (!src?.startsWith("http") || seen.has(src)) return;
+
+    // Skip tiny images (avatars, icons) unless they haven't loaded yet
+    const isSmall = el.complete && el.naturalWidth > 0 && el.naturalWidth <= 48;
+    if (isSmall) return;
+
+    // Skip known UI elements
+    const isAvatar = el.closest('[class*="avatar" i]') ||
+      el.getAttribute("alt")?.toLowerCase().includes("avatar") ||
+      el.closest('[data-testid*="avatar"]');
+    if (isAvatar) return;
+
+    // Accept: large images, unloaded images, or known generation URLs
+    const isLarge = !el.complete || el.naturalWidth > 64;
+    const isGenerated = isGeneratedUrl(src);
+    if (isLarge || isGenerated) {
       seen.add(src);
       outputs.push({
         type: "image",
@@ -157,7 +185,6 @@ function inferAssetType(outputs) {
 // ── Thread parsing ───────────────────────────────────────
 
 function parseTurns(doc) {
-  // Try ChatGPT-style data-message-author-role turns
   for (const sel of TURN_SELECTORS) {
     const turns = doc.querySelectorAll(sel);
     if (turns.length > 0) return Array.from(turns);
@@ -167,16 +194,15 @@ function parseTurns(doc) {
 
 function turnRole(el) {
   const role = el.getAttribute("data-message-author-role");
-  if (role) return role; // "user" or "assistant"
+  if (role) return role; // "user", "assistant", or "tool"
   // Fallback heuristic
   if (el.querySelector("img[alt*='User']")) return "user";
   return "assistant";
 }
 
 function turnPromptText(el) {
-  // Extract user message text (skip any nested code/pre blocks)
   const clone = el.cloneNode(true);
-  clone.querySelectorAll("pre, code, img, video, audio, svg").forEach((n) => n.remove());
+  clone.querySelectorAll("pre, code, img, video, audio, svg, button").forEach((n) => n.remove());
   return clone.textContent?.trim() || "";
 }
 
@@ -192,28 +218,65 @@ function buildCandidateFromTurnPair(userTurn, assistantTurn) {
 
 const ChatGPTSoraAdapter = {
   platformKey: "openai-sora",
-  displayName: "OpenAI Sora",
+
+  get displayName() {
+    // Dynamic: content script runs in page context so we can check URL
+    try {
+      if (typeof window !== "undefined" && isSoraUrl(window.location.href)) {
+        return "Sora";
+      }
+    } catch {
+      // Not in page context
+    }
+    return "ChatGPT";
+  },
 
   match(url) {
-    return URL_PATTERNS.some((p) => p.test(url));
+    return ALL_URL_PATTERNS.some((p) => p.test(url));
+  },
+
+  /**
+   * Resolve display name from a specific URL (used by engine).
+   */
+  displayNameForUrl(url) {
+    if (isSoraUrl(url)) return "Sora";
+    return "ChatGPT";
   },
 
   extractLatest(doc) {
     // Strategy 1: Thread-based – find last user->assistant pair
     const turns = parseTurns(doc);
     if (turns.length >= 2) {
-      // Walk backwards to find last user turn with a following assistant turn
       for (let i = turns.length - 1; i >= 0; i--) {
-        if (turnRole(turns[i]) === "assistant") {
-          // Look for preceding user turn
-          for (let j = i - 1; j >= 0; j--) {
-            if (turnRole(turns[j]) === "user") {
-              const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
-              if (candidate.prompt) {
-                candidate.settings = extractSettings(doc);
-                return candidate;
+        const role = turnRole(turns[i]);
+        // Skip tool turns (DALL-E generates tool messages before assistant)
+        if (role === "assistant" || role === "tool") {
+          // Check if this turn has outputs
+          const outputs = extractOutputsFromContainer(turns[i]);
+          if (outputs.length > 0) {
+            // Find the preceding user turn
+            for (let j = i - 1; j >= 0; j--) {
+              if (turnRole(turns[j]) === "user") {
+                const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
+                if (candidate.prompt || candidate.outputs.length > 0) {
+                  candidate.settings = extractSettings(doc);
+                  return candidate;
+                }
+                break;
               }
-              break;
+            }
+          }
+          // No outputs, try the standard user->assistant pairing
+          if (role === "assistant") {
+            for (let j = i - 1; j >= 0; j--) {
+              if (turnRole(turns[j]) === "user") {
+                const candidate = buildCandidateFromTurnPair(turns[j], turns[i]);
+                if (candidate.prompt) {
+                  candidate.settings = extractSettings(doc);
+                  return candidate;
+                }
+                break;
+              }
             }
           }
         }
@@ -241,13 +304,11 @@ const ChatGPTSoraAdapter = {
     // Strategy 3: Input bar fallback (least reliable)
     const inputEl = querySelector(doc, PROMPT_SELECTORS);
     const prompt = readText(inputEl);
-    const allOutputs = [
-      ...extractOutputsFromContainer(doc.body),
-    ];
+    const allOutputs = extractOutputsFromContainer(doc.body);
 
     // Filter to likely generation outputs (not avatars/icons)
     const filteredOutputs = allOutputs.filter((o) =>
-      o.url.includes("oaiusercontent") || o.metadata?.width > 200 || o.type === "video"
+      isGeneratedUrl(o.url) || o.metadata?.width > 200 || o.type === "video"
     );
 
     return {
@@ -265,24 +326,28 @@ const ChatGPTSoraAdapter = {
     const turns = parseTurns(doc);
 
     if (turns.length >= 2) {
-      // Pair user + assistant turns, newest first
       const pairs = [];
       let i = turns.length - 1;
 
       while (i >= 0) {
-        if (turnRole(turns[i]) === "assistant") {
+        const role = turnRole(turns[i]);
+        if (role === "assistant" || role === "tool") {
+          // Find preceding user turn
+          let found = false;
           for (let j = i - 1; j >= 0; j--) {
             if (turnRole(turns[j]) === "user") {
               pairs.push({ user: turns[j], assistant: turns[i] });
               i = j - 1;
+              found = true;
               break;
             }
-            if (j === 0) i = -1;
           }
-          if (pairs[pairs.length - 1]?.assistant !== turns[i]) i--;
-        } else {
+          if (!found) i--;
+        } else if (role === "user") {
           // Orphan user turn (no response yet)
           pairs.push({ user: turns[i], assistant: null });
+          i--;
+        } else {
           i--;
         }
       }
@@ -296,7 +361,6 @@ const ChatGPTSoraAdapter = {
       }
     }
 
-    // If no thread turns found, fall back to single extraction
     if (candidates.length === 0) {
       candidates.push(this.extractLatest(doc));
     }

@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
         hostname: "pub-15baef71f1364d1e867fa9a59fcb3717.r2.dev",
       },
     ],
+    minimumCacheTTL: 3600,
+    deviceSizes: [640, 750, 1080, 1920],
+    imageSizes: [64, 128, 256],
   },
 };
 

@@ -6,16 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { createShotAction, deleteShotAction } from "@/lib/shot-server-actions";
 import { ShotProductionCard } from "./shot-production-card";
+import { ShotEditDialog } from "./shot-edit-dialog";
 import { SceneLevelAssets } from "./scene-level-assets";
 import { AssetDetailSheet } from "./asset-detail-sheet";
 import { AssetCreateDialog } from "./asset-create-dialog";
 import { CompareOverlay } from "./compare-overlay";
-import type {
-  ShotItem,
-  AssetItem,
-  PlatformItem,
-  CharacterItem,
-} from "./types";
+import { ConfirmDialog } from "@/components/confirm-dialog";
+import type { ShotItem, AssetItem, PlatformItem, CharacterItem } from "./types";
 
 // ─── Type filter options ───────────────────────────────────
 
@@ -50,7 +47,9 @@ export function ProductionTab({
 }: ProductionTabProps) {
   // State
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [compareAssetIds, setCompareAssetIds] = useState<Set<string>>(new Set());
+  const [compareAssetIds, setCompareAssetIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [detailAssetId, setDetailAssetId] = useState<string | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareTargetIds, setCompareTargetIds] = useState<string[]>([]);
@@ -62,6 +61,11 @@ export function ProductionTab({
     assetType: AssetItem["assetType"];
     defaultPrompt: string;
   }>({ shotId: null, assetType: "IMAGE", defaultPrompt: "" });
+
+  // Edit shot dialog
+  const [editShotId, setEditShotId] = useState<string | null>(null);
+  // Delete shot confirmation
+  const [deleteShotId, setDeleteShotId] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -104,7 +108,10 @@ export function ProductionTab({
 
   // Asset lookup for detail sheet
   const detailAsset = useMemo(
-    () => (detailAssetId ? assets.find((a) => a.id === detailAssetId) ?? null : null),
+    () =>
+      detailAssetId
+        ? (assets.find((a) => a.id === detailAssetId) ?? null)
+        : null,
     [detailAssetId, assets],
   );
 
@@ -128,7 +135,11 @@ export function ProductionTab({
   }, []);
 
   const handleOpenCreate = useCallback(
-    (shotId: string | null, assetType: AssetItem["assetType"], defaultPrompt: string) => {
+    (
+      shotId: string | null,
+      assetType: AssetItem["assetType"],
+      defaultPrompt: string,
+    ) => {
       setCreateContext({ shotId, assetType, defaultPrompt });
       setCreateOpen(true);
     },
@@ -140,21 +151,28 @@ export function ProductionTab({
     setCompareOpen(true);
   }, []);
 
-  const handleEditShot = useCallback((_shotId: string) => {
-    // For now, we could open inline editing or redirect.
-    // The shot-list-panel has inline editing; for the production board,
-    // we can add this later or use a dialog.
+  // Shot to edit (lookup)
+  const editShot = useMemo(
+    () =>
+      editShotId ? (shots.find((s) => s.id === editShotId) ?? null) : null,
+    [editShotId, shots],
+  );
+
+  const handleEditShot = useCallback((shotId: string) => {
+    setEditShotId(shotId);
   }, []);
 
-  const handleDeleteShot = useCallback(
-    (shotId: string) => {
-      if (!window.confirm("Delete this shot? This cannot be undone.")) return;
-      startTransition(async () => {
-        await deleteShotAction(shotId);
-      });
-    },
-    [],
-  );
+  const handleDeleteShot = useCallback((shotId: string) => {
+    setDeleteShotId(shotId);
+  }, []);
+
+  const confirmDeleteShot = () => {
+    if (!deleteShotId) return;
+    startTransition(async () => {
+      await deleteShotAction(deleteShotId);
+      setDeleteShotId(null);
+    });
+  };
 
   const handleAddShot = () => {
     startTransition(async () => {
@@ -192,7 +210,8 @@ export function ProductionTab({
       {/* ── Shot list ── */}
       {sortedShots.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          No shots yet. Add the first shot to start building your production board.
+          No shots yet. Add the first shot to start building your production
+          board.
         </div>
       ) : (
         <div className="space-y-3">
@@ -256,6 +275,29 @@ export function ProductionTab({
         defaultAssetType={createContext.assetType}
         defaultShotId={createContext.shotId}
         defaultPrompt={createContext.defaultPrompt}
+      />
+
+      {/* ── Shot Edit Dialog ── */}
+      <ShotEditDialog
+        shot={editShot}
+        open={editShotId !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditShotId(null);
+        }}
+      />
+
+      {/* ── Delete Shot Confirm ── */}
+      <ConfirmDialog
+        open={deleteShotId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteShotId(null);
+        }}
+        title="Delete shot?"
+        description="This will permanently delete this shot and all its assets. This action cannot be undone."
+        confirmLabel="Delete"
+        variant="destructive"
+        onConfirm={confirmDeleteShot}
+        disabled={isPending}
       />
 
       {/* ── Compare Overlay ── */}

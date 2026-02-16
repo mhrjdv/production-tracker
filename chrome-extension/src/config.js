@@ -7,7 +7,7 @@ import { encryptString, decryptString } from "./crypto-utils.js";
 export const CONFIG_KEY = "extensionConfig";
 
 const DEFAULT_CONFIG = {
-  baseUrl: "http://localhost:3000",
+  baseUrl: "",
   token: "",
   openAiBaseUrl: "",
   openAiModel: "",

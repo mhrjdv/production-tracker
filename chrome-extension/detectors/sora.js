@@ -3,13 +3,13 @@
 
 const SoraDetector = {
   platform: "openai-sora",
-  displayName: "OpenAI Sora",
+  displayName: "ChatGPT / Sora",
   category: "multi",
   urlPatterns: [
     /^https?:\/\/(www\.)?sora\.com/i,
     /^https?:\/\/sora\.chatgpt\.com/i,
-    /^https?:\/\/chat\.openai\.com\/.*sora/i,
-    /^https?:\/\/chatgpt\.com\/.*sora/i,
+    /^https?:\/\/chat\.openai\.com/i,
+    /^https?:\/\/chatgpt\.com/i,
   ],
 
   detect(url) {
@@ -115,7 +115,10 @@ const SoraDetector = {
     for (const selector of durationSelectors) {
       const el = document.querySelector(selector);
       if (el) {
-        const val = el.value || el.textContent?.trim() || el.getAttribute("aria-valuenow");
+        const val =
+          el.value ||
+          el.textContent?.trim() ||
+          el.getAttribute("aria-valuenow");
         if (val) {
           settings.duration = val;
           break;
@@ -187,7 +190,11 @@ const SoraDetector = {
       const elements = document.querySelectorAll(selector);
       elements.forEach((el) => {
         const src = el.currentSrc || el.src;
-        if (src && src.startsWith("http") && !outputs.some((o) => o.url === src)) {
+        if (
+          src &&
+          src.startsWith("http") &&
+          !outputs.some((o) => o.url === src)
+        ) {
           outputs.push({
             type: "image",
             url: src,
@@ -212,7 +219,11 @@ const SoraDetector = {
       const elements = document.querySelectorAll(selector);
       elements.forEach((el) => {
         const href = el.href || el.getAttribute("data-url");
-        if (href && href.startsWith("http") && !outputs.some((o) => o.url === href)) {
+        if (
+          href &&
+          href.startsWith("http") &&
+          !outputs.some((o) => o.url === href)
+        ) {
           const isVideo = /\.(mp4|webm|mov)/i.test(href);
           outputs.push({
             type: isVideo ? "video" : "image",

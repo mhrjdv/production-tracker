@@ -86,6 +86,7 @@ export function AssetThumbnail({
           className="h-full w-full object-cover"
           sizes="96px"
           quality={60}
+          unoptimized
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-muted/40 text-xs text-muted-foreground">

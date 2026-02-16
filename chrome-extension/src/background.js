@@ -26,7 +26,7 @@ async function setQueue(queue) {
 
 async function getConfig() {
   const raw = await getStorageValue(CONFIG_KEY, {
-    baseUrl: "http://localhost:3000",
+    baseUrl: "",
     token: "",
     openAiBaseUrl: "",
     openAiModel: "",
@@ -242,12 +242,23 @@ async function syncQueue() {
 
       processed += 1;
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      // Don't retry client errors (auth, validation, not found)
+      const isClientError = /HTTP (40[0-9]|4[1-9]\d)/.test(errorMsg);
       const retryCount = (item.retryCount || 0) + 1;
-      if (retryCount <= MAX_RETRY) {
+      if (!isClientError && retryCount <= MAX_RETRY) {
         nextQueue.push({
           ...item,
           retryCount,
-          lastError: error instanceof Error ? error.message : String(error),
+          lastError: errorMsg,
+        });
+      } else if (isClientError) {
+        // Keep in queue as permanently failed so user can see the error
+        nextQueue.push({
+          ...item,
+          retryCount: MAX_RETRY + 1,
+          lastError: errorMsg,
+          failedPermanently: true,
         });
       }
     }

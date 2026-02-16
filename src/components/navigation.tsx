@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth";
 import {
   LayoutDashboard,
   Film,
@@ -16,6 +16,8 @@ import {
   ChevronLeft,
   Plug,
   Search,
+  GalleryHorizontalEnd,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -31,8 +33,9 @@ interface NavItem {
 }
 
 const mainNav: NavItem[] = [
-  { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Dashboard", href: "/home", icon: LayoutDashboard },
   { label: "Integrations", href: "/integrations", icon: Plug },
+  { label: "Settings", href: "/settings/profile", icon: Settings },
   { label: "Docs", href: "/docs", icon: FileText },
 ];
 
@@ -58,6 +61,11 @@ function getProjectNav(projectId: string): NavItem[] {
       label: "Creative Bible",
       href: `/projects/${projectId}/bible`,
       icon: BookOpen,
+    },
+    {
+      label: "Gallery",
+      href: `/projects/${projectId}/gallery`,
+      icon: GalleryHorizontalEnd,
     },
   ];
 }
@@ -96,15 +104,18 @@ function NavLinks({
   );
 }
 
-const HIDDEN_PREFIXES = ["/login", "/register", "/docs"];
+const HIDDEN_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/docs"];
 
 export function Navigation() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user, auth } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Hide sidebar on auth and docs routes (they have their own layouts)
-  if (HIDDEN_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+  // Hide sidebar on landing, auth, and docs routes (they have their own layouts)
+  if (
+    pathname === "/" ||
+    HIDDEN_ROUTES.some((prefix) => pathname.startsWith(prefix))
+  ) {
     return null;
   }
 
@@ -112,6 +123,10 @@ export function Navigation() {
   const projectMatch = pathname.match(/^\/projects\/([^/]+)/);
   const projectId = projectMatch?.[1];
   const projectNav = projectId ? getProjectNav(projectId) : [];
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+  };
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
@@ -198,22 +213,22 @@ export function Navigation() {
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
               <span className="text-xs font-medium text-primary">
-                {session?.user?.name?.[0]?.toUpperCase() ?? "U"}
+                {user?.name?.[0]?.toUpperCase() ?? "U"}
               </span>
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">
-                {session?.user?.name ?? "User"}
+                {user?.name ?? "User"}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                {session?.user?.email}
+                {user?.email}
               </p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleSignOut}
             className="shrink-0"
           >
             <LogOut className="h-4 w-4" />

@@ -33,14 +33,14 @@ export async function detectFromPage() {
     const slug = detectPlatformSlug(url);
     const displayName = getDetectorDisplayName(url);
 
-    // Update banner
+    // Update banner with initial URL-based detection
     updateDetectionBanner(displayName || slug, "");
 
     if (slug && state.platforms.some((p) => p.slug === slug)) {
       dom.capPlatformSelect.value = slug;
     }
 
-    // Try to extract context from page
+    // Try to extract context from page via content script
     if (state.currentTab?.id) {
       try {
         const response = await sendMessageWithTimeout(state.currentTab.id, {
@@ -49,11 +49,30 @@ export async function detectFromPage() {
         if (response?.ok && response.context) {
           state.lastPageContext = response.context;
           const confidence = response.latestCandidate?.confidence;
+
+          // Use adapter's display name if available (more accurate than URL-only detection)
+          const adapterName =
+            response.adapter === "openai-sora"
+              ? url.match(/sora\.(com|chatgpt\.com)/i)
+                ? "Sora"
+                : "ChatGPT"
+              : displayName || slug;
+
           updateDetectionBanner(
-            displayName || slug,
+            adapterName,
             response.context.assetType || "",
             confidence,
           );
+
+          // Auto-select platform from adapter if legacy detector missed
+          if (
+            !slug &&
+            response.adapter &&
+            state.platforms.some((p) => p.slug === response.adapter)
+          ) {
+            dom.capPlatformSelect.value = response.adapter;
+          }
+
           return response.context;
         }
       } catch {

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";

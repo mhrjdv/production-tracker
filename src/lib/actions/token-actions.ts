@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { generateExtensionToken } from "@/lib/extension-tokens";

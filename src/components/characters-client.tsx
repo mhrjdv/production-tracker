@@ -155,6 +155,7 @@ function CharacterCard({
                   className="h-full w-full object-cover"
                   sizes="56px"
                   quality={70}
+                  unoptimized
                 />
               ) : (
                 <Upload className="h-5 w-5 text-muted-foreground" />
@@ -372,6 +373,7 @@ function CharacterCard({
                 className="h-14 w-14 rounded-xl object-cover"
                 sizes="56px"
                 quality={70}
+                unoptimized
               />
             ) : (
               <span className="text-xl font-bold text-primary">
@@ -548,6 +550,7 @@ function AddCharacterCard({ projectId }: { projectId: string }) {
                 className="h-full w-full object-cover"
                 sizes="56px"
                 quality={70}
+                unoptimized
               />
             ) : (
               <Upload className="h-5 w-5 text-muted-foreground" />

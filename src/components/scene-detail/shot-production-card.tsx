@@ -116,10 +116,17 @@ export function ShotProductionCard({
   return (
     <div className="group rounded-lg border bg-card transition-colors">
       {/* ── Header ── */}
-      <button
-        type="button"
-        className="flex w-full items-start gap-3 p-3 text-left hover:bg-muted/30 transition-colors"
+      <div
+        role="button"
+        tabIndex={0}
+        className="flex w-full items-start gap-3 p-3 text-left hover:bg-muted/30 transition-colors cursor-pointer"
         onClick={() => setExpanded((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setExpanded((v) => !v);
+          }
+        }}
       >
         <div className="pt-0.5">
           {expanded ? (
@@ -170,6 +177,7 @@ export function ShotProductionCard({
                             className="h-full w-full object-cover"
                             sizes="20px"
                             quality={50}
+                            unoptimized
                           />
                         ) : (
                           <span className="text-[7px] font-medium text-primary">
@@ -223,7 +231,7 @@ export function ShotProductionCard({
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
-      </button>
+      </div>
 
       {/* ── Asset Lanes ── */}
       {expanded && (

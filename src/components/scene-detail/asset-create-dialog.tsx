@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useMemo, useRef, useTransition } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,11 +19,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Search,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { normalizeTagList, parseMetadataInput } from "@/lib/scene-assets-utils";
 import { createSceneAssetVersion } from "@/lib/actions";
-import { ASSET_STATUSES, validateOptionalUrl } from "@/components/scene-assets/types";
+import {
+  ASSET_STATUSES,
+  validateOptionalUrl,
+} from "@/components/scene-assets/types";
 import type { AssetItem, PlatformItem } from "./types";
+
+// ─── Asset type to lane mapping for filtering ──────────────
+
+const ASSET_TYPE_LANE: Record<string, string[]> = {
+  IMAGE: ["IMAGE", "STORYBOARD"],
+  STORYBOARD: ["IMAGE", "STORYBOARD"],
+  VIDEO: ["VIDEO"],
+  AUDIO: ["AUDIO", "MUSIC", "VOICE", "NARRATION"],
+  MUSIC: ["AUDIO", "MUSIC", "VOICE", "NARRATION"],
+  VOICE: ["AUDIO", "MUSIC", "VOICE", "NARRATION"],
+  NARRATION: ["AUDIO", "MUSIC", "VOICE", "NARRATION"],
+};
 
 // ─── Props ─────────────────────────────────────────────────
 
@@ -52,6 +74,32 @@ export function AssetCreateDialog({
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [platformSearch, setPlatformSearch] = useState("");
+  const [platformDropdownOpen, setPlatformDropdownOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Filter platforms by asset type compatibility
+  const compatiblePlatforms = useMemo(() => {
+    const laneTypes = ASSET_TYPE_LANE[defaultAssetType] ?? [defaultAssetType];
+    const compatible = platforms.filter(
+      (p) =>
+        p.supportedOutput.length === 0 ||
+        p.supportedOutput.some((out) => laneTypes.includes(out)),
+    );
+    return compatible.length > 0 ? compatible : platforms;
+  }, [platforms, defaultAssetType]);
+
+  // Further filter by search query
+  const filteredPlatforms = useMemo(() => {
+    if (!platformSearch.trim()) return compatiblePlatforms;
+    const q = platformSearch.toLowerCase();
+    return compatiblePlatforms.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        p.provider?.toLowerCase().includes(q),
+    );
+  }, [compatiblePlatforms, platformSearch]);
 
   // Primary fields
   const [platformId, setPlatformId] = useState(platforms[0]?.id ?? "");
@@ -71,7 +119,17 @@ export function AssetCreateDialog({
   const handleOpenChange = (next: boolean) => {
     if (next) {
       setPrompt(defaultPrompt);
-      setPlatformId(platforms[0]?.id ?? "");
+      setPlatformSearch("");
+      setPlatformDropdownOpen(false);
+      // Auto-select first compatible platform
+      const laneTypes = ASSET_TYPE_LANE[defaultAssetType] ?? [defaultAssetType];
+      const compatible = platforms.filter(
+        (p) =>
+          p.supportedOutput.length === 0 ||
+          p.supportedOutput.some((out) => laneTypes.includes(out)),
+      );
+      const firstPlatform = compatible[0] ?? platforms[0];
+      setPlatformId(firstPlatform?.id ?? "");
       setOutputUrl("");
       setStatus("GENERATED");
       setNegativePrompt("");
@@ -88,6 +146,12 @@ export function AssetCreateDialog({
 
   const selectedPlatform = platforms.find((p) => p.id === platformId);
 
+  const handleSelectPlatform = (id: string) => {
+    setPlatformId(id);
+    setPlatformDropdownOpen(false);
+    setPlatformSearch("");
+  };
+
   const handleSave = () => {
     if (!selectedPlatform || !prompt.trim()) return;
 
@@ -97,7 +161,10 @@ export function AssetCreateDialog({
         const metadata = parseMetadataInput(metadataInput);
         const tags = normalizeTagList(tagsInput);
         const validatedOutput = validateOptionalUrl(outputUrl, "Output URL");
-        const validatedThumb = validateOptionalUrl(thumbnailUrl, "Thumbnail URL");
+        const validatedThumb = validateOptionalUrl(
+          thumbnailUrl,
+          "Thumbnail URL",
+        );
 
         await createSceneAssetVersion(sceneDbId, {
           platformId: selectedPlatform.id,
@@ -114,8 +181,6 @@ export function AssetCreateDialog({
           tags,
           metadata,
           selected: status === "SELECTED",
-          // shotId is set server-side via the scene relationship;
-          // the server action currently doesn't accept shotId directly
         });
 
         handleOpenChange(false);
@@ -131,28 +196,106 @@ export function AssetCreateDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>New {defaultAssetType.toLowerCase()} version</DialogTitle>
+          <DialogTitle>
+            New {defaultAssetType.toLowerCase()} version
+          </DialogTitle>
           <DialogDescription>
             Add a new {defaultAssetType.toLowerCase()} asset to this shot.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Platform */}
+          {/* Platform — Inline searchable dropdown */}
           <div className="space-y-1.5">
             <Label>Platform</Label>
-            <Select value={platformId} onValueChange={setPlatformId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select platform" />
-              </SelectTrigger>
-              <SelectContent>
-                {platforms.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <button
+                type="button"
+                className={cn(
+                  "flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
+                  "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                )}
+                onClick={() => {
+                  setPlatformDropdownOpen((v) => !v);
+                  if (!platformDropdownOpen) {
+                    setTimeout(() => searchInputRef.current?.focus(), 0);
+                  }
+                }}
+              >
+                {selectedPlatform ? (
+                  <span className="truncate text-left">
+                    {selectedPlatform.name}
+                    {selectedPlatform.provider && (
+                      <span className="text-muted-foreground ml-1">
+                        — {selectedPlatform.provider}
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">
+                    Select platform...
+                  </span>
+                )}
+                <ChevronDown
+                  className={cn(
+                    "ml-2 h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    platformDropdownOpen && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {platformDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
+                  <div className="flex items-center gap-2 border-b px-3 py-2">
+                    <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <input
+                      ref={searchInputRef}
+                      className="flex h-7 w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                      placeholder="Search platforms..."
+                      value={platformSearch}
+                      onChange={(e) => setPlatformSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto p-1">
+                    {filteredPlatforms.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-sm text-muted-foreground">
+                        No matching platforms.
+                      </div>
+                    ) : (
+                      filteredPlatforms.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className={cn(
+                            "flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-left",
+                            "hover:bg-accent hover:text-accent-foreground",
+                            platformId === p.id && "bg-accent/50",
+                          )}
+                          onClick={() => handleSelectPlatform(p.id)}
+                        >
+                          <Check
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              platformId === p.id
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          <span className="truncate">
+                            {p.name}
+                            {p.provider && (
+                              <span className="text-muted-foreground ml-1 text-xs">
+                                — {p.provider}
+                              </span>
+                            )}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Prompt */}
@@ -199,7 +342,11 @@ export function AssetCreateDialog({
             className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
             onClick={() => setAdvancedOpen((v) => !v)}
           >
-            {advancedOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            {advancedOpen ? (
+              <ChevronDown className="h-3 w-3" />
+            ) : (
+              <ChevronRight className="h-3 w-3" />
+            )}
             Advanced
           </button>
 

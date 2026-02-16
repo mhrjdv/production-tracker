@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Outfit, JetBrains_Mono } from "next/font/google";
-import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Navigation } from "@/components/navigation";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -36,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <SessionProvider>
+        <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -51,7 +51,7 @@ export default function RootLayout({
               <Toaster richColors position="bottom-right" />
             </TooltipProvider>
           </ThemeProvider>
-        </SessionProvider>
+        </AuthProvider>
       </body>
     </html>
   );

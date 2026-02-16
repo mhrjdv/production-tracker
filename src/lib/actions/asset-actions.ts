@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { auth } from "@/lib/auth/server";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { AssetStatus, AssetType, Prisma, RightsState } from "@prisma/client";
@@ -34,7 +34,7 @@ const VALID_TRANSITIONS: Record<AssetStatus, AssetStatus[]> = {
     AssetStatus.GENERATED,
   ],
   [AssetStatus.REJECTED]: [AssetStatus.DRAFT, AssetStatus.ARCHIVED],
-  [AssetStatus.ARCHIVED]: [AssetStatus.DRAFT],
+  [AssetStatus.ARCHIVED]: [AssetStatus.DRAFT, AssetStatus.GENERATED],
   [AssetStatus.FINAL]: [AssetStatus.ARCHIVED],
 };
 

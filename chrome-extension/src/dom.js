@@ -19,7 +19,7 @@ export const dom = {
   cfgSave: $("cfgSave"),
   cfgReload: $("cfgReload"),
 
-  // Mode nav
+  // Mode nav (hidden, kept for compat)
   modeNav: $("modeNav"),
 
   // Auth gate
@@ -31,11 +31,12 @@ export const dom = {
   authOpenAiApiKey: $("authOpenAiApiKey"),
   authConnect: $("authConnect"),
 
-  // Context (now inside capture panel)
+  // Context
   panelContext: $("panelContext"),
   ctxProjectSelect: $("ctxProjectSelect"),
   ctxSceneSelect: $("ctxSceneSelect"),
   ctxSceneSearch: $("ctxSceneSearch"),
+  ctxShotSelect: $("ctxShotSelect"),
   ctxShotCard: $("ctxShotCard"),
   ctxDetectedPlatform: $("ctxDetectedPlatform"),
   ctxDetectedType: $("ctxDetectedType"),
@@ -59,6 +60,7 @@ export const dom = {
   capContextBar: $("capContextBar"),
   capContextLabel: $("capContextLabel"),
   capPlatformSelect: $("capPlatformSelect"),
+  capPlatformSearch: $("capPlatformSearch"),
   capAssetType: $("capAssetType"),
   capAssetStatus: $("capAssetStatus"),
   capTitle: $("capTitle"),
@@ -78,15 +80,16 @@ export const dom = {
   capSave: $("capSave"),
   capClearAll: $("capClearAll"),
 
-  // Reuse panel
+  // Reuse / Versions (inline in main view)
   panelReuse: $("panelReuse"),
   reuseAssetList: $("reuseAssetList"),
   reuseRestoreDraft: $("reuseRestoreDraft"),
   reuseClearDraft: $("reuseClearDraft"),
   reuseSearch: $("reuseSearch"),
   reuseFilterChips: $("reuseFilterChips"),
+  versionsCount: $("versionsCount"),
 
-  // Queue panel
+  // Queue panel (overlay)
   panelQueue: $("panelQueue"),
   queueCount: $("queueCount"),
   queueList: $("queueList"),
@@ -94,6 +97,9 @@ export const dom = {
   queueClearFailed: $("queueClearFailed"),
   queuePreviewList: $("queuePreviewList"),
   queueFilterChips: $("queueFilterChips"),
+  queueToggle: $("queueToggle"),
+  queueClose: $("queueClose"),
+  queueDot: $("queueDot"),
 
   // Compare
   compareBar: $("compareBar"),
@@ -128,23 +134,55 @@ export function populateSelect(select, items, getValue, getLabel) {
   });
 }
 
+/**
+ * Set active mode. In single-screen layout, panelCapture is always visible.
+ * Queue is shown as an overlay when mode === "queue".
+ */
 export function setActiveMode(mode) {
   state.activeMode = mode;
 
-  const buttons = dom.modeNav.querySelectorAll(".sp-tab");
-  buttons.forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.mode === mode);
-  });
+  // panelCapture always visible (single-screen layout)
+  if (dom.panelCapture) {
+    dom.panelCapture.classList.remove("hidden");
+  }
 
-  document.querySelectorAll(".sp-main[data-panel]").forEach((panel) => {
-    panel.classList.toggle("hidden", panel.dataset.panel !== mode);
-  });
+  // Queue overlay: only visible when mode is "queue"
+  if (dom.panelQueue) {
+    dom.panelQueue.classList.toggle("hidden", mode !== "queue");
+  }
+
+  // panelReuse is hidden (content is inline in panelCapture)
+  if (dom.panelReuse) {
+    dom.panelReuse.classList.add("hidden");
+  }
 }
 
 export function toggleSettings(forceOpen) {
   state.settingsOpen =
     forceOpen !== undefined ? forceOpen : !state.settingsOpen;
   dom.settingsPanel.classList.toggle("hidden", !state.settingsOpen);
+}
+
+/**
+ * Toggle the queue overlay panel.
+ */
+export function toggleQueue(forceOpen) {
+  const isOpen = !dom.panelQueue.classList.contains("hidden");
+  const shouldOpen = forceOpen !== undefined ? forceOpen : !isOpen;
+  if (shouldOpen) {
+    setActiveMode("queue");
+  } else {
+    setActiveMode("capture");
+  }
+}
+
+/**
+ * Update queue dot indicator visibility based on queue size.
+ */
+export function updateQueueDot(count) {
+  if (dom.queueDot) {
+    dom.queueDot.classList.toggle("hidden", count === 0);
+  }
 }
 
 /**
