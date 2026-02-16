@@ -1,4 +1,4 @@
-# Laserman V2 User Experience Flow for AI Film Production Orchestration
+# Lazer V2 User Experience Flow for AI Film Production Orchestration
 
 ## Product definition that will actually work
 

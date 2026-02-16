@@ -33,7 +33,7 @@ Use `skill-creator` when any repeated workflow appears at least 3 times, especia
 
 ## Product Identity
 
-Laserman = **orchestration and traceability layer** for AI film production. No native generation.
+Lazer = **orchestration and traceability layer** for AI film production. No native generation.
 
 Lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
 
@@ -113,6 +113,6 @@ Lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approv
 
 ## Source Reference
 
-- Product research: `docs/laserman-ux-product-research-2026.md`
+- Product research: `docs/lazer-ux-product-research-2026.md`
 - Market plan: `docs/ai-film-product-plan-2026.md`
 - System blueprint: `docs/production-ai-system-blueprint-2026.md`

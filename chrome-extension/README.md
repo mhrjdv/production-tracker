@@ -48,7 +48,7 @@ Manifest V3 Chrome extension for capturing AI generation metadata from any tab a
 
 ## Security model
 
-- Uses bearer token auth (`Authorization: Bearer lmt_...`).
+- Uses bearer token auth (`Authorization: Bearer lzr_...`).
 - Server stores only SHA-256 token hashes.
 - Tokens can be revoked from `/integrations`.
 - BYOK API keys stay local in `chrome.storage.local` and are not synced to the app profile API.

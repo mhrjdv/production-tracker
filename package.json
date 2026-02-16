@@ -1,7 +1,10 @@
 {
-  "name": "laserman-v2",
+  "name": "lazer-v2",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

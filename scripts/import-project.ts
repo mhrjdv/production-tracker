@@ -1,11 +1,11 @@
 /**
- * Import Script: Upload images to R2 + seed database with full Laserman project
+ * Import Script: Upload images to R2 + seed database with full Lazer project
  *
  * Usage:
  *   npx tsx scripts/import-project.ts
  *
  * This script:
- * 1. Uploads all images from project_Laserman_v2/IMAGE GEN/ to Cloudflare R2
+ * 1. Uploads all images from project_Lazer_v2/IMAGE GEN/ to Cloudflare R2
  * 2. Clears all existing data
  * 3. Creates the demo user + project
  * 4. Seeds all 246 scenes, 11 characters (with portrait URLs), film identity
@@ -29,7 +29,7 @@ import { randomUUID } from "crypto";
 
 // ─── Config ────────────────────────────────────────────────
 
-const PROJECT_DIR = path.join(__dirname, "../project_Laserman_v2");
+const PROJECT_DIR = path.join(__dirname, "../project_Lazer_v2");
 const DATA_DIR = path.join(__dirname, "../src/data");
 const IMAGE_DIR = path.join(PROJECT_DIR, "IMAGE GEN");
 
@@ -797,7 +797,7 @@ const PLATFORM_SEED = [
 // ─── Main ──────────────────────────────────────────────────
 
 async function main() {
-  console.log("=== Laserman V2 Full Import ===\n");
+  console.log("=== Lazer V2 Full Import ===\n");
 
   // Generate a project ID upfront for R2 key paths
   const projectDbId = randomUUID();
@@ -922,7 +922,7 @@ async function main() {
 
   // ── Step 5: Create project ─────────────────────────────────
 
-  console.log("🎬 Creating Laserman V2 project...");
+  console.log("🎬 Creating Lazer V2 project...");
 
   // Find title image URL
   const titleImage = uploaded.find((u) => u.category === "title");
@@ -930,7 +930,7 @@ async function main() {
   const project = await prisma.project.create({
     data: {
       id: projectDbId,
-      name: "Laserman V2",
+      name: "Lazer V2",
       description:
         "An animated drama about a superhero whose power is tied to his eyesight. When his vision begins to fail, he must confront his identity, find unlikely allies, and learn the science of seeing to earn his return.",
       genre: "animated-drama",
@@ -1193,7 +1193,7 @@ async function main() {
           status: AssetStatus.GENERATED,
           versionNumber: nextVersion("midjourney", AssetType.IMAGE),
           title: "Title Card",
-          prompt: "Laserman V2 — Title card",
+          prompt: "Lazer V2 — Title card",
           outputUrl: img.r2Url,
           thumbnailUrl: img.r2Url,
           tags: ["title"],
@@ -1211,7 +1211,7 @@ async function main() {
 
   console.log("═══════════════════════════════════════");
   console.log("🎉 Import complete!");
-  console.log(`   Project: Laserman V2 (${project.id})`);
+  console.log(`   Project: Lazer V2 (${project.id})`);
   console.log(`   Scenes: ${sceneData.length}`);
   console.log(
     `   Characters: ${characterEntries.length} (${portraitUrls.size} with portraits)`,

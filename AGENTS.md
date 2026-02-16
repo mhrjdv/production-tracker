@@ -38,15 +38,15 @@ This repository uses a shared skill and rules setup across `.agents`, `.agent`, 
 - `find-skills` — Skill discovery
 - `skill-creator` — Create new skills
 
-### Laserman-Specific
-- `laserman-product-bible` — Product definition, object model, UX philosophy, roadmap
-- `laserman-schema` — Database schema, migrations, data model patterns
-- `laserman-webapp-dev` — Web app pages, components, server actions, API routes
-- `laserman-extension-dev` — Chrome extension, side panel, capture algorithm, platform detectors
+### Lazer-Specific
+- `lazer-product-bible` — Product definition, object model, UX philosophy, roadmap
+- `lazer-schema` — Database schema, migrations, data model patterns
+- `lazer-webapp-dev` — Web app pages, components, server actions, API routes
+- `lazer-extension-dev` — Chrome extension, side panel, capture algorithm, platform detectors
 
 ## Product Identity
 
-Laserman is an **orchestration and traceability layer** for AI-assisted film production. It does NOT generate media. It manages the lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
+Lazer is an **orchestration and traceability layer** for AI-assisted film production. It does NOT generate media. It manages the lifecycle: draft -> generate elsewhere -> capture -> compare -> select -> approve -> assemble.
 
 **Tagline:** "Generate anywhere, decide here, ship with traceability."
 
@@ -98,7 +98,7 @@ Side panel with exactly four modes:
 
 ## Reference
 
-- Canonical product research: `docs/laserman-ux-product-research-2026.md`
+- Canonical product research: `docs/lazer-ux-product-research-2026.md`
 - Market and execution plan: `docs/ai-film-product-plan-2026.md`
 - System architecture: `docs/production-ai-system-blueprint-2026.md`
 - Canonical runtime rules: `.agents/rules.md`

@@ -1,7 +1,7 @@
 /**
  * Generate thumbnails for all asset images and upload to R2.
  *
- * Reads the original local files from project_Laserman_v2/IMAGE GEN/,
+ * Reads the original local files from project_Lazer_v2/IMAGE GEN/,
  * generates 800px-wide WebP thumbnails, uploads to R2 with _thumb.webp suffix,
  * and updates thumbnailUrl in the database.
  *
@@ -72,11 +72,11 @@ async function main() {
     `Found ${r2Assets.length} assets with R2 URLs to generate thumbnails for\n`,
   );
 
-  // Map local files: we still have originals at project_Laserman_v2/IMAGE GEN/
+  // Map local files: we still have originals at project_Lazer_v2/IMAGE GEN/
   // The R2 key structure is: projects/{projectId}/characters/{slug}/{filename}
   // We need to map R2 URLs → local file paths
 
-  const imageDir = path.join(__dirname, "../project_Laserman_v2/IMAGE GEN");
+  const imageDir = path.join(__dirname, "../project_Lazer_v2/IMAGE GEN");
 
   let processed = 0;
   let skipped = 0;

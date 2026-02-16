@@ -12,7 +12,7 @@ export function hashExtensionToken(token: string): string {
 
 export function generateExtensionToken(): GeneratedExtensionToken {
     const raw = randomBytes(24).toString("hex");
-    const token = `lmt_${raw}`;
+    const token = `lzr_${raw}`;
     const tokenPrefix = token.slice(0, 12);
     const tokenHash = hashExtensionToken(token);
 

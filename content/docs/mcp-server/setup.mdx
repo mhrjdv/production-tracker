@@ -1,0 +1,121 @@
+---
+title: Setup Guide
+description: Connect Claude Desktop, ChatGPT, Cursor, and other MCP clients to Lazer
+---
+
+# Setup Guide
+
+## Prerequisites
+
+- Lazer running locally (`npm run dev`) or deployed with a public URL
+- An account on your Lazer instance
+
+## ChatGPT (Remote / OAuth)
+
+ChatGPT connects over HTTP through your public URL (Cloudflare Tunnel or deployed domain).
+
+1. Open **ChatGPT Settings** → **Connected Apps** → **Add MCP Server**
+2. Enter your server URL: `https://your-domain.com/mcp`
+3. Select **OAuth** as the authentication method
+4. ChatGPT will automatically:
+   - Discover your OAuth endpoints
+   - Register itself as a client
+   - Open a login window for you to sign in
+   - Obtain an access token
+5. After login, ChatGPT can use all 53 Lazer tools
+
+> The OAuth flow creates a token named **"MCP: ChatGPT (OAuth)"** visible on your [Integrations](/integrations) page. You can revoke it anytime.
+
+## Claude Desktop (Local / STDIO)
+
+Claude Desktop connects via STDIO — the MCP server runs as a child process.
+
+1. Generate an API token on your [Integrations](/integrations) page
+2. Open Claude Desktop settings and edit `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "lazer": {
+      "command": "npx",
+      "args": ["lazer-mcp", "--token", "lzr_your_token_here"],
+      "env": {
+        "DATABASE_URL": "postgresql://..."
+      }
+    }
+  }
+}
+```
+
+3. Restart Claude Desktop — Lazer tools appear in the tool picker
+
+> **Alternative**: Set `LAZER_TOKEN` as an environment variable instead of using `--token`.
+
+## Cursor (Local / STDIO)
+
+Cursor uses the same STDIO transport as Claude Desktop.
+
+1. Generate an API token on your [Integrations](/integrations) page
+2. Open **Cursor Settings** → **MCP** → **Add Server**
+3. Add the configuration:
+
+```json
+{
+  "command": "npx",
+  "args": ["lazer-mcp", "--token", "lzr_your_token_here"],
+  "env": {
+    "DATABASE_URL": "postgresql://..."
+  }
+}
+```
+
+4. Restart Cursor — Lazer tools are available in the AI panel
+
+## Remote HTTP (Any MCP Client)
+
+For any MCP client that supports Streamable HTTP:
+
+**Endpoint**: `https://your-domain.com/mcp`
+
+**Authentication options**:
+- **OAuth 2.0** — Discovery at `/.well-known/oauth-protected-resource`
+- **Bearer token** — `Authorization: Bearer lzr_your_token_here`
+
+**Health check**: `GET https://your-domain.com/mcp` returns server status.
+
+### Manual HTTP test
+
+```bash
+# Health check
+curl https://your-domain.com/mcp
+
+# MCP tools/list request
+curl -X POST https://your-domain.com/mcp \
+  -H "Authorization: Bearer lzr_your_token" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+## Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LAZER_MCP_PORT` | HTTP server port | `3100` |
+| `LAZER_MCP_DEFAULT_TOKEN` | Fallback token for "No Auth" mode | — |
+| `LAZER_TOKEN` | STDIO auth token (alternative to `--token`) | — |
+| `DATABASE_URL` | PostgreSQL connection string | Required |
+
+## Troubleshooting
+
+**"OAuth not configured"** — Make sure your Lazer instance is running and accessible at the URL you provided. The OAuth discovery endpoints must be reachable at `/.well-known/oauth-protected-resource`.
+
+**"Invalid or missing token"** — Your token may be expired or revoked. Generate a new one on the [Integrations](/integrations) page.
+
+**"MCP server not reachable"** — The embedded MCP server starts when Next.js boots. Check that `npm run dev` shows `Lazer MCP server listening on http://localhost:3100/mcp`.
+
+**SSE/streaming errors** — If using a reverse proxy (nginx, Cloudflare), ensure it supports streaming responses and doesn't buffer SSE.
+
+## Next Steps
+
+- [Authentication](/docs/mcp-server/authentication) — Deep dive into OAuth, tokens, and security
+- [Tools Reference](/docs/mcp-server/tools) — Browse all available tools

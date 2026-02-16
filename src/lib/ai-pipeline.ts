@@ -49,7 +49,7 @@ export interface PipelineResult {
 
 export async function extractScenes(scriptText: string) {
     const model = getModel();
-    const modelId = process.env.AI_MODEL || "x-ai/grok-4.1-fast";
+    const modelId = process.env.AI_MODEL || "anthropic/claude-haiku-4.5";
     const systemPrompt = `You are an expert script analyst for film and animation production.
 Your task is to break down a script into individual scenes.
 
@@ -116,7 +116,7 @@ export async function extractCharacters(
     sceneSummary: string
 ) {
     const model = getModel();
-    const modelId = process.env.AI_MODEL || "x-ai/grok-4.1-fast";
+    const modelId = process.env.AI_MODEL || "anthropic/claude-haiku-4.5";
     const systemPrompt = `You are an expert character analyst for film and animation production.
 Analyze the script to identify all characters — named AND unnamed recurring ones.
 
@@ -183,7 +183,7 @@ export async function generateFilmIdentity(
     characterNames: string[]
 ) {
     const model = getModel();
-    const modelId = process.env.AI_MODEL || "x-ai/grok-4.1-fast";
+    const modelId = process.env.AI_MODEL || "anthropic/claude-haiku-4.5";
     const systemPrompt = `You are a creative director defining the visual and narrative identity of a film.
 Generate a comprehensive film identity document that covers:
 
@@ -250,7 +250,7 @@ export async function generateSceneDescriptions(
     characterNames: string[]
 ) {
     const model = getModel();
-    const modelId = process.env.AI_MODEL || "x-ai/grok-4.1-fast";
+    const modelId = process.env.AI_MODEL || "anthropic/claude-haiku-4.5";
 
     // Process in batches of 15 to stay within token limits
     const BATCH_SIZE = 15;

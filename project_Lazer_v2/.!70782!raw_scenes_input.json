@@ -1,0 +1,61 @@
+[
+  {
+    "scene_id": "S001",
+    "narrative_purpose": "Establish isolation, danger, and the dominance of nature before any human presence appears.",
+    "setting": {
+      "location": "Lighthouse on jagged coastal rocks",
+      "time_of_day": "Night",
+      "environment": "Open sea, violent weather, towering waves, exposed rock",
+      "atmosphere": "Hostile, vast, overwhelming"
+    },
+    "characters_present": [],
+    "actions": [
+      "Waves crash violently against jagged rocks below the lighthouse.",
+      "The lighthouse stands rigid and small against the scale of the sea."
+    ],
+    "emotional_tone": "Foreboding and lonely",
+    "camera_intent": {
+      "approach": "Observational and distant",
+      "movement": "Slow, restrained push-in from wide to slightly closer wide",
+      "framing": "Lighthouse kept small in frame, environment dominating"
+    },
+    "visual_motifs": [
+      "Human structures dwarfed by nature",
+      "Vertical lighthouse versus horizontal chaos of sea"
+    ],
+    "constraints": [
+      "No human characters introduced",
+      "Nature must visually overpower all man-made elements"
+    ]
+  },
+  {
+    "scene_id": "S002",
+    "narrative_purpose": "Introduce the lighthouse beam as a fragile attempt at order amid chaos.",
+    "setting": {
+      "location": "Same lighthouse exterior",
+      "time_of_day": "Night",
+      "environment": "Heavy rain, thick clouds",
+      "atmosphere": "Unstable, tense"
+    },
+    "characters_present": [],
+    "actions": [
+      "The lighthouse beam sweeps slowly through sheets of rain.",
+      "Rain partially obscures the light, breaking it into fragments."
+    ],
+    "emotional_tone": "Strained persistence",
+    "camera_intent": {
+      "approach": "Static framing",
+      "movement": "Light provides motion, camera remains still",
+      "framing": "Beam cutting diagonally across frame"
+    },
+    "visual_motifs": [
+      "Light struggling against obscurity",
+      "Visibility versus obstruction"
+    ],
+    "constraints": [
+      "Lighting must feel motivated and realistic",
+      "No stylized spectacle"
+    ]
+  },
+  {
+    "scene_id": "S003",

@@ -5,7 +5,7 @@ description: How detectors extract prompts, settings, and outputs per platform
 
 # Platform Detection
 
-The Laserman extension uses modular platform detectors to extract prompts, generation settings, and output URLs from AI platform pages. Each detector is tailored to the specific DOM structure and UI patterns of one platform.
+The Lazer extension uses modular platform detectors to extract prompts, generation settings, and output URLs from AI platform pages. Each detector is tailored to the specific DOM structure and UI patterns of one platform.
 
 ## Architecture
 
@@ -294,7 +294,7 @@ Detection only works on pages you can access:
 Some platforms use temporary CDN URLs that expire:
 
 - URLs may become invalid 1-24 hours after generation
-- Laserman should fetch and store the media immediately
+- Lazer should fetch and store the media immediately
 - Extension shows warning if URL appears to have expiry parameters
 
 ### Network Requests

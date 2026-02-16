@@ -1,0 +1,266 @@
+---
+title: Tools Reference
+description: Complete reference for all 53 MCP tools available in the Lazer server
+---
+
+# Tools Reference
+
+The Lazer MCP server exposes **53 tools** organized across 11 domains. Each tool validates inputs with Zod schemas and verifies resource ownership before executing.
+
+## Project Tools (5)
+
+Manage film production projects.
+
+| Tool | Description |
+|------|-------------|
+| `project_list` | List all projects for the authenticated user |
+| `project_get` | Get a project with identity and asset counts |
+| `project_create` | Create a new project |
+| `project_update` | Update project fields (name, description, etc.) |
+| `project_delete` | Delete a project and all its children |
+
+### Example: Create a project
+
+```json
+{
+  "tool": "project_create",
+  "arguments": {
+    "name": "My Short Film",
+    "description": "A 5-minute sci-fi short"
+  }
+}
+```
+
+## Scene Tools (7)
+
+Manage scenes within a project.
+
+| Tool | Description |
+|------|-------------|
+| `scene_list` | List all scenes in a project |
+| `scene_get` | Get a scene with shots, characters, and assets |
+| `scene_create` | Create a new scene |
+| `scene_update` | Update scene fields (heading, storyBeat, tone, etc.) |
+| `scene_delete` | Delete a scene |
+| `scene_reorder` | Reorder scenes by providing a new ID sequence |
+| `scene_update_keyframe` | Set the keyframe image URL for a scene |
+
+### Key Fields
+
+- **heading** — Scene heading (e.g., "INT. OFFICE - DAY")
+- **storyBeat** — What happens in this scene
+- **sourceText** — Original script text
+- **tone** — Emotional tone (e.g., "tense", "comedic")
+
+## Shot Tools (6)
+
+Manage shots within a scene. Each shot gets an auto-generated code (SH001, SH002, etc.).
+
+| Tool | Description |
+|------|-------------|
+| `shot_list` | List all shots in a scene |
+| `shot_get` | Get a shot with characters and asset counts |
+| `shot_create` | Create a shot with auto-generated shot code |
+| `shot_update` | Update shot fields (description, shotType, cameraAngle, etc.) |
+| `shot_delete` | Delete a shot |
+| `shot_reorder` | Reorder shots within a scene |
+
+### Key Fields
+
+- **shotCode** — Auto-generated identifier (SH001)
+- **shotType** — wide, medium, close-up, extreme-close-up, etc.
+- **cameraAngle** — eye-level, low-angle, high-angle, overhead, dutch
+- **cameraMovement** — static, pan, tilt, dolly, handheld, crane
+- **description** — What happens in this shot
+
+## Character Tools (6)
+
+Manage characters within a project.
+
+| Tool | Description |
+|------|-------------|
+| `character_list` | List all characters in a project |
+| `character_get` | Get a character with scene/shot assignments |
+| `character_create` | Create a new character |
+| `character_update` | Update character fields (name, description, traits, etc.) |
+| `character_update_portrait` | Set the portrait image URL |
+| `character_delete` | Delete a character |
+
+### Key Fields
+
+- **name** — Character name
+- **description** — Physical and personality description
+- **portraitUrl** — Reference portrait image
+- **traits** — JSON object with character traits
+
+## Relationship Tools (6)
+
+Assign and remove characters from scenes and shots.
+
+| Tool | Description |
+|------|-------------|
+| `scene_character_assign` | Assign a character to a scene |
+| `scene_character_remove` | Remove a character from a scene |
+| `scene_character_sync` | Sync scene characters to a given set of IDs |
+| `shot_character_assign` | Assign a character to a shot |
+| `shot_character_remove` | Remove a character from a shot |
+| `shot_character_sync` | Sync shot characters to a given set of IDs |
+
+> **Sync** tools are bulk operations — provide the full list of character IDs and the tool adds/removes as needed.
+
+## Identity Tools (2)
+
+Manage the film identity (visual style, tone, and branding) for a project.
+
+| Tool | Description |
+|------|-------------|
+| `identity_get` | Get the film identity for a project |
+| `identity_upsert` | Create or update the film identity |
+
+### Key Fields
+
+- **visualStyle** — Overall visual direction
+- **colorPalette** — Color scheme description
+- **moodDescription** — Emotional atmosphere
+- **referenceNotes** — Additional reference material
+
+## Asset Tools (8)
+
+Manage generated asset versions. Assets are **immutable** — each generation creates a new version.
+
+| Tool | Description |
+|------|-------------|
+| `asset_list` | List assets with filters (type, status, shot, platform) |
+| `asset_get` | Get an asset with prompt package and platform details |
+| `asset_create` | Create an asset version with auto-incrementing version number |
+| `asset_update` | Update asset fields with status transition validation |
+| `asset_delete` | Delete an asset version |
+| `asset_select` | Toggle selection on an asset version |
+| `asset_fanout` | Create the same asset across multiple platforms at once |
+| `asset_compare` | List all assets in a comparison group |
+
+### Status Transitions
+
+Assets follow a strict state machine:
+
+```
+draft → in_review → approved → final
+draft → in_review → revision_requested → draft
+draft → rejected
+in_review → rejected
+```
+
+> The `asset_update` tool validates transitions automatically. Invalid transitions are rejected with an error.
+
+### Asset Types
+
+`image`, `video`, `audio`, `text`, `3d_model`
+
+## Prompt Package Tools (3)
+
+Manage reusable prompt packages that can be linked to assets.
+
+| Tool | Description |
+|------|-------------|
+| `prompt_package_list` | List prompt packages for a scene |
+| `prompt_package_get` | Get a prompt package with linked asset count |
+| `prompt_package_create` | Create a prompt package with auto-incrementing version |
+
+### Key Fields
+
+- **promptText** — The main generation prompt
+- **negativePrompt** — What to exclude
+- **parameters** — Platform-specific generation parameters (JSON)
+- **tags** — Searchable tags
+
+## Platform Tools (4)
+
+Manage AI generation platform registrations (Sora, Veo, Freepik, etc.).
+
+| Tool | Description |
+|------|-------------|
+| `platform_list` | List all registered AI platforms |
+| `platform_get` | Get a platform with asset counts |
+| `platform_create` | Register a new AI platform |
+| `platform_update` | Update platform details |
+
+## Search Tools (2)
+
+Full-text search across assets and scenes.
+
+| Tool | Description |
+|------|-------------|
+| `search_assets` | Search assets by prompt text, tags, platform, or status |
+| `search_scenes` | Search scenes by storyBeat, sourceText, or tone |
+
+### Example: Search for approved images
+
+```json
+{
+  "tool": "search_assets",
+  "arguments": {
+    "projectId": "clx...",
+    "assetType": "image",
+    "status": "approved",
+    "query": "sunset cityscape"
+  }
+}
+```
+
+## Workflow Tools (4)
+
+High-level composite operations that span multiple entities.
+
+| Tool | Description |
+|------|-------------|
+| `workflow_ingest` | Full asset ingest flow (create prompt package + asset version) |
+| `workflow_project_tree` | Get the complete project hierarchy in one call |
+| `workflow_scene_summary` | Get a scene with all children expanded |
+| `workflow_production_status` | Aggregate production statistics across the project |
+
+### Example: Production status
+
+```json
+{
+  "tool": "workflow_production_status",
+  "arguments": {
+    "projectId": "clx..."
+  }
+}
+```
+
+Returns counts of scenes, shots, assets by status, selected assets, and completion percentages.
+
+## Common Parameters
+
+Most tools that operate on owned resources require:
+
+- **projectId** — The project to operate within (ownership verified)
+- **sceneId** — The scene within the project
+- **shotId** — The shot within the scene
+
+All IDs are Prisma CUIDs (e.g., `clx1234567890abcdef`).
+
+## Error Handling
+
+All tools return structured responses:
+
+**Success:**
+```json
+{
+  "content": [{"type": "text", "text": "{\"id\": \"clx...\", ...}"}]
+}
+```
+
+**Error:**
+```json
+{
+  "content": [{"type": "text", "text": "Not found: Scene clx... does not exist"}],
+  "isError": true
+}
+```
+
+## Next Steps
+
+- [Resources & Prompts](/docs/mcp-server/resources-prompts) — Access schema and workflow templates
+- [Authentication](/docs/mcp-server/authentication) — Token management

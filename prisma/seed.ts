@@ -583,11 +583,11 @@ async function main() {
   });
   console.log(`   ✅ User created: demo@tracker.dev / demo1234`);
 
-  // --- Create Laserman project ---
-  console.log("🎬 Creating Laserman project...");
+  // --- Create Lazer project ---
+  console.log("🎬 Creating Lazer project...");
   const project = await prisma.project.create({
     data: {
-      name: "Laserman v2",
+      name: "Lazer v2",
       description:
         "A retrofuturist neo-noir science fiction film exploring identity, control, and redemption through the lens of a cybernetic bounty hunter.",
       genre: "sci-fi",
@@ -724,7 +724,7 @@ async function main() {
       sceneId: sceneMap.get("S001")!,
       shotCode: "SH002",
       description:
-        "Medium shot of Laserman emerging from the darkness, rain streaming off cybernetic implants.",
+        "Medium shot of Lazer emerging from the darkness, rain streaming off cybernetic implants.",
       angle: "medium",
       movement: "dolly",
       sortOrder: 1,
@@ -733,7 +733,7 @@ async function main() {
       sceneId: sceneMap.get("S001")!,
       shotCode: "SH003",
       description:
-        "Close-up on Laserman's eye — half human, half synthetic lens — reflecting the lighthouse beam.",
+        "Close-up on Lazer's eye — half human, half synthetic lens — reflecting the lighthouse beam.",
       angle: "close-up",
       movement: "static",
       sortOrder: 2,
@@ -743,7 +743,7 @@ async function main() {
       sceneId: sceneMap.get("S002")!,
       shotCode: "SH001",
       description:
-        "Interior lighthouse, harsh overhead light. Laserman examines a cracked holographic map.",
+        "Interior lighthouse, harsh overhead light. Lazer examines a cracked holographic map.",
       angle: "medium",
       movement: "pan",
       sortOrder: 0,
@@ -771,7 +771,7 @@ async function main() {
       sceneId: sceneMap.get("S003")!,
       shotCode: "SH002",
       description:
-        "Insert shot of Laserman's hand gripping a worn photo — the only keepsake from before the accident.",
+        "Insert shot of Lazer's hand gripping a worn photo — the only keepsake from before the accident.",
       angle: "insert",
       movement: "static",
       sortOrder: 1,
@@ -893,7 +893,7 @@ async function main() {
       assetType: AssetType.VIDEO,
       status: AssetStatus.GENERATED,
       versionNumber: 1,
-      title: "Laserman emerges — Sora v1",
+      title: "Lazer emerges — Sora v1",
       prompt:
         "Cinematic medium shot: a cybernetic bounty hunter emerges from darkness into pouring rain. Camera dollies forward slowly. Lightning illuminates chrome implants. Neo-noir color palette, 24fps film grain.",
       modelName: "Sora",
@@ -1256,49 +1256,49 @@ async function main() {
     charName: string;
     role?: string;
   }[] = [
-    // S001: Laserman is in all shots
+    // S001: Lazer is in all shots
     {
       shotSceneCode: "S001",
       shotCode: "SH001",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "background",
     },
     {
       shotSceneCode: "S001",
       shotCode: "SH002",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "featured",
     },
     {
       shotSceneCode: "S001",
       shotCode: "SH003",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "featured",
     },
-    // S002: Laserman examining the map
+    // S002: Lazer examining the map
     {
       shotSceneCode: "S002",
       shotCode: "SH001",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "featured",
     },
     {
       shotSceneCode: "S002",
       shotCode: "SH002",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "featured",
     },
-    // S003: Laserman in the pullback + insert
+    // S003: Lazer in the pullback + insert
     {
       shotSceneCode: "S003",
       shotCode: "SH001",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "background",
     },
     {
       shotSceneCode: "S003",
       shotCode: "SH002",
-      charName: "Laserman",
+      charName: "Lazer",
       role: "featured",
     },
   ];

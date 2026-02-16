@@ -5,29 +5,29 @@ description: Create your first production project and upload a script.
 
 # Your First Project
 
-This guide walks you through creating your first Laserman project, uploading a screenplay, and reviewing the AI-parsed scene structure. By the end, you'll have a fully structured project ready for shot planning and asset capture.
+This guide walks you through creating your first Lazer project, uploading a screenplay, and reviewing the AI-parsed scene structure. By the end, you'll have a fully structured project ready for shot planning and asset capture.
 
 ## Understanding Projects
 
-In Laserman, a **Project** is the top-level container for your film or series. Each project contains:
+In Lazer, a **Project** is the top-level container for your film or series. Each project contains:
 
 - **Metadata**: Title, description, genre, and production details
 - **Script**: The screenplay, parsed into structured scenes
 - **Scenes**: Narrative units with unique IDs (S001, S002, etc.)
 - **Shots**: The atomic units where AI-generated assets are captured
 
-A single Laserman instance can manage multiple projects simultaneously, making it suitable for production studios working on several films or episodes at once.
+A single Lazer instance can manage multiple projects simultaneously, making it suitable for production studios working on several films or episodes at once.
 
-## Step 1: Log In to Laserman
+## Step 1: Log In to Lazer
 
 Navigate to [http://localhost:3000](http://localhost:3000) in your browser. If this is your first time accessing the application, you'll need to sign in.
 
 If you ran the database seed script during installation, a default user account was created:
 
 - **Email**: Use the seeded user email (check `prisma/seed.ts`)
-- **Password**: Set via NextAuth provider
+- **Password**: Set via Supabase Auth
 
-> **Note:** NextAuth v5 supports multiple authentication providers. The default setup uses email/password, but you can configure OAuth providers like Google or GitHub in `src/app/api/auth/[...nextauth]/route.ts`.
+> **Note:** Lazer uses Supabase Auth with a provider-agnostic abstraction layer. You can configure authentication providers (email/password, Google, GitHub, etc.) in your Supabase project dashboard under Authentication > Providers.
 
 ## Step 2: Create a New Project
 
@@ -40,7 +40,7 @@ Fill in the project details:
 Enter a descriptive name for your production:
 
 ```
-Example: "Laserman V2: The Awakening"
+Example: "Lazer V2: The Awakening"
 ```
 
 This name will appear in the project list and throughout the application.
@@ -88,7 +88,7 @@ After creating the project, you'll be directed to the project detail page. Click
 
 ### Supported Script Formats
 
-Laserman accepts screenplays in the following formats:
+Lazer accepts screenplays in the following formats:
 
 - **PDF**: Industry-standard screenplay format
 - **Final Draft (.fdx)**: Native Final Draft XML format
@@ -107,7 +107,7 @@ The parsing process typically takes 10-30 seconds, depending on script length an
 
 ### What Happens During Parsing
 
-Laserman uses OpenRouter (configured in `.env`) to:
+Lazer uses OpenRouter (configured in `.env`) to:
 
 1. Extract scene headers (INT/EXT, location, time of day)
 2. Identify scene boundaries
@@ -221,7 +221,7 @@ Click **Add Shot** to create a new shot within the scene:
 
 ## Understanding Shot Naming
 
-Laserman uses a hierarchical shot naming convention:
+Lazer uses a hierarchical shot naming convention:
 
 ```
 {SceneID}-{ShotNumber}
@@ -245,7 +245,7 @@ Now that your project structure is in place, you're ready to:
 
 1. **[Install the Chrome Extension](/docs/getting-started/extension-setup)**: Connect the browser extension to capture AI-generated assets
 2. **Generate Assets**: Use external platforms (Sora, Veo, Freepik) to create images and videos
-3. **Capture Versions**: Use the Chrome extension to save generated assets to Laserman
+3. **Capture Versions**: Use the Chrome extension to save generated assets to Lazer
 4. **Compare & Select**: Review captured versions and choose finals for each shot
 
 ## Best Practices
@@ -282,7 +282,7 @@ If the upload times out or fails:
 
 - Check file size (PDFs over 50MB may fail)
 - Ensure file is not password-protected or encrypted
-- Verify `OPENROUTER_API_KEY` is set correctly in `.env`
+- Verify `API_KEY` is set correctly in `.env`
 
 ### Scene Parsing Errors
 
@@ -316,6 +316,6 @@ You can still edit scene metadata after confirmation:
 
 ## Conclusion
 
-You've successfully created your first Laserman project and uploaded a structured screenplay. Your scenes and shots are now ready for asset generation and capture.
+You've successfully created your first Lazer project and uploaded a structured screenplay. Your scenes and shots are now ready for asset generation and capture.
 
 Continue to [Chrome Extension Setup](/docs/getting-started/extension-setup) to install the browser extension and start capturing AI-generated assets.

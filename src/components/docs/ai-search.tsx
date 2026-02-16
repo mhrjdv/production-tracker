@@ -181,7 +181,7 @@ function AIInput() {
         ref={inputRef}
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="Ask about Laserman..."
+        placeholder="Ask about Lazer..."
         className="flex-1 bg-transparent text-sm outline-none placeholder:text-fd-muted-foreground"
         disabled={isLoading}
       />
@@ -449,7 +449,7 @@ export function AISearchPanel() {
               <div>
                 <p className="text-sm font-medium leading-none">Ask AI</p>
                 <p className="mt-0.5 text-[11px] text-fd-muted-foreground">
-                  Laserman Docs Assistant
+                  Lazer Docs Assistant
                 </p>
               </div>
             </div>
@@ -504,7 +504,7 @@ export function AISearchPanel() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-fd-foreground/80">
-                    Ask about Laserman
+                    Ask about Lazer
                   </p>
                   <p className="mt-1 text-xs">
                     Try: &quot;How do I capture assets?&quot;

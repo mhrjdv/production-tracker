@@ -1,6 +1,6 @@
 # E2E Testing Guide
 
-Playwright end-to-end tests for Laserman V2.
+Playwright end-to-end tests for Lazer V2.
 
 ## Overview
 

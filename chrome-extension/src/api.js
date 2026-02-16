@@ -1,5 +1,5 @@
 /* ==========================================================
-   API – HTTP layer for communicating with the Laserman webapp
+   API – HTTP layer for communicating with the Lazer webapp
    ========================================================== */
 
 import { getConfig, normalizeBaseUrl } from "./config.js";

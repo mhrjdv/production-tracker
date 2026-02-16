@@ -135,7 +135,7 @@ describe("/api/extension/profile", () => {
 
       const request = createMockRequest("/api/extension/profile", {
         method: "PUT",
-        headers: { Authorization: "Bearer lmt_test_token" },
+        headers: { Authorization: "Bearer lzr_test_token" },
         body: { preferences: MOCK_PREFERENCES },
       });
       const response = await PUT(request);
@@ -152,7 +152,7 @@ describe("/api/extension/profile", () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer lmt_test_token",
+          Authorization: "Bearer lzr_test_token",
         },
         body: "not json {{{",
       });

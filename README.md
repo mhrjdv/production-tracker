@@ -1,142 +1,242 @@
-# 🎥 Production Tracker (Laserman V2)
+# Lazer
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/Prisma-7.0-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=for-the-badge&logo=prisma)](https://www.prisma.io/)
+[![MCP](https://img.shields.io/badge/MCP-53_tools-green?style=for-the-badge)](https://modelcontextprotocol.io/)
 
-> **The next-generation operating system for modern film and media production.**
+> **Generate anywhere, decide here, ship with traceability.**
 
-Production Tracker is a mission-critical platform designed to streamline the chaotic lifecycle of film production. Built for speed, reliability, and visual clarity, it provides production teams with a centralized command center to manage everything from world-building bibles to individual scene extractions and character development.
+Lazer is an **orchestration and traceability layer** for AI-assisted film production. It does not generate media. Instead, it manages the complete lifecycle of AI-generated assets across multiple generation platforms.
 
----
-
-## ✨ Key Features
-
-### 🏛️ Production Bible
-The single source of truth for your production. Maintain consistency across your world with a structured repository for lore, rules, and creative vision.
-
-### 🎭 Character OS
-Detailed character management including profiles, arcs, and relationships. Track character progression through the entire script lifecycle.
-
-### 🎬 Scene Intelligence
-Deep tracking of scenes, from initial descriptions to detailed extractions. Monitor production status and resource requirements on a per-scene basis.
-
-### 🔐 Secure Infrastructure
-Enterprise-grade authentication powered by **NextAuth.js**, ensuring your creative assets remain confidential.
-
-### ⚡ Rapid Interface
-A high-performance UI built with **React 19** and **Tailwind CSS 4.0**, featuring glassmorphism and micro-animations for an elite user experience.
-
-### 🔁 AI Versioning + Extension Sync
-Scene-level AI version tracking across platforms (prompt/model/output/status), plus a Chrome extension for one-click asynchronous sync from generation tools back into the project timeline.
-
-### 🧠 Prompt Ops + Profile Sync
-Per-scene prompt version reuse, metadata/tag filtering, profile-synced extension defaults (project/scene/platform/model), and OpenAI-compatible BYOK prompt refinement inside the extension popup.
-
-### 🎞️ Multi-Track Timeline
-Premiere-style horizontal timeline lanes for story, image, video, and audio pass visibility across the full scene sequence.
-
----
-
-## 🛠️ Tech Stack
-
-- **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-- **Frontend**: [React 19](https://reactjs.org/) & [Radix UI](https://www.radix-ui.com/)
-- **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
-- **Database**: [Prisma](https://www.prisma.io/) with PostgreSQL
-- **Auth**: [NextAuth.js v5 (Beta-30)](https://authjs.dev/)
-- **Validation**: [Zod](https://zod.dev/)
-
----
-
-## 🚀 Getting Started
-
-Follow these simple steps to get the environment running on your local machine.
-
-### 1. Prerequisites
-Ensure you have the following installed:
-- [Node.js 20+](https://nodejs.org/)
-- [PostgreSQL](https://www.postgresql.org/) (Local instance or Docker)
-
-### 2. Clone the Repository
-```bash
-git clone https://github.com/mhrjdv/production-tracker.git
-cd production-tracker
+```
+Draft -> Generate Elsewhere -> Capture -> Compare -> Select -> Approve -> Assemble
 ```
 
-### 3. Environment Setup
-Create a `.env` file in the root directory:
-```bash
-cp .env.example .env
-```
-*Note: Make sure to fill in your `DATABASE_URL` and `AUTH_SECRET`.*
+---
 
-### 4. Install Dependencies
+## How It Works
+
+1. **Plan** your production structure in the web app (projects, scenes, shots)
+2. **Create** prompt packages with platform-specific adaptations
+3. **Generate** on any AI platform (Sora, Veo, Midjourney, Freepik, Runway, etc.)
+4. **Capture** outputs instantly via the Chrome extension side panel
+5. **Compare** versions side-by-side in the web app
+6. **Select** winners and route them through approval
+7. **Assemble** your timeline from selected assets
+
+---
+
+## Key Features
+
+### Production Structure
+Organize work from Project down to Script, Scene, Shot, and Asset Version. Shots are the atomic unit of production — every AI-generated asset attaches to a shot.
+
+### Chrome Extension (Manifest V3)
+A persistent side panel that captures AI-generated outputs from any platform with one click. Four modes: Context, Capture, Reuse, and Queue. Supports offline queuing.
+
+### MCP Server (53 Tools)
+A built-in Model Context Protocol server that exposes every operation as structured tools. Connect Claude, ChatGPT, Cursor, or any MCP client to manage your entire production via AI.
+
+### Asset Versioning
+Immutable, append-only versions with full provenance tracking. Versions are never modified — selection is not deletion. Nine-stage status lifecycle from Draft to Final.
+
+### Multi-Platform Capture
+Platform detectors for Sora, Veo, Midjourney, Freepik, Runway, ElevenLabs, and Suno. DOM-based capture extracts prompts, parameters, and model info automatically.
+
+### Compare & Select
+Side-by-side version comparison with metadata overlay. Review captured versions across platforms and select winners for each shot.
+
+### Prompt Packages
+Reusable, platform-agnostic prompt definitions with per-platform adaptations, version tracking, and tag-based search.
+
+### Timeline View
+Premiere-style horizontal timeline lanes for story, image, video, and audio visibility across the full scene sequence.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | [Next.js 16](https://nextjs.org/) (App Router, Server Components) |
+| Frontend | [React 19](https://reactjs.org/), [Radix UI](https://www.radix-ui.com/), [Tailwind CSS 4](https://tailwindcss.com/) |
+| Database | [Prisma v7](https://www.prisma.io/) + PostgreSQL |
+| Auth | [Supabase Auth](https://supabase.com/auth) (provider-agnostic abstraction) |
+| Storage | [Cloudflare R2](https://www.cloudflare.com/products/r2/) (S3-compatible) |
+| AI | [OpenRouter](https://openrouter.ai/) via Vercel AI SDK |
+| Validation | [Zod v4](https://zod.dev/) |
+| MCP | [@modelcontextprotocol/sdk](https://modelcontextprotocol.io/) |
+| Extension | Chrome Manifest V3, Side Panel API |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- PostgreSQL 14+
+- Cloudflare R2 bucket
+- Supabase project (for auth)
+
+### Setup
+
 ```bash
+# Clone the repository
+git clone https://github.com/mhrjdv/lazer.git
+cd lazer
+
+# Install dependencies
 npm install
-```
 
-### 5. Database Initialization
-Prepare the database schema and seed initial data:
-```bash
+# Configure environment
+cp .env.example .env
+# Edit .env with your database, Supabase, R2, and OpenRouter credentials
+
+# Set up database
 npx prisma migrate dev
 npm run db:seed
-```
 
-### 6. Start Development Server
-```bash
+# Start development server
 npm run dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+The MCP server starts automatically on port 3100 alongside the dev server.
+
 ---
 
-## 📂 Project Architecture
+## Project Structure
 
-```text
+```
 src/
-├── app/          # Next.js App Router (Pages & API)
-├── components/   # UI Components (Atomic Design)
-│   └── ui/       # Shared base components (Shadcn)
-├── docs/         # System blueprints and architecture notes
-├── data/         # Static JSON datasets (Legacy Support)
-├── lib/          # Core utilities & DB connections
-└── types/        # TypeScript interfaces
-prisma/           # Database schema & seed scripts
-chrome-extension/ # Manifest V3 extension for async AI capture sync
+  app/              Next.js App Router (pages, API routes, OAuth)
+  components/       UI components (scene detail, shots, compare, timeline)
+  lib/              Core utilities, auth, AI, storage, server actions
+    auth/           Provider-agnostic auth abstraction (Supabase adapter)
+    oauth/          OAuth 2.0 endpoints for MCP clients
+    actions/        Server actions (asset, scene, shot, character)
+packages/
+  mcp-server/       @lazer/mcp-server (53 tools, 7 resources, 5 prompts)
+prisma/             Database schema & migrations
+chrome-extension/   Manifest V3 side panel extension
+content/docs/       Fumadocs documentation site
 ```
 
 ---
 
-## 🚢 Deployment
+## MCP Server
 
-The platform is optimized for deployment on **Vercel**. Ensure you configure your PostgreSQL database (e.g., Vercel Postgres, Supabase, or AWS RDS) and add the environment variables in the Vercel Dashboard.
+The built-in MCP server exposes every Lazer operation as structured tools for AI agents.
+
+| Capability | Count |
+|-----------|-------|
+| Tools | 53 across 11 domains |
+| Resources | 7 (schema, project trees, docs) |
+| Prompts | 5 (scene breakdown, shot planning, asset review, prompt refinement, production summary) |
+
+### Connect Your AI Client
+
+**ChatGPT** (OAuth):
+1. Settings -> Connected Apps -> Add MCP Server
+2. Enter `https://your-domain.com/mcp`
+3. Select OAuth — login flow handles the rest
+
+**Claude Desktop** (STDIO):
+```json
+{
+  "mcpServers": {
+    "lazer": {
+      "command": "npx",
+      "args": ["lazer-mcp", "--token", "lzr_your_token"],
+      "env": { "DATABASE_URL": "postgresql://..." }
+    }
+  }
+}
+```
+
+**Cursor** (STDIO): Same configuration as Claude Desktop, added in MCP settings.
+
+See [MCP documentation](content/docs/mcp-server/) for the full setup guide, tool reference, and authentication details.
+
+---
+
+## Chrome Extension
+
+Install the unpacked extension from the `chrome-extension/` directory:
+
+1. Navigate to `chrome://extensions`
+2. Enable Developer Mode
+3. Click "Load unpacked" and select the `chrome-extension/` folder
+4. Generate an API token on the Integrations page
+5. Configure the extension with your Lazer URL and token
+
+The extension uses the Side Panel API for a persistent workflow alongside generation platforms.
+
+---
+
+## Environment Variables
 
 ```bash
-npm run build
+# Database
+DATABASE_URL="postgresql://user:pass@localhost:5432/lazer_dev"
+
+# Supabase Auth
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+
+# AI (OpenRouter)
+API_KEY="sk-or-v1-..."
+AI_MODEL="anthropic/claude-haiku-4.5"
+
+# Cloudflare R2
+R2_ACCOUNT_ID="..."
+R2_ACCESS_KEY_ID="..."
+R2_SECRET_ACCESS_KEY="..."
+R2_BUCKET_NAME="lazer-assets"
+R2_PUBLIC_URL="https://..."
+
+# MCP Server (optional)
+LAZER_MCP_PORT=3100
+LAZER_MCP_DEFAULT_TOKEN="lzr_..."
 ```
 
 ---
 
-## 🤝 Contributing
+## Scripts
 
-We maintain a high standard for code quality and UI/UX excellence. Please ensure your contributions align with the project's design system.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+```bash
+npm run dev          # Start Next.js dev server (MCP auto-starts on :3100)
+npm run build        # Production build
+npm run lint         # ESLint
+npm run test         # Vitest unit tests
+npm run test:e2e     # Playwright E2E tests
+npm run ext:build    # Build Chrome extension
+npm run ext:watch    # Watch Chrome extension
+npm run db:migrate   # Run Prisma migrations
+npm run db:push      # Push schema changes
+npm run db:studio    # Open Prisma Studio
+npm run db:seed      # Seed database
+```
 
 ---
 
-## 📜 License
+## Documentation
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Full documentation is available at `/docs` when the app is running, powered by [Fumadocs](https://fumadocs.dev/).
+
+- [Getting Started](content/docs/getting-started/)
+- [Core Concepts](content/docs/concepts/)
+- [Web App Guide](content/docs/web-app/)
+- [Chrome Extension](content/docs/chrome-extension/)
+- [MCP Server](content/docs/mcp-server/)
+- [API Reference](content/docs/api-reference/)
+- [Supported Platforms](content/docs/platforms/)
 
 ---
 
-<p align="center">
-  Built with ❤️ for the future of filmmaking.
-</p>
+## License
+
+MIT

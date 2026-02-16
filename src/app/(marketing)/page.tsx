@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Laserman — AI Film Production Tracker",
+  title: "Lazer — AI Film Production Orchestration",
   description:
     "Generate anywhere, decide here, ship with traceability. The open-source orchestration layer for AI-assisted film production.",
 };
@@ -67,7 +67,7 @@ export default function LandingPage() {
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
               <Film className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight">Laserman</span>
+            <span className="text-lg font-bold tracking-tight">Lazer</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
@@ -150,7 +150,7 @@ export default function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="https://github.com/mihir-laserman/laserman-v2"
+              href="https://github.com/mihir-lazer/lazer-v2"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-6 py-3 text-sm font-medium text-foreground hover:bg-muted/50 transition-all"
@@ -392,13 +392,13 @@ export default function LandingPage() {
           </h2>
 
           <p className="text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
-            Laserman is completely open source under the MIT license. Self-host
-            it, extend it, contribute to it. Your production data stays yours.
+            Lazer is completely open source under the MIT license. Self-host it,
+            extend it, contribute to it. Your production data stays yours.
           </p>
 
           <div className="flex items-center justify-center gap-4">
             <a
-              href="https://github.com/mihir-laserman/laserman-v2"
+              href="https://github.com/mihir-lazer/lazer-v2"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-6 py-3 text-sm font-medium hover:bg-muted/50 transition-all"
@@ -445,7 +445,7 @@ export default function LandingPage() {
             <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
               <Film className="h-3 w-3 text-primary-foreground" />
             </div>
-            <span className="text-sm font-semibold">Laserman</span>
+            <span className="text-sm font-semibold">Lazer</span>
           </div>
 
           <div className="flex items-center gap-6 text-xs text-muted-foreground">
@@ -456,7 +456,7 @@ export default function LandingPage() {
               Documentation
             </Link>
             <a
-              href="https://github.com/mihir-laserman/laserman-v2"
+              href="https://github.com/mihir-lazer/lazer-v2"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

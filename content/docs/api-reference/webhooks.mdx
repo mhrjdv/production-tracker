@@ -9,7 +9,7 @@ description: Event-driven integrations (future feature)
 
 ## Overview
 
-Webhooks enable real-time notifications when events occur in your Laserman workspace. You'll be able to register HTTP endpoints to receive payloads when assets are created, statuses change, or selections are made.
+Webhooks enable real-time notifications when events occur in your Lazer workspace. You'll be able to register HTTP endpoints to receive payloads when assets are created, statuses change, or selections are made.
 
 ## Planned Events
 
@@ -149,7 +149,7 @@ Triggered when all required shots in a scene reach APPROVED status (future).
 - **Method** - Always POST
 - **Timeout** - 10 seconds
 - **Retries** - Up to 3 retries with exponential backoff
-- **Headers** - Includes `X-Laserman-Signature` for verification
+- **Headers** - Includes `X-Lazer-Signature` for verification
 
 ---
 
@@ -160,7 +160,7 @@ Triggered when all required shots in a scene reach APPROVED status (future).
 Each webhook request includes a signature header:
 
 ```
-X-Laserman-Signature: sha256=abc123def456...
+X-Lazer-Signature: sha256=abc123def456...
 ```
 
 The signature is computed as:
@@ -175,8 +175,8 @@ HMAC-SHA256(secret, timestamp + "." + body)
 const crypto = require('crypto');
 
 function verifyWebhook(request, secret) {
-  const signature = request.headers['x-laserman-signature'];
-  const timestamp = request.headers['x-laserman-timestamp'];
+  const signature = request.headers['x-lazer-signature'];
+  const timestamp = request.headers['x-lazer-timestamp'];
   const body = request.body;
 
   const expectedSignature = crypto
@@ -206,9 +206,9 @@ function verifyWebhook(request, secret) {
 POST /your/webhook/endpoint HTTP/1.1
 Host: your-server.com
 Content-Type: application/json
-X-Laserman-Signature: sha256=abc123...
-X-Laserman-Timestamp: 1708012800
-X-Laserman-Event: asset.created
+X-Lazer-Signature: sha256=abc123...
+X-Lazer-Timestamp: 1708012800
+X-Lazer-Event: asset.created
 
 {
   "event": "asset.created",
@@ -222,14 +222,14 @@ X-Laserman-Event: asset.created
 Your endpoint should respond with:
 
 - **Status Code** - 200 OK (any 2xx is success)
-- **Body** - Optional (ignored by Laserman)
+- **Body** - Optional (ignored by Lazer)
 - **Timeout** - Respond within 10 seconds
 
 ### Failure Handling
 
 If your endpoint fails (non-2xx, timeout, network error):
 
-- Laserman retries up to 3 times
+- Lazer retries up to 3 times
 - Backoff intervals: 30s, 2m, 10m
 - After 3 failures, webhook delivery is marked as failed
 - Failed deliveries appear in webhook logs (planned UI)
@@ -283,7 +283,7 @@ The webhook UI will include a "Send Test Event" button that sends a sample paylo
 
 ```javascript
 // Your webhook handler
-app.post('/webhooks/laserman', async (req, res) => {
+app.post('/webhooks/lazer', async (req, res) => {
   const { event, data } = req.body;
 
   if (event === 'asset.selected') {
@@ -303,7 +303,7 @@ app.post('/webhooks/laserman', async (req, res) => {
 ### Timeline Auto-Update
 
 ```javascript
-app.post('/webhooks/laserman', async (req, res) => {
+app.post('/webhooks/lazer', async (req, res) => {
   const { event, data } = req.body;
 
   if (event === 'asset.selected') {
@@ -322,7 +322,7 @@ app.post('/webhooks/laserman', async (req, res) => {
 ### Analytics Tracking
 
 ```javascript
-app.post('/webhooks/laserman', async (req, res) => {
+app.post('/webhooks/lazer', async (req, res) => {
   const { event, data } = req.body;
 
   await analytics.track({
