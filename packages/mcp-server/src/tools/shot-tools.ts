@@ -100,7 +100,7 @@ export function registerShotTools(
         const maxCode = existing.length > 0 ? existing[0].shotCode : null;
         const shotCode = nextShotCode(maxCode);
         const maxSort = existing.reduce(
-          (max, s) => Math.max(max, s.sortOrder),
+          (max: number, s: { sortOrder: number }) => Math.max(max, s.sortOrder),
           -1,
         );
 

@@ -1,5 +1,10 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
+
+type TransactionClient = Omit<
+  PrismaClient,
+  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
+>;
 import type { ServerDependencies } from "../server.js";
 import {
   WorkflowIngestSchema,
@@ -24,14 +29,21 @@ export function registerWorkflowTools(
     "workflow_ingest",
     "Full asset ingest: resolve project/scene/platform/shot, create versioned asset",
     WorkflowIngestSchema.shape,
-    async ({ projectId, sceneId: sceneUserFacingId, platformSlug, ...fields }) => {
+    async ({
+      projectId,
+      sceneId: sceneUserFacingId,
+      platformSlug,
+      ...fields
+    }) => {
       try {
         const owned = await verifyProjectOwnership(prisma, projectId, userId);
         if (!owned) return forbidden();
 
         // Resolve scene by user-facing ID
         const scene = await prisma.scene.findUnique({
-          where: { projectId_sceneId: { projectId, sceneId: sceneUserFacingId } },
+          where: {
+            projectId_sceneId: { projectId, sceneId: sceneUserFacingId },
+          },
           select: { id: true },
         });
         if (!scene) return notFound("Scene", sceneUserFacingId);
@@ -41,7 +53,8 @@ export function registerWorkflowTools(
           where: { slug: platformSlug },
           select: { id: true, slug: true, name: true },
         });
-        if (!platform) return err(`Platform not found: ${platformSlug}`, "NOT_FOUND");
+        if (!platform)
+          return err(`Platform not found: ${platformSlug}`, "NOT_FOUND");
 
         // Resolve shot if shotCode provided
         let shotId: string | null = null;
@@ -54,53 +67,62 @@ export function registerWorkflowTools(
         }
 
         // Create asset in transaction
-        const asset = await prisma.$transaction(async (tx) => {
-          // Get next version number
-          const maxResult = await tx.sceneAssetVersion.aggregate({
-            where: {
-              sceneId: scene.id,
-              platformKey: platform.slug,
-              assetType: fields.assetType,
-            },
-            _max: { versionNumber: true },
-          });
-          const versionNumber = (maxResult._max.versionNumber ?? 0) + 1;
-
-          const isSelected = fields.selected || fields.status === "SELECTED";
-          if (isSelected) {
-            await tx.sceneAssetVersion.updateMany({
-              where: { sceneId: scene.id, assetType: fields.assetType, selected: true },
-              data: { selected: false, status: "GENERATED" },
+        const asset = await prisma.$transaction(
+          async (tx: TransactionClient) => {
+            // Get next version number
+            const maxResult = await tx.sceneAssetVersion.aggregate({
+              where: {
+                sceneId: scene.id,
+                platformKey: platform.slug,
+                assetType: fields.assetType,
+              },
+              _max: { versionNumber: true },
             });
-          }
+            const versionNumber = (maxResult._max.versionNumber ?? 0) + 1;
 
-          return tx.sceneAssetVersion.create({
-            data: {
-              sceneId: scene.id,
-              shotId,
-              platformKey: platform.slug,
-              platformLabel: platform.name,
-              platformId: platform.id,
-              assetType: fields.assetType,
-              prompt: fields.prompt,
-              negativePrompt: fields.negativePrompt ?? null,
-              modelName: fields.modelName ?? null,
-              sourceUrl: fields.sourceUrl ?? null,
-              externalAssetId: fields.externalAssetId ?? null,
-              outputUrl: fields.outputUrl ?? null,
-              thumbnailUrl: fields.thumbnailUrl ?? null,
-              metadata: (fields.metadata as Prisma.InputJsonValue) ?? undefined,
-              tags: fields.tags ?? [],
-              notes: fields.notes ?? null,
-              title: fields.title ?? null,
-              status: (fields.status as Prisma.SceneAssetVersionCreateInput["status"]) ?? "GENERATED",
-              selected: isSelected ?? false,
-              versionNumber,
-              compareGroup: fields.compareGroup ?? null,
-              createdById: userId,
-            },
-          });
-        });
+            const isSelected = fields.selected || fields.status === "SELECTED";
+            if (isSelected) {
+              await tx.sceneAssetVersion.updateMany({
+                where: {
+                  sceneId: scene.id,
+                  assetType: fields.assetType,
+                  selected: true,
+                },
+                data: { selected: false, status: "GENERATED" },
+              });
+            }
+
+            return tx.sceneAssetVersion.create({
+              data: {
+                sceneId: scene.id,
+                shotId,
+                platformKey: platform.slug,
+                platformLabel: platform.name,
+                platformId: platform.id,
+                assetType: fields.assetType,
+                prompt: fields.prompt,
+                negativePrompt: fields.negativePrompt ?? null,
+                modelName: fields.modelName ?? null,
+                sourceUrl: fields.sourceUrl ?? null,
+                externalAssetId: fields.externalAssetId ?? null,
+                outputUrl: fields.outputUrl ?? null,
+                thumbnailUrl: fields.thumbnailUrl ?? null,
+                metadata:
+                  (fields.metadata as Prisma.InputJsonValue) ?? undefined,
+                tags: fields.tags ?? [],
+                notes: fields.notes ?? null,
+                title: fields.title ?? null,
+                status:
+                  (fields.status as Prisma.SceneAssetVersionCreateInput["status"]) ??
+                  "GENERATED",
+                selected: isSelected ?? false,
+                versionNumber,
+                compareGroup: fields.compareGroup ?? null,
+                createdById: userId,
+              },
+            });
+          },
+        );
 
         return ok({
           ok: true,
@@ -175,11 +197,17 @@ export function registerWorkflowTools(
             shots: {
               orderBy: { sortOrder: "asc" },
               include: {
-                characters: { include: { character: { select: { id: true, name: true } } } },
+                characters: {
+                  include: { character: { select: { id: true, name: true } } },
+                },
                 _count: { select: { assets: true } },
               },
             },
-            characters: { include: { character: { select: { id: true, name: true, role: true } } } },
+            characters: {
+              include: {
+                character: { select: { id: true, name: true, role: true } },
+              },
+            },
             assets: {
               orderBy: { createdAt: "desc" },
               take: 20,
@@ -223,24 +251,29 @@ export function registerWorkflowTools(
         const owned = await verifyProjectOwnership(prisma, projectId, userId);
         if (!owned) return forbidden();
 
-        const [sceneCount, shotCount, assetsByStatus, assetsByType, selectedAssets] =
-          await Promise.all([
-            prisma.scene.count({ where: { projectId } }),
-            prisma.shot.count({ where: { scene: { projectId } } }),
-            prisma.sceneAssetVersion.groupBy({
-              by: ["status"],
-              where: { scene: { projectId } },
-              _count: true,
-            }),
-            prisma.sceneAssetVersion.groupBy({
-              by: ["assetType"],
-              where: { scene: { projectId } },
-              _count: true,
-            }),
-            prisma.sceneAssetVersion.count({
-              where: { scene: { projectId }, selected: true },
-            }),
-          ]);
+        const [
+          sceneCount,
+          shotCount,
+          assetsByStatus,
+          assetsByType,
+          selectedAssets,
+        ] = await Promise.all([
+          prisma.scene.count({ where: { projectId } }),
+          prisma.shot.count({ where: { scene: { projectId } } }),
+          prisma.sceneAssetVersion.groupBy({
+            by: ["status"],
+            where: { scene: { projectId } },
+            _count: true,
+          }),
+          prisma.sceneAssetVersion.groupBy({
+            by: ["assetType"],
+            where: { scene: { projectId } },
+            _count: true,
+          }),
+          prisma.sceneAssetVersion.count({
+            where: { scene: { projectId }, selected: true },
+          }),
+        ]);
 
         return ok({
           projectId,
@@ -248,12 +281,21 @@ export function registerWorkflowTools(
           shots: shotCount,
           selectedAssets,
           assetsByStatus: Object.fromEntries(
-            assetsByStatus.map((r) => [r.status, r._count]),
+            assetsByStatus.map((r: { status: string; _count: number }) => [
+              r.status,
+              r._count,
+            ]),
           ),
           assetsByType: Object.fromEntries(
-            assetsByType.map((r) => [r.assetType, r._count]),
+            assetsByType.map((r: { assetType: string; _count: number }) => [
+              r.assetType,
+              r._count,
+            ]),
           ),
-          totalAssets: assetsByStatus.reduce((sum, r) => sum + r._count, 0),
+          totalAssets: assetsByStatus.reduce(
+            (sum: number, r: { _count: number }) => sum + r._count,
+            0,
+          ),
         });
       } catch (e) {
         return fromCatch(e);

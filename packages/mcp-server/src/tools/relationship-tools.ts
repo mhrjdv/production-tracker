@@ -76,13 +76,15 @@ export function registerRelationshipTools(
           where: { sceneId },
           select: { characterId: true },
         });
-        const existingIds = new Set(existing.map((e) => e.characterId));
+        const existingIds = new Set(
+          existing.map((e: { characterId: string }) => e.characterId),
+        );
         const targetIds = new Set(characterIds);
 
-        const toAdd = characterIds.filter((id) => !existingIds.has(id));
+        const toAdd = characterIds.filter((id: string) => !existingIds.has(id));
         const toRemove = existing
-          .map((e) => e.characterId)
-          .filter((id) => !targetIds.has(id));
+          .map((e: { characterId: string }) => e.characterId)
+          .filter((id: string) => !targetIds.has(id));
 
         await Promise.all([
           ...toAdd.map((cId) =>
@@ -99,7 +101,11 @@ export function registerRelationshipTools(
             : []),
         ]);
 
-        return ok({ synced: true, added: toAdd.length, removed: toRemove.length });
+        return ok({
+          synced: true,
+          added: toAdd.length,
+          removed: toRemove.length,
+        });
       } catch (e) {
         return fromCatch(e);
       }
@@ -162,13 +168,15 @@ export function registerRelationshipTools(
           where: { shotId },
           select: { characterId: true },
         });
-        const existingIds = new Set(existing.map((e) => e.characterId));
+        const existingIds = new Set(
+          existing.map((e: { characterId: string }) => e.characterId),
+        );
         const targetIds = new Set(characterIds);
 
-        const toAdd = characterIds.filter((id) => !existingIds.has(id));
+        const toAdd = characterIds.filter((id: string) => !existingIds.has(id));
         const toRemove = existing
-          .map((e) => e.characterId)
-          .filter((id) => !targetIds.has(id));
+          .map((e: { characterId: string }) => e.characterId)
+          .filter((id: string) => !targetIds.has(id));
 
         await Promise.all([
           ...toAdd.map((cId) =>
@@ -185,7 +193,11 @@ export function registerRelationshipTools(
             : []),
         ]);
 
-        return ok({ synced: true, added: toAdd.length, removed: toRemove.length });
+        return ok({
+          synced: true,
+          added: toAdd.length,
+          removed: toRemove.length,
+        });
       } catch (e) {
         return fromCatch(e);
       }
